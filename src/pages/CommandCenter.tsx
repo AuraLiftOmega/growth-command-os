@@ -21,7 +21,8 @@ import {
   Link2,
   Megaphone,
   Building2,
-  DollarSign
+  DollarSign,
+  Radio
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -42,8 +43,10 @@ import {
   MultiTenantControl 
 } from "@/components/universal";
 import { CashEngineDashboard } from "@/components/cash-engine";
+import { TrafficEngineDashboard } from "@/components/traffic-engine";
 import { useDominionStore } from "@/stores/dominion-core-store";
 import { useCashEngineStore } from "@/stores/cash-engine-store";
+import { useTrafficEngineStore } from "@/stores/traffic-engine-store";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -52,7 +55,7 @@ const CommandCenter = () => {
   const navigate = useNavigate();
   const { industry, tenantMode, isSelfMarketingActive } = useDominionStore();
   const { isActive: isCashEngineActive } = useCashEngineStore();
-
+  const { isActive: isTrafficEngineActive } = useTrafficEngineStore();
   return (
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar />
@@ -93,6 +96,12 @@ const CommandCenter = () => {
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20">
                     <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                     <span className="text-xs font-medium text-success">Cash Engine Active</span>
+                  </div>
+                )}
+                {isTrafficEngineActive && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-medium text-emerald-400">Traffic Engine Live</span>
                   </div>
                 )}
               </div>
@@ -144,6 +153,10 @@ const CommandCenter = () => {
               <TabsTrigger value="cash-engine" className="data-[state=active]:bg-success data-[state=active]:text-success-foreground gap-2">
                 <DollarSign className="w-4 h-4" />
                 Cash Engine
+              </TabsTrigger>
+              <TabsTrigger value="traffic-engine" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-2">
+                <Radio className="w-4 h-4" />
+                Traffic Engine
               </TabsTrigger>
               
               {/* Defense & Scale */}
@@ -230,6 +243,10 @@ const CommandCenter = () => {
 
             <TabsContent value="cash-engine" className="mt-0">
               <CashEngineDashboard />
+            </TabsContent>
+
+            <TabsContent value="traffic-engine" className="mt-0">
+              <TrafficEngineDashboard />
             </TabsContent>
 
             {/* Defense & Scale */}
