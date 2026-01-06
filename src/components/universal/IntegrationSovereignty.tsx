@@ -245,6 +245,10 @@ export const IntegrationSovereignty = () => {
       {/* Orchestration Status */}
       <div className="glass-card p-6">
         <h3 className="text-lg font-semibold mb-4">Orchestration Layer</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          DOMINION acts as the command layer. Existing tools become execution nodes. 
+          No forced migrations. No operational disruption.
+        </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
             <div className="flex items-center gap-3">
@@ -275,6 +279,39 @@ export const IntegrationSovereignty = () => {
             <span className="text-xs text-muted-foreground">Calendly, Email</span>
           </div>
         </div>
+      </div>
+
+      {/* Command Layer Visualization */}
+      <div className="glass-card p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-primary" />
+          Command Layer Architecture
+        </h3>
+        <div className="relative">
+          {/* DOMINION Core */}
+          <div className="p-4 rounded-lg bg-primary/10 border-2 border-primary/50 text-center mb-4">
+            <p className="font-semibold text-primary">DOMINION CORE</p>
+            <p className="text-xs text-muted-foreground">Central Intelligence & Orchestration</p>
+          </div>
+          
+          {/* Arrows */}
+          <div className="flex justify-center mb-4">
+            <div className="w-px h-6 bg-primary/50" />
+          </div>
+          
+          {/* Execution Nodes */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {['CRM', 'Ads', 'Email', 'Commerce'].map((node) => (
+              <div key={node} className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+                <p className="text-sm font-medium">{node}</p>
+                <p className="text-xs text-muted-foreground">Execution Node</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-4 text-center">
+          DOMINION never requires full system replacement. Your tools execute, DOMINION commands.
+        </p>
       </div>
     </div>
   );

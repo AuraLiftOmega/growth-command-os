@@ -11,7 +11,8 @@ import {
   Check,
   Zap,
   Target,
-  DollarSign
+  DollarSign,
+  Wrench
 } from 'lucide-react';
 import { useDominionStore, INDUSTRY_TEMPLATES, OfferType, SalesMotion } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,8 @@ const industries = [
   { id: 'agency', name: 'Agency / Services', icon: Users, description: 'Professional services and consulting' },
   { id: 'coaching', name: 'Coaching / Info', icon: GraduationCap, description: 'Courses, coaching, info products' },
   { id: 'enterprise', name: 'Enterprise / B2B', icon: Building, description: 'High-value B2B solutions' },
+  { id: 'local_services', name: 'Local Services', icon: Building2, description: 'Plumbers, contractors, local pros' },
+  { id: 'high_ticket_consulting', name: 'High-Ticket Consulting', icon: Target, description: '$50K+ strategic advisory' },
 ];
 
 const offerTypes: { id: OfferType; name: string; description: string }[] = [
