@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { getDemoModeConfig, applyDemoModeDefaults } from '@/lib/demo-mode';
 
 /**
  * INDUSTRY ADAPTATION ENGINE
@@ -202,21 +203,25 @@ export const IndustryAdaptationEngine = ({
     setIsActivating(true);
     
     try {
-      // Apply ecommerce defaults
-      const defaultIndustry = 'ecommerce';
-      const template = INDUSTRY_TEMPLATES[defaultIndustry];
+      // Get demo mode defaults for ecommerce (or last selected industry)
+      const demoConfig = getDemoModeConfig(selectedIndustry || 'ecommerce');
+      const template = INDUSTRY_TEMPLATES[demoConfig.industry] || INDUSTRY_TEMPLATES['ecommerce'];
       
-      setIndustry(defaultIndustry, template);
-      setOfferType('physical_product');
-      setSalesMotion('self_serve');
-      setDealSize('mid');
-      setBuyingCycle(template.buyerPsychology.cycleLength);
+      // Apply using the demo mode helper
+      applyDemoModeDefaults(
+        setIndustry,
+        (type: string) => setOfferType(type as OfferType),
+        (motion: string) => setSalesMotion(motion as SalesMotion),
+        setDealSize,
+        setBuyingCycle,
+        demoConfig.industry
+      );
       
       const success = await activateEngine();
       
       if (success) {
         toast.success("DOMINION activated with industry defaults!", {
-          description: "You can customize settings anytime in Command Center."
+          description: `Configured for ${demoConfig.industryName}. Customize anytime.`
         });
         navigate('/dashboard');
       }
