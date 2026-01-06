@@ -169,6 +169,8 @@ export type Database = {
           published_at: string | null
           quality_score: number | null
           regeneration_count: number | null
+          render_progress: number | null
+          render_status: string | null
           revenue: number | null
           roas: number | null
           script: string | null
@@ -204,6 +206,8 @@ export type Database = {
           published_at?: string | null
           quality_score?: number | null
           regeneration_count?: number | null
+          render_progress?: number | null
+          render_status?: string | null
           revenue?: number | null
           roas?: number | null
           script?: string | null
@@ -239,6 +243,8 @@ export type Database = {
           published_at?: string | null
           quality_score?: number | null
           regeneration_count?: number | null
+          render_progress?: number | null
+          render_status?: string | null
           revenue?: number | null
           roas?: number | null
           script?: string | null
@@ -391,13 +397,17 @@ export type Database = {
           created_at: string
           deal_size: string
           duration_seconds: number | null
+          frames_generated: number | null
           id: string
           industry: string
           length: string
           narrative: Json
+          render_error: string | null
+          render_progress: number | null
           sales_stage: string
           status: string
           thumbnail_url: string | null
+          total_frames: number | null
           updated_at: string
           user_id: string
           variant: string
@@ -408,13 +418,17 @@ export type Database = {
           created_at?: string
           deal_size: string
           duration_seconds?: number | null
+          frames_generated?: number | null
           id?: string
           industry: string
           length: string
           narrative?: Json
+          render_error?: string | null
+          render_progress?: number | null
           sales_stage: string
           status?: string
           thumbnail_url?: string | null
+          total_frames?: number | null
           updated_at?: string
           user_id: string
           variant: string
@@ -425,13 +439,17 @@ export type Database = {
           created_at?: string
           deal_size?: string
           duration_seconds?: number | null
+          frames_generated?: number | null
           id?: string
           industry?: string
           length?: string
           narrative?: Json
+          render_error?: string | null
+          render_progress?: number | null
           sales_stage?: string
           status?: string
           thumbnail_url?: string | null
+          total_frames?: number | null
           updated_at?: string
           user_id?: string
           variant?: string
