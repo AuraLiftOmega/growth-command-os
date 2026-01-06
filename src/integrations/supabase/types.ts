@@ -561,6 +561,66 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          ai_credits_used_this_month: number
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          monthly_ai_credits: number
+          monthly_video_credits: number
+          plan: string
+          status: string
+          stores_limit: number
+          stores_used: number
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+          videos_used_this_month: number
+        }
+        Insert: {
+          ai_credits_used_this_month?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          monthly_ai_credits?: number
+          monthly_video_credits?: number
+          plan?: string
+          status?: string
+          stores_limit?: number
+          stores_used?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+          videos_used_this_month?: number
+        }
+        Update: {
+          ai_credits_used_this_month?: number
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          monthly_ai_credits?: number
+          monthly_video_credits?: number
+          plan?: string
+          status?: string
+          stores_limit?: number
+          stores_used?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+          videos_used_this_month?: number
+        }
+        Relationships: []
+      }
       system_events: {
         Row: {
           created_at: string
@@ -602,6 +662,57 @@ export type Database = {
           retry_count?: number | null
           severity?: string | null
           title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_store_connections: {
+        Row: {
+          admin_access_token: string | null
+          connected_at: string
+          id: string
+          is_active: boolean
+          is_primary: boolean
+          last_synced_at: string | null
+          orders_count: number | null
+          products_count: number | null
+          store_domain: string
+          store_name: string
+          storefront_access_token: string
+          total_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_access_token?: string | null
+          connected_at?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          last_synced_at?: string | null
+          orders_count?: number | null
+          products_count?: number | null
+          store_domain: string
+          store_name: string
+          storefront_access_token: string
+          total_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_access_token?: string | null
+          connected_at?: string
+          id?: string
+          is_active?: boolean
+          is_primary?: boolean
+          last_synced_at?: string | null
+          orders_count?: number | null
+          products_count?: number | null
+          store_domain?: string
+          store_name?: string
+          storefront_access_token?: string
+          total_revenue?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

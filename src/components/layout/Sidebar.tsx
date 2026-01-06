@@ -11,28 +11,42 @@ import {
   Users,
   Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription, PLAN_FEATURES } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   icon: React.ReactNode;
   label: string;
-  active?: boolean;
+  path: string;
   badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { icon: <LayoutDashboard className="w-5 h-5" />, label: "Command Center", active: true },
-  { icon: <Video className="w-5 h-5" />, label: "Video Generator", badge: "AI" },
-  { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox" },
-  { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics" },
-  { icon: <Store className="w-5 h-5" />, label: "Products" },
-  { icon: <Calendar className="w-5 h-5" />, label: "Scheduler" },
-  { icon: <Users className="w-5 h-5" />, label: "Audiences" },
-  { icon: <Zap className="w-5 h-5" />, label: "Automations" },
+  { icon: <LayoutDashboard className="w-5 h-5" />, label: "Command Center", path: "/" },
+  { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/", badge: "AI" },
+  { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/" },
+  { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/" },
+  { icon: <Store className="w-5 h-5" />, label: "Products", path: "/" },
+  { icon: <Calendar className="w-5 h-5" />, label: "Scheduler", path: "/" },
+  { icon: <Users className="w-5 h-5" />, label: "Audiences", path: "/" },
+  { icon: <Zap className="w-5 h-5" />, label: "Automations", path: "/" },
 ];
 
 export const Sidebar = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { subscription, isTrialing, trialDaysLeft } = useSubscription();
+
+  const isActive = (path: string) => {
+    if (path === "/settings") return location.pathname === "/settings";
+    return location.pathname === "/" && path === "/";
+  };
+
+  const planName = subscription ? PLAN_FEATURES[subscription.plan].name : "Free";
+  const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
 
   return (
     <motion.aside
@@ -56,54 +70,80 @@ export const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
-        {navItems.map((item, index) => (
-          <motion.button
-            key={item.label}
-            onClick={() => setActiveIndex(index)}
-            whileHover={{ x: 4 }}
-            whileTap={{ scale: 0.98 }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-              activeIndex === index
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-            }`}
-          >
-            <span className={activeIndex === index ? "text-primary" : ""}>
-              {item.icon}
-            </span>
-            <span className="flex-1 text-left">{item.label}</span>
-            {item.badge && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary">
-                {item.badge}
+        {navItems.map((item) => {
+          const active = isActive(item.path) && item.label === "Command Center";
+          return (
+            <motion.button
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                active
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+              }`}
+            >
+              <span className={active ? "text-primary" : ""}>
+                {item.icon}
               </span>
-            )}
-            {activeIndex === index && (
-              <motion.div
-                layoutId="activeIndicator"
-                className="w-1 h-6 bg-primary rounded-full"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            )}
-          </motion.button>
-        ))}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary">
+                  {item.badge}
+                </span>
+              )}
+              {active && (
+                <motion.div
+                  layoutId="activeIndicator"
+                  className="w-1 h-6 bg-primary rounded-full"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
       </nav>
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all">
+        <motion.button 
+          onClick={() => navigate("/settings")}
+          whileHover={{ x: 4 }}
+          whileTap={{ scale: 0.98 }}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+            location.pathname === "/settings"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          }`}
+        >
           <Settings className="w-5 h-5" />
           <span>Settings</span>
-        </button>
+          {location.pathname === "/settings" && (
+            <motion.div
+              layoutId="activeIndicator"
+              className="w-1 h-6 bg-primary rounded-full ml-auto"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+        </motion.button>
 
         {/* User Card */}
         <div className="mt-4 p-4 rounded-xl bg-sidebar-accent/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-primary-foreground font-bold text-sm">
-              JD
+              {userInitials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">John Doe</p>
-              <p className="text-xs text-muted-foreground truncate">Premium Plan</p>
+              <p className="text-sm font-medium truncate">{user?.email || "User"}</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xs text-muted-foreground">{planName}</p>
+                {isTrialing && (
+                  <Badge variant="outline" className="text-[9px] px-1 py-0">
+                    {trialDaysLeft}d left
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
