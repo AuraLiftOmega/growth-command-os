@@ -19,7 +19,14 @@ import {
   DemoPhaseController, 
   IntimidationOverlay, 
   ResidualCue,
-  DemoView 
+  DemoView,
+  // HIGH-TICKET CLOSE VARIANT™
+  HighTicketToggle,
+  ClosePhaseController,
+  OpportunityCostEscalator,
+  DecisionCollapseView,
+  ObjectionNeutralizationPanel,
+  FinalCloseSequence
 } from "@/components/intimidation";
 
 const queryClient = new QueryClient();
@@ -213,6 +220,14 @@ const App = () => (
           <IntimidationToggle />
           <DemoPhaseController />
           <ResidualCue />
+          
+          {/* HIGH-TICKET CLOSE VARIANT™ - Stacks on Intimidation Mode */}
+          <HighTicketToggle />
+          <ClosePhaseController />
+          <OpportunityCostEscalator />
+          <DecisionCollapseView />
+          <ObjectionNeutralizationPanel />
+          <FinalCloseSequence />
           
           <AppRoutes />
         </AuthProvider>
