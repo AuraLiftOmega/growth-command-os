@@ -3,9 +3,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -121,37 +119,35 @@ const Auth = () => {
         <div className="glass-card-elevated p-8 power-border">
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 Email
-              </Label>
-              <Input
+              </label>
+              <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="operator@company.com"
-                className="bg-secondary/60 border-border/60 h-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                 autoComplete="email"
-                tabIndex={1}
+                className="w-full h-12 px-4 rounded-md bg-secondary/60 border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
+              <label htmlFor="password" className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Lock className="w-4 h-4 text-muted-foreground" />
                 Password
-              </Label>
+              </label>
               <div className="relative">
-                <Input
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-secondary/60 border-border/60 h-12 pr-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                   autoComplete={isLogin ? "current-password" : "new-password"}
-                  tabIndex={2}
+                  className="w-full h-12 px-4 pr-12 rounded-md bg-secondary/60 border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
                 />
                 <button
                   type="button"
