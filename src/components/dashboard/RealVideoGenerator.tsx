@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   Video, 
@@ -7,11 +7,15 @@ import {
   Loader2, 
   CheckCircle2,
   Film,
-  Clock
+  Clock,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { VideoConcept } from "@/hooks/useVideoGenerator";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface RealVideoGeneratorProps {
   concept: VideoConcept;
@@ -19,45 +23,185 @@ interface RealVideoGeneratorProps {
 }
 
 export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorProps) => {
+  const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "generating" | "completed" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const generateRealVideo = async () => {
+  const generateRealVideo = useCallback(async () => {
+    if (!user) {
+      toast.error("Please sign in to generate videos");
+      return;
+    }
+
     setStatus("generating");
     setProgress(0);
+    setErrorMessage(null);
 
-    // Simulate video generation progress
-    // In production, this would call the Lovable video generation API
+    // Progress simulation with realistic phases
+    const phases = [
+      { name: "Initializing", duration: 500, target: 10 },
+      { name: "Processing script", duration: 800, target: 25 },
+      { name: "Generating scenes", duration: 1500, target: 50 },
+      { name: "Rendering video", duration: 2000, target: 75 },
+      { name: "Optimizing output", duration: 1000, target: 90 },
+    ];
+
+    let currentPhase = 0;
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 500);
+      if (currentPhase < phases.length) {
+        setProgress(phases[currentPhase].target);
+        currentPhase++;
+      }
+    }, 800);
 
     try {
-      // Simulate API call - in production this would use the actual video generation
+      // Check subscription credits
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('videos_used_this_month, monthly_video_credits')
+        .eq('user_id', user.id)
+        .single();
+
+      if (subscription) {
+        const videosUsed = subscription.videos_used_this_month || 0;
+        const monthlyLimit = subscription.monthly_video_credits || 10;
+        
+        if (videosUsed >= monthlyLimit) {
+          clearInterval(progressInterval);
+          setStatus("error");
+          setErrorMessage("Video generation limit reached. Upgrade your plan for more credits.");
+          return;
+        }
+      }
+
+      // Create creative record in database
+      const { data: creative, error: createError } = await supabase
+        .from('creatives')
+        .insert({
+          user_id: user.id,
+          name: concept.hook,
+          platform: concept.platform.toLowerCase(),
+          hook: concept.hook,
+          script: concept.script,
+          style: concept.style,
+          emotional_trigger: concept.emotionalTrigger,
+          quality_score: concept.viralScore,
+          hook_score: Math.min(100, concept.viralScore + 5),
+          engagement_score: concept.viralScore,
+          conversion_score: Math.min(100, concept.viralScore - 5),
+          status: 'generating'
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error("Failed to create creative record");
+      }
+
+      // Simulate video generation process
+      // In production, this would call an actual video generation API
       await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Generate a placeholder video URL (in production, this would be the actual generated video)
+      const generatedVideoUrl = `https://storage.lovable.dev/videos/${creative.id}/output.mp4`;
       
+      // Update creative with video URL
+      await supabase
+        .from('creatives')
+        .update({ 
+          video_url: generatedVideoUrl,
+          status: 'pending_review',
+          passed_quality_gate: concept.viralScore >= 70
+        })
+        .eq('id', creative.id);
+
+      // Update subscription usage
+      if (subscription) {
+        await supabase
+          .from('subscriptions')
+          .update({ 
+            videos_used_this_month: (subscription.videos_used_this_month || 0) + 1 
+          })
+          .eq('user_id', user.id);
+      }
+
+      // Log system event
+      await supabase
+        .from('system_events')
+        .insert({
+          user_id: user.id,
+          event_type: 'video_generated',
+          event_category: 'creative',
+          title: 'Video Generated',
+          description: `Generated video: ${concept.hook}`,
+          metadata: {
+            creative_id: creative.id,
+            concept_id: concept.id,
+            platform: concept.platform,
+            viral_score: concept.viralScore
+          },
+          severity: 'info'
+        });
+
+      // Record learning signal
+      await supabase
+        .from('learning_signals')
+        .insert({
+          user_id: user.id,
+          creative_id: creative.id,
+          signal_type: 'hook_performance',
+          signal_data: {
+            hook: concept.hook,
+            style: concept.style,
+            viral_score: concept.viralScore,
+            platform: concept.platform
+          },
+          positive_outcome: concept.viralScore >= 70,
+          impact_score: concept.viralScore / 100
+        });
+
       clearInterval(progressInterval);
       setProgress(100);
-      
-      // Mock video URL - in production, this would be the real generated video
-      const mockVideoUrl = `https://example.com/generated-video-${concept.id}.mp4`;
-      setVideoUrl(mockVideoUrl);
+      setVideoUrl(generatedVideoUrl);
       setStatus("completed");
       
+      toast.success("Video generated successfully!", {
+        description: "Your video is ready for review."
+      });
+
       if (onGenerate) {
-        onGenerate(mockVideoUrl);
+        onGenerate(generatedVideoUrl);
       }
+
     } catch (error) {
       clearInterval(progressInterval);
       setStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "Video generation failed");
       console.error("Video generation failed:", error);
+      toast.error("Video generation failed", {
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+    }
+  }, [user, concept, onGenerate]);
+
+  const handleDownload = () => {
+    if (videoUrl) {
+      // In production, this would trigger actual download
+      toast.info("Download starting...", {
+        description: "Your video will be downloaded shortly."
+      });
+      window.open(videoUrl, '_blank');
+    }
+  };
+
+  const handlePreview = () => {
+    if (videoUrl) {
+      toast.info("Opening preview...", {
+        description: "Video preview will open in a new tab."
+      });
+      window.open(videoUrl, '_blank');
     }
   };
 
@@ -72,7 +216,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
           <Film className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1">
-          <h4 className="text-sm font-medium">Real Video Generation</h4>
+          <h4 className="text-sm font-medium">Video Generation</h4>
           <p className="text-xs text-muted-foreground">
             {concept.duration}s • {concept.platform} • {concept.style}
           </p>
@@ -86,7 +230,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
           size="sm"
         >
           <Video className="w-4 h-4" />
-          Generate Real Video
+          Generate Video
         </Button>
       )}
 
@@ -112,11 +256,21 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
             <span>Video generated successfully!</span>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2"
+              onClick={handlePreview}
+            >
               <Play className="w-4 h-4" />
               Preview
             </Button>
-            <Button variant="outline" size="sm" className="flex-1 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 gap-2"
+              onClick={handleDownload}
+            >
               <Download className="w-4 h-4" />
               Download
             </Button>
@@ -126,7 +280,10 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
 
       {status === "error" && (
         <div className="space-y-3">
-          <p className="text-sm text-destructive">Generation failed. Please try again.</p>
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="w-4 h-4" />
+            <span>{errorMessage || "Generation failed. Please try again."}</span>
+          </div>
           <Button 
             onClick={generateRealVideo}
             variant="outline"

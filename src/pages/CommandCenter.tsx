@@ -42,7 +42,8 @@ import {
   SelfMarketingEngine, 
   IntegrationSovereignty, 
   MultiTenantControl,
-  GovernanceController 
+  GovernanceController,
+  SystemHealthVerification 
 } from "@/components/universal";
 import { CashEngineDashboard } from "@/components/cash-engine";
 import { TrafficEngineDashboard } from "@/components/traffic-engine";
@@ -208,6 +209,10 @@ const CommandCenter = () => {
                 <Crown className="w-4 h-4" />
                 Governance
               </TabsTrigger>
+              <TabsTrigger value="system-health" className="data-[state=active]:bg-success data-[state=active]:text-success-foreground gap-2">
+                <Shield className="w-4 h-4" />
+                System Health
+              </TabsTrigger>
             </TabsList>
 
             {/* Quick Access to War Room */}
@@ -303,6 +308,10 @@ const CommandCenter = () => {
 
             <TabsContent value="governance" className="mt-0">
               <GovernanceController />
+            </TabsContent>
+
+            <TabsContent value="system-health" className="mt-0">
+              <SystemHealthVerification />
             </TabsContent>
           </Tabs>
         </main>
