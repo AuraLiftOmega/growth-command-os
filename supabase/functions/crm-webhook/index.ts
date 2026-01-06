@@ -1,11 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
+import { encode as hexEncode } from "https://deno.land/std@0.190.0/encoding/hex.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const CRM_WEBHOOK_SECRET = Deno.env.get("CRM_WEBHOOK_SECRET");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-signature",
 };
 
 interface CrmWebhookPayload {
@@ -22,17 +24,77 @@ interface CrmWebhookPayload {
   custom_data?: Record<string, any>;
 }
 
+// Verify webhook signature using HMAC-SHA256
+async function verifyWebhookSignature(payload: string, signature: string, secret: string): Promise<boolean> {
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    const signatureBytes = await crypto.subtle.sign("HMAC", key, encoder.encode(payload));
+    const expectedSignature = new TextDecoder().decode(hexEncode(new Uint8Array(signatureBytes)));
+    
+    // Constant-time comparison to prevent timing attacks
+    if (signature.length !== expectedSignature.length) return false;
+    let result = 0;
+    for (let i = 0; i < signature.length; i++) {
+      result |= signature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
+    }
+    return result === 0;
+  } catch (error) {
+    console.error("Signature verification error:", error);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // Verify webhook secret is configured
+  if (!CRM_WEBHOOK_SECRET) {
+    console.error("CRM_WEBHOOK_SECRET not configured");
+    return new Response(
+      JSON.stringify({ error: "Webhook not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Get the raw body for signature verification
+  const rawBody = await req.text();
+  
+  // Verify signature from header
+  const signature = req.headers.get("x-webhook-signature");
+  if (!signature) {
+    console.error("Missing X-Webhook-Signature header");
+    return new Response(
+      JSON.stringify({ error: "Missing signature" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  const isValid = await verifyWebhookSignature(rawBody, signature, CRM_WEBHOOK_SECRET);
+  if (!isValid) {
+    console.error("Invalid webhook signature");
+    return new Response(
+      JSON.stringify({ error: "Invalid signature" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  console.log("Webhook signature verified successfully");
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const payload: CrmWebhookPayload = await req.json();
+    const payload: CrmWebhookPayload = JSON.parse(rawBody);
     console.log("CRM webhook received:", JSON.stringify(payload));
 
     // Validate required fields
