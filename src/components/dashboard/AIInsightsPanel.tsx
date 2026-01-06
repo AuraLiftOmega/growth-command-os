@@ -77,7 +77,7 @@ export const AIInsightsPanel = () => {
           <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-success animate-pulse" />
         </div>
         <div>
-          <h3 className="font-display font-semibold text-lg">AI Command Center</h3>
+          <h3 className="font-display font-semibold text-lg">Omega AI</h3>
           <p className="text-muted-foreground text-sm">Real-time decisions</p>
         </div>
       </div>

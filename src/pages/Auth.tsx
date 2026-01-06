@@ -58,7 +58,7 @@ const Auth = () => {
             throw error;
           }
         } else {
-          toast.success("Account created! Welcome to the command center.");
+          toast.success("Account created! Welcome to Omega.");
           navigate("/onboarding");
         }
       }
@@ -88,10 +88,10 @@ const Auth = () => {
             <Rocket className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-display font-bold mb-2">
-            AI Commerce Command
+            Omega
           </h1>
           <p className="text-muted-foreground">
-            {isLogin ? "Sign in to your command center" : "Create your account to get started"}
+            {isLogin ? "Sign in to your account" : "Create your account to get started"}
           </p>
         </div>
 
