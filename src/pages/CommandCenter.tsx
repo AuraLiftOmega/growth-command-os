@@ -11,7 +11,8 @@ import {
   Rocket, 
   TrendingUp, 
   Eye,
-  Shield 
+  Shield,
+  Zap
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -20,6 +21,7 @@ import { DominationRollout } from "@/components/command-center/DominationRollout
 import { ProofEngine } from "@/components/command-center/ProofEngine";
 import { DailyCommandView } from "@/components/command-center/DailyCommandView";
 import { PermissionMatrix } from "@/components/command-center/PermissionMatrix";
+import ColdDMEngine from "@/components/command-center/ColdDMEngine";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -68,6 +70,10 @@ const CommandCenter = () => {
                 <Users className="w-4 h-4" />
                 Power Users
               </TabsTrigger>
+              <TabsTrigger value="dm-engine" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+                <Zap className="w-4 h-4" />
+                DM Engine
+              </TabsTrigger>
               <TabsTrigger value="rollout" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Rocket className="w-4 h-4" />
                 Rollout
@@ -108,6 +114,10 @@ const CommandCenter = () => {
 
             <TabsContent value="power-users" className="mt-0">
               <PowerUsersSystem />
+            </TabsContent>
+
+            <TabsContent value="dm-engine" className="mt-0">
+              <ColdDMEngine />
             </TabsContent>
 
             <TabsContent value="rollout" className="mt-0">
