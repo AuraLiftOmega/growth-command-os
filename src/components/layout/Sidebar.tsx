@@ -10,7 +10,8 @@ import {
   Calendar,
   Users,
   Zap,
-  Swords
+  Swords,
+  Crown
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +27,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/dashboard" },
+  { icon: <Crown className="w-5 h-5" />, label: "Command Center", path: "/command-center", badge: "CEO" },
   { icon: <Swords className="w-5 h-5" />, label: "Revenue War Room", path: "/war-room", badge: "SALES" },
   { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/dashboard", badge: "AI" },
   { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/dashboard" },
@@ -45,6 +47,7 @@ export const Sidebar = () => {
   const isActive = (path: string, label: string) => {
     if (path === "/settings") return location.pathname === "/settings";
     if (path === "/war-room") return location.pathname === "/war-room";
+    if (path === "/command-center") return location.pathname === "/command-center";
     return location.pathname === "/dashboard" && path === "/dashboard" && label === "Dashboard";
   };
 

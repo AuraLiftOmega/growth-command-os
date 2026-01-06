@@ -254,6 +254,45 @@ export type Database = {
         }
         Relationships: []
       }
+      language_violations: {
+        Row: {
+          content: string
+          context: string | null
+          created_at: string
+          flagged_word: string | null
+          id: string
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          user_id: string
+          violation_type: string
+        }
+        Insert: {
+          content: string
+          context?: string | null
+          created_at?: string
+          flagged_word?: string | null
+          id?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id: string
+          violation_type: string
+        }
+        Update: {
+          content?: string
+          context?: string | null
+          created_at?: string
+          flagged_word?: string | null
+          id?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_id?: string
+          violation_type?: string
+        }
+        Relationships: []
+      }
       learning_signals: {
         Row: {
           created_at: string
@@ -534,6 +573,57 @@ export type Database = {
         }
         Relationships: []
       }
+      power_user_applications: {
+        Row: {
+          approval_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          brand_name: string
+          contact_email: string
+          contact_name: string
+          created_at: string
+          current_ad_spend: string
+          growth_bottleneck: string
+          id: string
+          is_decision_maker: boolean
+          monthly_revenue: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          brand_name: string
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          current_ad_spend: string
+          growth_bottleneck: string
+          id?: string
+          is_decision_maker?: boolean
+          monthly_revenue: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approval_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          brand_name?: string
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          current_ad_spend?: string
+          growth_bottleneck?: string
+          id?: string
+          is_decision_maker?: boolean
+          monthly_revenue?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           brand_name: string | null
@@ -558,6 +648,129 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      proof_assets: {
+        Row: {
+          approved_for: string[] | null
+          asset_type: string
+          brand_name: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_anonymized: boolean | null
+          is_approved: boolean | null
+          metric_unit: string | null
+          metric_value: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_for?: string[] | null
+          asset_type: string
+          brand_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_anonymized?: boolean | null
+          is_approved?: boolean | null
+          metric_unit?: string | null
+          metric_value?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_for?: string[] | null
+          asset_type?: string
+          brand_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_anonymized?: boolean | null
+          is_approved?: boolean | null
+          metric_unit?: string | null
+          metric_value?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rollout_status: {
+        Row: {
+          completed_at: string | null
+          conditions_met: Json | null
+          created_at: string
+          id: string
+          notes: string | null
+          phase: number
+          phase_name: string
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          conditions_met?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          phase?: number
+          phase_name: string
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          conditions_met?: Json | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          phase?: number
+          phase_name?: string
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategic_doctrine: {
+        Row: {
+          approved_language: string[]
+          created_at: string
+          excluded_audience: string
+          forbidden_language: string[]
+          id: string
+          last_edited_by: string
+          market_category: string
+          north_star: string
+          target_audience: string
+          updated_at: string
+        }
+        Insert: {
+          approved_language?: string[]
+          created_at?: string
+          excluded_audience: string
+          forbidden_language?: string[]
+          id?: string
+          last_edited_by: string
+          market_category: string
+          north_star: string
+          target_audience: string
+          updated_at?: string
+        }
+        Update: {
+          approved_language?: string[]
+          created_at?: string
+          excluded_audience?: string
+          forbidden_language?: string[]
+          id?: string
+          last_edited_by?: string
+          market_category?: string
+          north_star?: string
+          target_audience?: string
+          updated_at?: string
         }
         Relationships: []
       }

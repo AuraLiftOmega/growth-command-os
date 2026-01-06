@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import RevenueWarRoom from "./pages/RevenueWarRoom";
+import CommandCenter from "./pages/CommandCenter";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +177,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRouteWithRedirect>
             <RevenueWarRoom />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
+      <Route 
+        path="/command-center" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <CommandCenter />
           </ProtectedRouteWithRedirect>
         } 
       />
