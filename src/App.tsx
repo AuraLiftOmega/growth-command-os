@@ -3,22 +3,135 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route component
+// Auth-protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isCompleted } = useOnboardingStore();
-  
+  const { user, loading } = useAuth();
+  const { isCompleted, loadFromDatabase, isLoading } = useOnboardingStore();
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      loadFromDatabase(user.id);
+    }
+  }, [user]);
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (!isCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
-  
+
   return <>{children}</>;
+};
+
+// Onboarding route - requires auth but not completion
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const { isCompleted, loadFromDatabase, isLoading, isSynced } = useOnboardingStore();
+
+  useEffect(() => {
+    if (user && !isSynced && !isLoading) {
+      loadFromDatabase(user.id);
+    }
+  }, [user, isSynced, isLoading]);
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (isCompleted) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Auth route - redirects if already authenticated
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const { isCompleted, loadFromDatabase, isLoading, isSynced } = useOnboardingStore();
+
+  useEffect(() => {
+    if (user && !isSynced && !isLoading) {
+      loadFromDatabase(user.id);
+    }
+  }, [user, isSynced, isLoading]);
+
+  if (loading || (user && isLoading)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    if (isCompleted) {
+      return <Navigate to="/" replace />;
+    }
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route 
+        path="/auth" 
+        element={
+          <AuthRoute>
+            <Auth />
+          </AuthRoute>
+        } 
+      />
+      <Route 
+        path="/onboarding" 
+        element={
+          <OnboardingRoute>
+            <Onboarding />
+          </OnboardingRoute>
+        } 
+      />
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 };
 
 const App = () => (
@@ -27,19 +140,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route 
-            path="/" 
-            element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } 
-          />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

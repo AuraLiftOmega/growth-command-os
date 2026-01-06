@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
-import { Rocket, Zap, RefreshCw, Brain, Target, ToggleLeft, ToggleRight } from "lucide-react";
-import { useState } from "react";
+import { Rocket, Zap, RefreshCw, Brain, Target, ToggleLeft, ToggleRight, Cloud } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { automationService } from "@/services/database-service";
 
 interface ScaleSetting {
   id: string;
+  dbKey: string;
   label: string;
   description: string;
   icon: typeof Rocket;
@@ -11,9 +14,15 @@ interface ScaleSetting {
 }
 
 export const ScaleModePanel = () => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+
   const [settings, setSettings] = useState<ScaleSetting[]>([
     {
       id: "aggressive-testing",
+      dbKey: "aggressive_testing",
       label: "Aggressive Creative Testing",
       description: "Generate 10x variations, test faster",
       icon: Rocket,
@@ -21,6 +30,7 @@ export const ScaleModePanel = () => {
     },
     {
       id: "auto-regeneration",
+      dbKey: "auto_regeneration",
       label: "Auto-Regeneration",
       description: "Weak outputs regenerate silently",
       icon: RefreshCw,
@@ -28,6 +38,7 @@ export const ScaleModePanel = () => {
     },
     {
       id: "multi-variation",
+      dbKey: "multi_variation",
       label: "Multi-Variation Generation",
       description: "Every prompt creates 5-10 variants",
       icon: Target,
@@ -35,6 +46,7 @@ export const ScaleModePanel = () => {
     },
     {
       id: "auto-posting",
+      dbKey: "auto_posting",
       label: "Auto-Post & Repost Winners",
       description: "Scale winners 24/7 automatically",
       icon: Zap,
@@ -42,6 +54,7 @@ export const ScaleModePanel = () => {
     },
     {
       id: "performance-scaling",
+      dbKey: "performance_scaling",
       label: "Performance-Based Scaling",
       description: "Budget follows ROAS automatically",
       icon: Brain,
@@ -50,14 +63,89 @@ export const ScaleModePanel = () => {
   ]);
 
   const [humanApproval, setHumanApproval] = useState(false);
+  const [stats, setStats] = useState({
+    creativesToday: 847,
+    autoKilled: 23,
+    scalingNow: 12,
+  });
+
+  // Load settings from database
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+      
+      try {
+        const data = await automationService.fetchSettings(user.id);
+        if (data) {
+          setSettings(prev => prev.map(s => ({
+            ...s,
+            enabled: data[s.dbKey as keyof typeof data] as boolean ?? s.enabled,
+          })));
+          setHumanApproval(data.human_approval_required ?? false);
+          setStats({
+            creativesToday: data.creatives_generated_today ?? 847,
+            autoKilled: data.auto_killed_today ?? 23,
+            scalingNow: data.scaling_now ?? 12,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading automation settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [user]);
+
+  // Debounced save function
+  const saveSettings = useCallback(async (updatedSettings: ScaleSetting[], updatedHumanApproval: boolean) => {
+    if (!user) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    setIsSaving(true);
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const updateData: Record<string, boolean> = {
+          human_approval_required: updatedHumanApproval,
+        };
+        updatedSettings.forEach(s => {
+          updateData[s.dbKey] = s.enabled;
+        });
+        
+        await automationService.updateSettings(user.id, updateData);
+      } catch (error) {
+        console.error("Error saving automation settings:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 500);
+  }, [user]);
 
   const toggleSetting = (id: string) => {
-    setSettings(prev =>
-      prev.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s))
-    );
+    const updated = settings.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s));
+    setSettings(updated);
+    saveSettings(updated, humanApproval);
+  };
+
+  const toggleHumanApproval = () => {
+    const updated = !humanApproval;
+    setHumanApproval(updated);
+    saveSettings(settings, updated);
   };
 
   const allEnabled = settings.every(s => s.enabled);
+
+  if (isLoading) {
+    return (
+      <div className="glass-card-elevated p-6 flex items-center justify-center min-h-[300px]">
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -83,12 +171,17 @@ export const ScaleModePanel = () => {
             </p>
           </div>
         </div>
-        <div className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider ${
-          allEnabled 
-            ? "bg-success/20 text-success border border-success/30" 
-            : "bg-warning/20 text-warning border border-warning/30"
-        }`}>
-          {allEnabled ? "FULL AUTO" : "PARTIAL"}
+        <div className="flex items-center gap-2">
+          {isSaving && (
+            <Cloud className="w-4 h-4 text-primary animate-pulse" />
+          )}
+          <div className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider ${
+            allEnabled 
+              ? "bg-success/20 text-success border border-success/30" 
+              : "bg-warning/20 text-warning border border-warning/30"
+          }`}>
+            {allEnabled ? "FULL AUTO" : "PARTIAL"}
+          </div>
         </div>
       </div>
 
@@ -131,7 +224,7 @@ export const ScaleModePanel = () => {
 
       {/* Human Approval Toggle */}
       <div
-        onClick={() => setHumanApproval(!humanApproval)}
+        onClick={toggleHumanApproval}
         className={`p-3 rounded-lg border cursor-pointer transition-all ${
           humanApproval
             ? "bg-warning/10 border-warning/30"
@@ -156,15 +249,15 @@ export const ScaleModePanel = () => {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/50">
         <div className="text-center">
-          <p className="text-2xl font-display font-bold text-success">847</p>
+          <p className="text-2xl font-display font-bold text-success">{stats.creativesToday}</p>
           <p className="text-xs text-muted-foreground">Creatives Today</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-display font-bold text-destructive">23</p>
+          <p className="text-2xl font-display font-bold text-destructive">{stats.autoKilled}</p>
           <p className="text-xs text-muted-foreground">Auto-Killed</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-display font-bold text-primary">12</p>
+          <p className="text-2xl font-display font-bold text-primary">{stats.scalingNow}</p>
           <p className="text-xs text-muted-foreground">Scaling Now</p>
         </div>
       </div>
