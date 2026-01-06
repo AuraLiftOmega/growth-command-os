@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.send-demo-email]
 verify_jwt = false
+
+[functions.crm-webhook]
+verify_jwt = false
