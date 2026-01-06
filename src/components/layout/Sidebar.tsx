@@ -24,14 +24,14 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: <LayoutDashboard className="w-5 h-5" />, label: "Command Center", path: "/" },
-  { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/", badge: "AI" },
-  { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/" },
-  { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/" },
-  { icon: <Store className="w-5 h-5" />, label: "Products", path: "/" },
-  { icon: <Calendar className="w-5 h-5" />, label: "Scheduler", path: "/" },
-  { icon: <Users className="w-5 h-5" />, label: "Audiences", path: "/" },
-  { icon: <Zap className="w-5 h-5" />, label: "Automations", path: "/" },
+  { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/dashboard" },
+  { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/dashboard", badge: "AI" },
+  { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/dashboard" },
+  { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/dashboard" },
+  { icon: <Store className="w-5 h-5" />, label: "Products", path: "/dashboard" },
+  { icon: <Calendar className="w-5 h-5" />, label: "Scheduler", path: "/dashboard" },
+  { icon: <Users className="w-5 h-5" />, label: "Audiences", path: "/dashboard" },
+  { icon: <Zap className="w-5 h-5" />, label: "Automations", path: "/dashboard" },
 ];
 
 export const Sidebar = () => {
@@ -42,7 +42,7 @@ export const Sidebar = () => {
 
   const isActive = (path: string) => {
     if (path === "/settings") return location.pathname === "/settings";
-    return location.pathname === "/" && path === "/";
+    return location.pathname === "/dashboard" && path === "/dashboard";
   };
 
   const planName = subscription ? PLAN_FEATURES[subscription.plan].name : "Free";
@@ -71,7 +71,7 @@ export const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
-          const active = isActive(item.path) && item.label === "Command Center";
+          const active = isActive(item.path) && item.label === "Dashboard";
           return (
             <motion.button
               key={item.label}
