@@ -2,11 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize,
   Loader2,
   Crown,
   Building2,
@@ -14,10 +9,10 @@ import {
   VolumeX as MuteIcon
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { DemoVideoPlayer } from '@/components/demo-engine/DemoVideoPlayer';
+import { DEMO_MODE_VIDEOS } from '@/lib/demo-mode';
 
 interface ShareLinkData {
   id: string;
@@ -51,17 +46,15 @@ const SharedDemo = () => {
   const [shareData, setShareData] = useState<ShareLinkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [watchTime, setWatchTime] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const viewRecorded = useRef(false);
+  const [useFallbackDemo, setUseFallbackDemo] = useState(false);
 
   useEffect(() => {
     const fetchShareData = async () => {
       if (!shareCode) {
-        setError('Invalid share link');
+        // No share code - use fallback demo mode
+        setUseFallbackDemo(true);
         setLoading(false);
         return;
       }
@@ -92,14 +85,15 @@ const SharedDemo = () => {
           .single();
 
         if (fetchError || !data) {
-          setError('Demo not found or link has expired');
+          // Use fallback demo instead of showing error
+          setUseFallbackDemo(true);
           setLoading(false);
           return;
         }
 
         // Check expiration
         if (data.expires_at && new Date(data.expires_at) < new Date()) {
-          setError('This demo link has expired');
+          setUseFallbackDemo(true);
           setLoading(false);
           return;
         }
@@ -125,7 +119,8 @@ const SharedDemo = () => {
         }
       } catch (err) {
         console.error('Error fetching share data:', err);
-        setError('Failed to load demo');
+        // Use fallback instead of error
+        setUseFallbackDemo(true);
       } finally {
         setLoading(false);
       }
@@ -133,17 +128,6 @@ const SharedDemo = () => {
 
     fetchShareData();
   }, [shareCode]);
-
-  // Track watch time
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setWatchTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying]);
 
   // Update view record with watch time on unmount
   useEffect(() => {
@@ -164,39 +148,6 @@ const SharedDemo = () => {
     };
   }, [shareData, watchTime]);
 
-  const handlePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-    }
-    setIsPlaying(!isPlaying);
-    
-    // Animate progress
-    if (!isPlaying && shareData) {
-      const duration = shareData.demo_videos.duration_seconds || 120;
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            setIsPlaying(false);
-            return 100;
-          }
-          return prev + (100 / duration);
-        });
-      }, 1000);
-    }
-  };
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-    }
-    setIsMuted(!isMuted);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -208,36 +159,26 @@ const SharedDemo = () => {
     );
   }
 
-  if (error || !shareData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-            <Video className="w-8 h-8 text-destructive" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Demo Unavailable</h1>
-          <p className="text-muted-foreground">{error || 'This demo could not be found.'}</p>
-        </div>
-      </div>
-    );
-  }
+  // Use fallback demo data if needed
+  const fallbackDemo = DEMO_MODE_VIDEOS[0];
+  const demo = shareData?.demo_videos || {
+    id: fallbackDemo.id,
+    variant: fallbackDemo.variant,
+    industry: fallbackDemo.industryName,
+    deal_size: fallbackDemo.deal_size,
+    sales_stage: fallbackDemo.sales_stage,
+    narrative: fallbackDemo.narrative,
+    thumbnail_url: fallbackDemo.thumbnail_url,
+    video_url: fallbackDemo.video_url,
+    narration_url: fallbackDemo.narration_url,
+    duration_seconds: fallbackDemo.duration_seconds,
+  };
 
-  const demo = shareData.demo_videos;
   const narrative = demo.narrative as Record<string, any>;
   const VariantIcon = variantIcons[demo.variant] || Video;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Hidden audio element for narration */}
-      {demo.narration_url && (
-        <audio
-          ref={audioRef}
-          src={demo.narration_url}
-          preload="auto"
-          onEnded={() => setIsPlaying(false)}
-        />
-      )}
-
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <motion.div
@@ -245,10 +186,15 @@ const SharedDemo = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          {shareData.recipient_name && (
+          {shareData?.recipient_name && (
             <p className="text-muted-foreground mb-2">
               Prepared for <span className="font-medium text-foreground">{shareData.recipient_name}</span>
             </p>
+          )}
+          {useFallbackDemo && (
+            <Badge variant="secondary" className="mb-4">
+              Demo Preview
+            </Badge>
           )}
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             {demo.industry} Demo
@@ -264,79 +210,22 @@ const SharedDemo = () => {
           </div>
         </motion.div>
 
-        {/* Video Player */}
+        {/* Video Player - Always works with DemoVideoPlayer */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="relative aspect-video bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl overflow-hidden shadow-2xl border border-border/50"
         >
-          {demo.thumbnail_url ? (
-            <img
-              src={demo.thumbnail_url}
-              alt="Demo preview"
-              className={cn(
-                "w-full h-full object-cover transition-all duration-500",
-                isPlaying && "scale-105"
-              )}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-              <VariantIcon className="w-24 h-24 text-muted-foreground/30" />
-            </div>
-          )}
-
-          {/* Play overlay */}
-          {!isPlaying && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer"
-              onClick={handlePlayPause}
-            >
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-2xl"
-              >
-                <Play className="w-12 h-12 text-primary-foreground ml-2" />
-              </motion.div>
-            </motion.div>
-          )}
-
-          {/* Controls */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-            <Progress value={progress} className="mb-3" />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-white hover:bg-white/20"
-                  onClick={handlePlayPause}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                </Button>
-                {demo.narration_url && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-white hover:bg-white/20"
-                    onClick={toggleMute}
-                  >
-                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                  </Button>
-                )}
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-              >
-                <Maximize className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
+          <DemoVideoPlayer
+            thumbnail={demo.thumbnail_url}
+            narrationUrl={demo.narration_url}
+            narrative={narrative}
+            durationSeconds={demo.duration_seconds || 120}
+            variant={demo.variant}
+            industry={demo.industry}
+            onProgress={(progress, time) => setWatchTime(time)}
+            className="rounded-2xl shadow-2xl border border-border/50"
+          />
         </motion.div>
 
         {/* Narrative Content */}
@@ -359,8 +248,8 @@ const SharedDemo = () => {
             </div>
           )}
           {narrative.outcome && (
-            <div className="p-6 rounded-xl bg-success/5 border border-success/20">
-              <h3 className="font-semibold text-sm text-success mb-2">THE OUTCOME</h3>
+            <div className="p-6 rounded-xl bg-green-500/5 border border-green-500/20">
+              <h3 className="font-semibold text-sm text-green-600 mb-2">THE OUTCOME</h3>
               <p className="text-foreground">{narrative.outcome}</p>
             </div>
           )}

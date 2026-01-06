@@ -4,10 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useDemoEngineStore, GeneratedDemo, DemoVariant, DemoLength, DealSize, SalesStage } from '@/stores/demo-engine-store';
 import { INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
+import { DEMO_MODE_VIDEOS, DEMO_MODE_ANALYTICS, isDemoMode } from '@/lib/demo-mode';
 
-interface DemoVideo {
+export interface DemoVideo {
   id: string;
-  user_id: string;
+  user_id?: string;
   variant: DemoVariant;
   industry: string;
   deal_size: DealSize;
@@ -17,6 +18,7 @@ interface DemoVideo {
   narrative: Record<string, any>;
   video_url: string | null;
   thumbnail_url: string | null;
+  narration_url?: string | null;
   duration_seconds: number | null;
   status: 'generating' | 'ready' | 'optimizing' | 'failed';
   render_progress: number | null;
@@ -24,11 +26,11 @@ interface DemoVideo {
   frames_generated: number | null;
   total_frames: number | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 interface DemoAnalytics {
-  id: string;
+  id?: string;
   demo_id: string;
   views: number;
   avg_watch_time_seconds: number;
@@ -56,6 +58,48 @@ interface CapabilityPerformance {
   engagement_score: number;
 }
 
+// Convert demo mode videos to DemoVideo format
+function getDemoModeVideos(): DemoVideo[] {
+  return DEMO_MODE_VIDEOS.map(demo => ({
+    id: demo.id,
+    variant: demo.variant as DemoVariant,
+    industry: demo.industry,
+    deal_size: demo.deal_size as DealSize,
+    sales_stage: demo.sales_stage as SalesStage,
+    length: demo.length as DemoLength,
+    capabilities: demo.capabilities,
+    narrative: demo.narrative,
+    video_url: demo.video_url,
+    thumbnail_url: demo.thumbnail_url,
+    narration_url: demo.narration_url,
+    duration_seconds: demo.duration_seconds,
+    status: 'ready' as const,
+    render_progress: 100,
+    render_error: null,
+    frames_generated: demo.frames_generated,
+    total_frames: demo.total_frames,
+    created_at: demo.created_at,
+  }));
+}
+
+// Get demo mode analytics
+function getDemoModeAnalytics(): Record<string, DemoAnalytics> {
+  const result: Record<string, DemoAnalytics> = {};
+  for (const [demoId, analytics] of Object.entries(DEMO_MODE_ANALYTICS)) {
+    result[demoId] = {
+      demo_id: demoId,
+      views: analytics.views,
+      avg_watch_time_seconds: analytics.avg_watch_time_seconds,
+      completion_rate: analytics.completion_rate,
+      close_rate: analytics.close_rate,
+      drop_off_points: [],
+      closed_deals: analytics.closed_deals,
+      revenue_attributed: analytics.revenue_attributed,
+    };
+  }
+  return result;
+}
+
 export function useDemoEngine() {
   const { user } = useAuth();
   const { addGeneratedDemo, updateDemoAnalytics } = useDemoEngineStore();
@@ -67,6 +111,7 @@ export function useDemoEngine() {
   const [analytics, setAnalytics] = useState<Record<string, DemoAnalytics>>({});
   const [optimizations, setOptimizations] = useState<DemoOptimization[]>([]);
   const [capabilityPerformance, setCapabilityPerformance] = useState<CapabilityPerformance[]>([]);
+  const [isInDemoMode, setIsInDemoMode] = useState(false);
 
   // Fetch all demos for current user
   const fetchDemos = useCallback(async () => {
@@ -509,15 +554,38 @@ export function useDemoEngine() {
     }
   }, [user]);
 
-  // Load data on mount
+  // Load data on mount - with demo mode fallback
   useEffect(() => {
-    if (user) {
-      fetchDemos();
-      fetchAnalytics();
-      fetchOptimizations();
-      fetchCapabilityPerformance();
-    }
+    const loadData = async () => {
+      if (user) {
+        await fetchDemos();
+        await fetchAnalytics();
+        await fetchOptimizations();
+        await fetchCapabilityPerformance();
+        
+        // Check if we got any real demos - if not, show demo mode data
+        // This check happens after fetch completes
+      } else {
+        // No user - enter demo mode immediately
+        setIsInDemoMode(true);
+        setDemos(getDemoModeVideos());
+        setAnalytics(getDemoModeAnalytics());
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
   }, [user, fetchDemos, fetchAnalytics, fetchOptimizations, fetchCapabilityPerformance]);
+
+  // Enable demo mode if no demos exist after loading
+  useEffect(() => {
+    if (!isLoading && demos.length === 0 && user) {
+      // User is logged in but has no demos - show demo mode videos
+      setIsInDemoMode(true);
+      setDemos(getDemoModeVideos());
+      setAnalytics(getDemoModeAnalytics());
+    }
+  }, [isLoading, demos.length, user]);
 
   return {
     // State
@@ -528,6 +596,7 @@ export function useDemoEngine() {
     analytics,
     optimizations,
     capabilityPerformance,
+    isInDemoMode,
     
     // Actions
     generateDemo,
@@ -538,10 +607,12 @@ export function useDemoEngine() {
     deleteDemo,
     applyOptimization,
     refreshData: () => {
-      fetchDemos();
-      fetchAnalytics();
-      fetchOptimizations();
-      fetchCapabilityPerformance();
+      if (user) {
+        fetchDemos();
+        fetchAnalytics();
+        fetchOptimizations();
+        fetchCapabilityPerformance();
+      }
     }
   };
 }
