@@ -2,3 +2,9 @@ project_id = "phpektarjfbgnuyqjnmj"
 
 [functions.generate-video-concepts]
 verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.check-trial-reminders]
+verify_jwt = false

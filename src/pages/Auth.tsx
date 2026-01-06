@@ -44,7 +44,7 @@ const Auth = () => {
         toast.success("Welcome back!");
         navigate("/onboarding");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -58,6 +58,15 @@ const Auth = () => {
             throw error;
           }
         } else {
+          // Send welcome email
+          try {
+            await supabase.functions.invoke("send-email", {
+              body: { type: "welcome", to: email },
+            });
+          } catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+          }
+          
           toast.success("Account created! Welcome to Omega.");
           navigate("/onboarding");
         }
