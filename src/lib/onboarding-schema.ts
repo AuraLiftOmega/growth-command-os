@@ -88,7 +88,7 @@ export type Automation = z.infer<typeof automationSchema>;
 export type RiskSpeed = z.infer<typeof riskSpeedSchema>;
 export type Authorization = z.infer<typeof authorizationSchema>;
 
-// Default values
+// Default values (empty)
 export const defaultOnboardingData: OnboardingData = {
   businessDNA: {
     brandName: "",
@@ -137,5 +137,57 @@ export const defaultOnboardingData: OnboardingData = {
   },
   authorization: {
     authorizeAutomation: false,
+  },
+};
+
+// Industry defaults - auto-populated for instant execution
+export const industryDefaultsData: OnboardingData = {
+  businessDNA: {
+    brandName: "My Brand",
+    shopifyUrl: "",
+    primaryProducts: "High-quality products designed to solve customer pain points and deliver exceptional value. Premium offerings with proven market demand.",
+    aov: "$75-150",
+    monthlyRevenue: "10k-50k",
+    growthGoal: "scale-aggressively",
+  },
+  customerIntelligence: {
+    demographics: "Ambitious professionals aged 25-45, digitally savvy, value quality over price, active on social media, research before purchasing.",
+    frustrations: "Tired of low-quality alternatives, frustrated by poor customer service, overwhelmed by too many options, want trusted solutions.",
+    desiredOutcomes: "Save time, improve quality of life, feel confident in purchase decisions, get real results, experience premium service.",
+    pastFailures: "Previous products didn't deliver on promises, wasted money on inferior alternatives.",
+    buyingObjections: "Is it worth the price? Will it actually work for me? Can I trust this brand? What if I don't like it?",
+  },
+  productTruth: {
+    competitiveAdvantages: "Superior quality, faster results, better customer support, proven track record, money-back guarantee.",
+    claimsAllowed: "Quality-focused, results-driven, customer-approved, satisfaction guaranteed.",
+    claimsForbidden: "",
+    proofAssets: ["customer-reviews", "case-studies", "before-after"],
+  },
+  brandControl: {
+    personality: ["confident", "professional", "innovative"],
+    toneCasualProfessional: 60,
+    toneSoftAggressive: 70,
+    primaryColor: "#dc2626",
+    secondaryColor: "#7c3aed",
+    fonts: "Space Grotesk, Inter",
+    forbiddenWords: "",
+  },
+  creativeDirection: {
+    adStyles: ["problem-solution", "testimonial", "demo"],
+    priorityPlatforms: ["instagram", "facebook", "tiktok"],
+    competitors: "",
+    winningAdDefinition: "High engagement, strong click-through rate, positive ROAS, drives conversions and builds brand awareness.",
+  },
+  automation: {
+    enableCommentDM: true,
+    ctaPreference: "shop-now",
+    offerType: "discount",
+  },
+  riskSpeed: {
+    aggressivenessLevel: "aggressive",
+    priority: "fast-iteration",
+  },
+  authorization: {
+    authorizeAutomation: true,
   },
 };

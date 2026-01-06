@@ -12,7 +12,9 @@ import {
   CheckCircle,
   Rocket,
   Cloud,
-  LogOut
+  LogOut,
+  FastForward,
+  Play
 } from "lucide-react";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,7 +45,17 @@ const steps = [
 ];
 
 export const OnboardingForm = () => {
-  const { currentStep, setStep, data, setCompleted, calculateQualityScore, saveToDatabase, isSynced } = useOnboardingStore();
+  const { 
+    currentStep, 
+    setStep, 
+    data, 
+    setCompleted, 
+    calculateQualityScore, 
+    saveToDatabase, 
+    isSynced,
+    applyIndustryDefaults,
+    enableDemoMode
+  } = useOnboardingStore();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const CurrentStepComponent = steps[currentStep].component;
@@ -60,6 +72,21 @@ export const OnboardingForm = () => {
       }
     }, 1000);
   }, [user, saveToDatabase]);
+
+  // Skip directly to dashboard with industry defaults
+  const handleSkipToDashboard = async () => {
+    applyIndustryDefaults();
+    await saveToDatabase();
+    toast.success("Using industry defaults. You can customize later in Settings.");
+    navigate("/");
+  };
+
+  // Enable demo mode with mock data
+  const handleDemoMode = () => {
+    enableDemoMode();
+    toast.success("Demo mode activated. Explore all features with sample data.");
+    navigate("/");
+  };
 
   // Save on data changes
   useEffect(() => {
@@ -178,6 +205,37 @@ export const OnboardingForm = () => {
       {/* Main Content */}
       <main className="pt-28 pb-32 px-6">
         <div className="max-w-3xl mx-auto">
+          {/* Quick Action Buttons - Show on first step */}
+          {currentStep === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 rounded-xl bg-card/50 border border-border/50"
+            >
+              <p className="text-sm text-muted-foreground mb-3 text-center">
+                Want to skip ahead? Use industry defaults or try demo mode.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={handleSkipToDashboard}
+                  className="gap-2"
+                >
+                  <FastForward className="w-4 h-4" />
+                  Skip to Dashboard (Use Defaults)
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleDemoMode}
+                  className="gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Demo Mode (Sample Data)
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <AnimatePresence mode="wait">
             <CurrentStepComponent key={currentStep} />
           </AnimatePresence>
