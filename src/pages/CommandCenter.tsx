@@ -12,7 +12,9 @@ import {
   TrendingUp, 
   Eye,
   Shield,
-  Zap
+  Zap,
+  Crosshair,
+  Network
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -22,6 +24,8 @@ import { ProofEngine } from "@/components/command-center/ProofEngine";
 import { DailyCommandView } from "@/components/command-center/DailyCommandView";
 import { PermissionMatrix } from "@/components/command-center/PermissionMatrix";
 import ColdDMEngine from "@/components/command-center/ColdDMEngine";
+import OrgScalingEngine from "@/components/command-center/OrgScalingEngine";
+import CompetitiveKillSwitch from "@/components/command-center/CompetitiveKillSwitch";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -82,6 +86,14 @@ const CommandCenter = () => {
                 <TrendingUp className="w-4 h-4" />
                 Proof Engine
               </TabsTrigger>
+              <TabsTrigger value="org-scaling" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+                <Network className="w-4 h-4" />
+                Org Scaling
+              </TabsTrigger>
+              <TabsTrigger value="kill-switch" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+                <Crosshair className="w-4 h-4" />
+                Kill-Switch
+              </TabsTrigger>
               <TabsTrigger value="permissions" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Shield className="w-4 h-4" />
                 Permissions
@@ -126,6 +138,14 @@ const CommandCenter = () => {
 
             <TabsContent value="proof" className="mt-0">
               <ProofEngine />
+            </TabsContent>
+
+            <TabsContent value="org-scaling" className="mt-0">
+              <OrgScalingEngine />
+            </TabsContent>
+
+            <TabsContent value="kill-switch" className="mt-0">
+              <CompetitiveKillSwitch />
             </TabsContent>
 
             <TabsContent value="permissions" className="mt-0">
