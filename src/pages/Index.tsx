@@ -26,6 +26,7 @@ import { QualityGatePanel } from "@/components/dashboard/QualityGatePanel";
 import { PlatformConnectionsPanel } from "@/components/dashboard/PlatformConnectionsPanel";
 import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
 import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
+import { GeekbotWidget } from "@/components/dashboard/GeekbotWidget";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
 import { Button } from "@/components/ui/button";
@@ -247,6 +248,7 @@ const Index = () => {
 
             {/* Right Column - Side Panels */}
             <div className="col-span-12 lg:col-span-4 space-y-6">
+              <GeekbotWidget />
               <AIInsightsPanel />
               <SystemActivityFeed />
               <VideoGeneratorPanel />

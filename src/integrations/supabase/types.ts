@@ -863,6 +863,51 @@ export type Database = {
         }
         Relationships: []
       }
+      geekbot_reports: {
+        Row: {
+          created_at: string
+          geekbot_report_id: string | null
+          has_blockers: boolean | null
+          id: string
+          member_id: string | null
+          member_name: string
+          questions: Json
+          standup_id: string | null
+          standup_name: string
+          synced_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          geekbot_report_id?: string | null
+          has_blockers?: boolean | null
+          id?: string
+          member_id?: string | null
+          member_name: string
+          questions?: Json
+          standup_id?: string | null
+          standup_name: string
+          synced_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          geekbot_report_id?: string | null
+          has_blockers?: boolean | null
+          id?: string
+          member_id?: string | null
+          member_name?: string
+          questions?: Json
+          standup_id?: string | null
+          standup_name?: string
+          synced_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       language_violations: {
         Row: {
           content: string
