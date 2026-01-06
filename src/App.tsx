@@ -14,6 +14,13 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import RevenueWarRoom from "./pages/RevenueWarRoom";
 import CommandCenter from "./pages/CommandCenter";
+import { 
+  IntimidationToggle, 
+  DemoPhaseController, 
+  IntimidationOverlay, 
+  ResidualCue,
+  DemoView 
+} from "@/components/intimidation";
 
 const queryClient = new QueryClient();
 
@@ -200,6 +207,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          {/* FOUNDER INTIMIDATION MODE™ - Global Components */}
+          <IntimidationOverlay />
+          <DemoView />
+          <IntimidationToggle />
+          <DemoPhaseController />
+          <ResidualCue />
+          
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
