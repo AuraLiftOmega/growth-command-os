@@ -132,7 +132,8 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="operator@company.com"
                 className="bg-secondary/60 border-border/60 h-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
-                required
+                autoComplete="email"
+                tabIndex={1}
               />
             </div>
 
@@ -149,7 +150,8 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="bg-secondary/60 border-border/60 h-12 pr-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
-                  required
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  tabIndex={2}
                 />
                 <button
                   type="button"
