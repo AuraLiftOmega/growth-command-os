@@ -7,24 +7,78 @@ import {
   Type,
   Loader2,
   AlertCircle,
-  X
+  X,
+  ImageIcon,
+  Trash2
 } from "lucide-react";
-import { useState } from "react";
-import { useVideoGenerator, VideoConcept } from "@/hooks/useVideoGenerator";
+import { useState, useRef, useCallback } from "react";
+import { useVideoGenerator } from "@/hooks/useVideoGenerator";
 import { VideoConceptCard } from "./VideoConceptCard";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { ProductAnalysisCard } from "./ProductAnalysisCard";
 
 export const VideoGeneratorPanel = () => {
   const [inputType, setInputType] = useState<"image" | "text">("text");
   const [textPrompt, setTextPrompt] = useState("");
-  const { isGenerating, concepts, error, generateConcepts, clearConcepts } = useVideoGenerator();
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isGenerating, concepts, productAnalysis, error, generateConcepts, clearConcepts } = useVideoGenerator();
   const { data, isCompleted } = useOnboardingStore();
+
+  const handleFileSelect = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setUploadedImage(result);
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, [handleFileSelect]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileSelect(file);
+  };
 
   const handleGenerate = () => {
     if (inputType === "text" && !textPrompt.trim()) {
       return;
     }
-    generateConcepts(textPrompt, inputType);
+    if (inputType === "image" && !uploadedImage) {
+      return;
+    }
+    generateConcepts(textPrompt, inputType, uploadedImage || undefined);
+  };
+
+  const clearImage = () => {
+    setUploadedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const hasOnboardingData = isCompleted && data.businessDNA.brandName;
@@ -89,14 +143,63 @@ export const VideoGeneratorPanel = () => {
         </button>
       </div>
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
+
       {/* Upload Area */}
       {inputType === "image" ? (
-        <div className="border-2 border-dashed border-border rounded-xl p-8 text-center mb-6 hover:border-primary/50 transition-colors cursor-pointer group">
-          <div className="w-12 h-12 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-            <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-          </div>
-          <p className="text-sm font-medium mb-1">Drop product images here</p>
-          <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+        <div className="mb-6">
+          {uploadedImage ? (
+            <div className="relative rounded-xl overflow-hidden border border-border">
+              <img
+                src={uploadedImage}
+                alt="Uploaded product"
+                className="w-full h-48 object-contain bg-secondary/30"
+              />
+              <button
+                onClick={clearImage}
+                className="absolute top-2 right-2 p-2 rounded-lg bg-background/80 hover:bg-destructive/20 transition-colors"
+              >
+                <Trash2 className="w-4 h-4 text-destructive" />
+              </button>
+              <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-success/20 border border-success/30">
+                <span className="text-[10px] font-medium text-success flex items-center gap-1">
+                  <ImageIcon className="w-3 h-3" />
+                  Image ready for analysis
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer group ${
+                isDragging
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <div className={`w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center transition-colors ${
+                isDragging ? "bg-primary/20" : "bg-secondary group-hover:bg-primary/10"
+              }`}>
+                <Upload className={`w-6 h-6 transition-colors ${
+                  isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                }`} />
+              </div>
+              <p className="text-sm font-medium mb-1">
+                {isDragging ? "Drop image here" : "Drop product images here"}
+              </p>
+              <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+            </div>
+          )}
           <textarea
             value={textPrompt}
             onChange={(e) => setTextPrompt(e.target.value)}
@@ -118,13 +221,13 @@ export const VideoGeneratorPanel = () => {
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={isGenerating || (inputType === "text" && !textPrompt.trim())}
+        disabled={isGenerating || (inputType === "text" && !textPrompt.trim()) || (inputType === "image" && !uploadedImage)}
         className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-purple-500 text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isGenerating ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Generating Viral Concepts...
+            {inputType === "image" ? "Analyzing Image & Generating..." : "Generating Viral Concepts..."}
           </>
         ) : (
           <>
@@ -141,6 +244,9 @@ export const VideoGeneratorPanel = () => {
           <span className="text-xs text-destructive">{error}</span>
         </div>
       )}
+
+      {/* Product Analysis */}
+      {productAnalysis && <ProductAnalysisCard analysis={productAnalysis} />}
 
       {/* Generated Concepts */}
       {concepts.length > 0 && (
