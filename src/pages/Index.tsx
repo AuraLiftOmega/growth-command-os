@@ -21,6 +21,8 @@ import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { QualityGatePanel } from "@/components/dashboard/QualityGatePanel";
 import { PlatformConnectionsPanel } from "@/components/dashboard/PlatformConnectionsPanel";
 import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
+import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
+import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Index = () => {
@@ -115,11 +117,17 @@ const Index = () => {
             <VerticalIntelligence />
           </div>
 
+          {/* Shopify Products */}
+          <div className="mb-6">
+            <ShopifyProductsPanel />
+          </div>
+
           {/* Main Content Grid */}
           <div className="grid grid-cols-12 gap-6">
             {/* Left Column - Main Content */}
             <div className="col-span-12 lg:col-span-8 space-y-6">
               <PlatformConnectionsPanel />
+              <UnifiedInbox />
               <CreativePerformanceTable />
               <CommentAutomationPanel />
             </div>

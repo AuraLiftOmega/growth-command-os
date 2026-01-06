@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Play, 
@@ -7,10 +8,16 @@ import {
   Zap, 
   Heart,
   Copy,
-  Sparkles
+  Sparkles,
+  Video,
+  Loader2,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { VideoConcept } from "@/hooks/useVideoGenerator";
 import { toast } from "sonner";
+import { RealVideoGenerator } from "./RealVideoGenerator";
 
 interface VideoConceptCardProps {
   concept: VideoConcept;
@@ -18,6 +25,9 @@ interface VideoConceptCardProps {
 }
 
 export const VideoConceptCard = ({ concept, index }: VideoConceptCardProps) => {
+  const [showVideoGen, setShowVideoGen] = useState(false);
+  const [videoGenerated, setVideoGenerated] = useState(false);
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard!`);
@@ -34,6 +44,11 @@ export const VideoConceptCard = ({ concept, index }: VideoConceptCardProps) => {
       default:
         return "from-primary to-purple-500";
     }
+  };
+
+  const handleVideoGenerated = (url: string) => {
+    setVideoGenerated(true);
+    toast.success("Video generated and ready for publishing!");
   };
 
   return (
@@ -53,6 +68,12 @@ export const VideoConceptCard = ({ concept, index }: VideoConceptCardProps) => {
             <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-secondary text-muted-foreground">
               {concept.style}
             </span>
+            {concept.passedQualityGate && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-500 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Quality Approved
+              </span>
+            )}
           </div>
           <h4 className="font-display font-semibold text-sm leading-tight">
             {concept.title}
@@ -71,6 +92,9 @@ export const VideoConceptCard = ({ concept, index }: VideoConceptCardProps) => {
           <span className="text-[10px] font-semibold text-primary uppercase tracking-wide">
             Hook (First 2 Seconds)
           </span>
+          {concept.hookInFirstTwoSeconds && (
+            <CheckCircle2 className="w-3 h-3 text-green-500 ml-auto" />
+          )}
         </div>
         <p className="text-sm font-medium text-foreground leading-relaxed">
           "{concept.hook}"
@@ -117,11 +141,41 @@ export const VideoConceptCard = ({ concept, index }: VideoConceptCardProps) => {
         <span className="text-xs font-medium">{concept.cta}</span>
       </div>
 
-      {/* Action Button */}
-      <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-primary to-purple-500 text-primary-foreground text-xs font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-        <Play className="w-3 h-3" />
-        Generate Video
-      </button>
+      {/* Real Video Generation */}
+      {showVideoGen ? (
+        <div className="space-y-3">
+          <RealVideoGenerator concept={concept} onGenerate={handleVideoGenerated} />
+          <button
+            onClick={() => setShowVideoGen(false)}
+            className="w-full py-2 text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1"
+          >
+            <ChevronUp className="w-3 h-3" />
+            Hide Video Generator
+          </button>
+        </div>
+      ) : (
+        <button 
+          onClick={() => setShowVideoGen(true)}
+          className={`w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-opacity ${
+            videoGenerated 
+              ? "bg-green-500/10 text-green-500 border border-green-500/20"
+              : "bg-gradient-to-r from-primary to-purple-500 text-primary-foreground hover:opacity-90"
+          }`}
+        >
+          {videoGenerated ? (
+            <>
+              <CheckCircle2 className="w-3 h-3" />
+              Video Generated
+            </>
+          ) : (
+            <>
+              <Video className="w-3 h-3" />
+              Generate Real Video
+              <ChevronDown className="w-3 h-3 ml-1" />
+            </>
+          )}
+        </button>
+      )}
     </motion.div>
   );
 };
