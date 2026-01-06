@@ -417,28 +417,111 @@ function EmbedCard({ embed }: { embed: any }) {
 
 // Trigger Card Component
 function TriggerCard({ trigger }: { trigger: any }) {
+  const [showWebhook, setShowWebhook] = useState(false);
+  const [copied, setCopied] = useState(false);
+  
+  // Generate webhook URL for this trigger
+  const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crm-webhook`;
+  const webhookPayload = JSON.stringify({
+    trigger_id: trigger.id,
+    event_type: 'deal_stage_changed',
+    contact_email: '{{contact.email}}',
+    contact_name: '{{contact.name}}',
+    company_name: '{{company.name}}',
+    deal_size: '{{deal.amount}}',
+    sales_stage: trigger.sales_stage,
+    crm_source: 'zapier'
+  }, null, 2);
+
+  const handleCopyWebhook = () => {
+    navigator.clipboard.writeText(webhookUrl);
+    setCopied(true);
+    toast.success('Webhook URL copied');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium">{trigger.trigger_name}</h4>
               <Badge variant={trigger.status === 'active' ? 'default' : 'secondary'}>
                 {trigger.status}
               </Badge>
+              {trigger.webhook_url && (
+                <Badge variant="outline" className="gap-1">
+                  <Webhook className="w-3 h-3" />
+                  Webhook
+                </Badge>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-2">
               Stage: {trigger.sales_stage} • 
               {trigger.auto_send ? ' Auto-send enabled' : ' Manual approval'}
             </p>
+            
+            <div className="flex items-center gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Triggers: </span>
+                <span className="font-medium">{trigger.triggers_fired}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Sent: </span>
+                <span className="font-medium">{trigger.demos_sent}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Conversions: </span>
+                <span className="font-medium text-success">{trigger.conversions}</span>
+              </div>
+            </div>
           </div>
           
-          <div className="text-right text-sm">
-            <p><span className="text-muted-foreground">Triggers:</span> <span className="font-medium">{trigger.triggers_fired}</span></p>
-            <p><span className="text-muted-foreground">Sent:</span> <span className="font-medium">{trigger.demos_sent}</span></p>
-          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowWebhook(!showWebhook)}
+            className="gap-1"
+          >
+            <Webhook className="w-3 h-3" />
+            {showWebhook ? 'Hide' : 'Webhook'}
+          </Button>
         </div>
+        
+        {showWebhook && (
+          <div className="mt-4 pt-4 border-t space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-xs text-muted-foreground">Webhook URL (for Zapier, HubSpot, Salesforce)</Label>
+                <Button variant="ghost" size="sm" onClick={handleCopyWebhook} className="h-6 gap-1">
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+              <div className="bg-secondary/50 rounded p-2 text-xs font-mono break-all">
+                {webhookUrl}
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-xs text-muted-foreground">Example Payload</Label>
+              <pre className="bg-secondary/50 rounded p-2 text-xs font-mono overflow-x-auto mt-1">
+                {webhookPayload}
+              </pre>
+            </div>
+
+            <div className="bg-muted/50 rounded p-3 text-xs">
+              <p className="font-medium mb-1">Integration Instructions:</p>
+              <ul className="text-muted-foreground space-y-1">
+                <li>• <strong>Zapier:</strong> Create a Webhook action → POST to the URL above</li>
+                <li>• <strong>HubSpot:</strong> Workflows → Custom webhook action</li>
+                <li>• <strong>Salesforce:</strong> Process Builder → Outbound Message</li>
+                <li>• Replace placeholders with your CRM's merge fields</li>
+              </ul>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -659,6 +742,10 @@ function NewTriggerDialog({ open, onOpenChange, demos, onSave }: {
   const [triggerName, setTriggerName] = useState('');
   const [salesStage, setSalesStage] = useState('warm');
   const [autoSend, setAutoSend] = useState(false);
+  const [dealSizeMin, setDealSizeMin] = useState('');
+  const [dealSizeMax, setDealSizeMax] = useState('');
+  const [sendDelayMinutes, setSendDelayMinutes] = useState('0');
+  const [externalWebhook, setExternalWebhook] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -671,11 +758,18 @@ function NewTriggerDialog({ open, onOpenChange, demos, onSave }: {
     await onSave(selectedDemoId, {
       triggerName,
       salesStage,
-      autoSend
+      autoSend,
+      dealSizeMin: dealSizeMin ? parseInt(dealSizeMin) : undefined,
+      dealSizeMax: dealSizeMax ? parseInt(dealSizeMax) : undefined,
+      sendDelayMinutes: parseInt(sendDelayMinutes) || 0,
+      webhookUrl: externalWebhook || undefined
     });
     setIsSaving(false);
     setSelectedDemoId('');
     setTriggerName('');
+    setDealSizeMin('');
+    setDealSizeMax('');
+    setExternalWebhook('');
     onOpenChange(false);
   };
 
@@ -687,13 +781,13 @@ function NewTriggerDialog({ open, onOpenChange, demos, onSave }: {
           Create Trigger
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Create CRM Trigger</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 pt-4">
+        <div className="space-y-4 pt-4 max-h-[70vh] overflow-y-auto">
           <div>
-            <Label>Select Demo</Label>
+            <Label>Select Demo *</Label>
             <Select value={selectedDemoId} onValueChange={setSelectedDemoId}>
               <SelectTrigger>
                 <SelectValue placeholder="Choose a demo" />
@@ -708,7 +802,7 @@ function NewTriggerDialog({ open, onOpenChange, demos, onSave }: {
             </Select>
           </div>
           <div>
-            <Label>Trigger Name</Label>
+            <Label>Trigger Name *</Label>
             <Input
               value={triggerName}
               onChange={(e) => setTriggerName(e.target.value)}
@@ -730,14 +824,58 @@ function NewTriggerDialog({ open, onOpenChange, demos, onSave }: {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center justify-between">
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Min Deal Size ($)</Label>
+              <Input
+                type="number"
+                value={dealSizeMin}
+                onChange={(e) => setDealSizeMin(e.target.value)}
+                placeholder="e.g., 10000"
+              />
+            </div>
+            <div>
+              <Label>Max Deal Size ($)</Label>
+              <Input
+                type="number"
+                value={dealSizeMax}
+                onChange={(e) => setDealSizeMax(e.target.value)}
+                placeholder="e.g., 100000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Send Delay (minutes)</Label>
+            <Input
+              type="number"
+              value={sendDelayMinutes}
+              onChange={(e) => setSendDelayMinutes(e.target.value)}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Delay before sending demo after trigger</p>
+          </div>
+
+          <div>
+            <Label>External Webhook (optional)</Label>
+            <Input
+              value={externalWebhook}
+              onChange={(e) => setExternalWebhook(e.target.value)}
+              placeholder="https://hooks.zapier.com/..."
+            />
+            <p className="text-xs text-muted-foreground mt-1">Zapier/webhook to call when demo is sent</p>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
             <div>
               <Label>Auto-Send</Label>
-              <p className="text-xs text-muted-foreground">Automatically send when triggered</p>
+              <p className="text-xs text-muted-foreground">Automatically send demo email when triggered</p>
             </div>
             <Switch checked={autoSend} onCheckedChange={setAutoSend} />
           </div>
-          <div className="flex justify-end gap-2">
+          
+          <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Trigger'}
