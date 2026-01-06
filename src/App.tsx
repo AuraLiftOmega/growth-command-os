@@ -69,7 +69,7 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (isCompleted) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -96,8 +96,38 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (user) {
     if (isCompleted) {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/dashboard" replace />;
     }
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Protected route - redirects to dashboard instead of root
+const ProtectedRouteWithRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const { isCompleted, loadFromDatabase, isLoading } = useOnboardingStore();
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      loadFromDatabase(user.id);
+    }
+  }, [user]);
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!isCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -107,7 +137,7 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/landing" element={<Landing />} />
+      <Route path="/" element={<Landing />} />
       <Route 
         path="/auth" 
         element={
@@ -125,19 +155,19 @@ const AppRoutes = () => {
         } 
       />
       <Route 
-        path="/" 
+        path="/dashboard" 
         element={
-          <ProtectedRoute>
+          <ProtectedRouteWithRedirect>
             <Index />
-          </ProtectedRoute>
+          </ProtectedRouteWithRedirect>
         } 
       />
       <Route 
         path="/settings" 
         element={
-          <ProtectedRoute>
+          <ProtectedRouteWithRedirect>
             <Settings />
-          </ProtectedRoute>
+          </ProtectedRouteWithRedirect>
         } 
       />
       <Route path="*" element={<NotFound />} />
