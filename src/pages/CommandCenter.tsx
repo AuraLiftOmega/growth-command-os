@@ -20,7 +20,8 @@ import {
   Globe,
   Link2,
   Megaphone,
-  Building2
+  Building2,
+  DollarSign
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -40,7 +41,9 @@ import {
   IntegrationSovereignty, 
   MultiTenantControl 
 } from "@/components/universal";
+import { CashEngineDashboard } from "@/components/cash-engine";
 import { useDominionStore } from "@/stores/dominion-core-store";
+import { useCashEngineStore } from "@/stores/cash-engine-store";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -48,6 +51,7 @@ const CommandCenter = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
   const { industry, tenantMode, isSelfMarketingActive } = useDominionStore();
+  const { isActive: isCashEngineActive } = useCashEngineStore();
 
   return (
     <div className="min-h-screen bg-background flex w-full">
@@ -83,6 +87,12 @@ const CommandCenter = () => {
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
                     <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     <span className="text-xs font-medium text-primary">Self-Marketing Live</span>
+                  </div>
+                )}
+                {isCashEngineActive && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20">
+                    <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                    <span className="text-xs font-medium text-success">Cash Engine Active</span>
                   </div>
                 )}
               </div>
@@ -130,6 +140,10 @@ const CommandCenter = () => {
               <TabsTrigger value="multi-tenant" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground gap-2">
                 <Building2 className="w-4 h-4" />
                 Multi-Tenant
+              </TabsTrigger>
+              <TabsTrigger value="cash-engine" className="data-[state=active]:bg-success data-[state=active]:text-success-foreground gap-2">
+                <DollarSign className="w-4 h-4" />
+                Cash Engine
               </TabsTrigger>
               
               {/* Defense & Scale */}
@@ -212,6 +226,10 @@ const CommandCenter = () => {
 
             <TabsContent value="multi-tenant" className="mt-0">
               <MultiTenantControl />
+            </TabsContent>
+
+            <TabsContent value="cash-engine" className="mt-0">
+              <CashEngineDashboard />
             </TabsContent>
 
             {/* Defense & Scale */}
