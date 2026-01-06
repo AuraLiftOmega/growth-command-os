@@ -11,7 +11,8 @@ import {
   Building2,
   VolumeX,
   Zap,
-  RefreshCw
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import { useDemoEngineStore } from '@/stores/demo-engine-store';
 import { useDemoEngine } from '@/hooks/useDemoEngine';
@@ -23,6 +24,7 @@ import { DemoVariantSelector } from './DemoVariantSelector';
 import { DemoCapabilityMapper } from './DemoCapabilityMapper';
 import { DemoAnalyticsPanel } from './DemoAnalyticsPanel';
 import { DemoLibrary } from './DemoLibrary';
+import { DemoSalesAutomation } from './DemoSalesAutomation';
 import { cn } from '@/lib/utils';
 
 /**
@@ -174,6 +176,10 @@ export const SelfDemoEngine = () => {
             <Video className="w-4 h-4" />
             Library ({demos.length})
           </TabsTrigger>
+          <TabsTrigger value="deploy" className="gap-2">
+            <Send className="w-4 h-4" />
+            Deploy
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
@@ -194,6 +200,10 @@ export const SelfDemoEngine = () => {
 
         <TabsContent value="library" className="mt-6">
           <DemoLibrary />
+        </TabsContent>
+
+        <TabsContent value="deploy" className="mt-6">
+          <DemoSalesAutomation />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
