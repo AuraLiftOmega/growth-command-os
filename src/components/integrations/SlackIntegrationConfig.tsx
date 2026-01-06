@@ -2,19 +2,19 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   MessageSquare, 
-  Eye, 
-  EyeOff, 
   Check, 
   Copy, 
   Shield,
-  Key,
   Hash,
-  Calendar
+  Calendar,
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -22,9 +22,6 @@ interface SlackConfig {
   appId: string;
   appCreationDate: string;
   clientId: string;
-  clientSecret: string;
-  signingSecret: string;
-  verificationToken: string;
 }
 
 export const SlackIntegrationConfig = () => {
@@ -33,24 +30,12 @@ export const SlackIntegrationConfig = () => {
     appId: '',
     appCreationDate: '',
     clientId: '',
-    clientSecret: '',
-    signingSecret: '',
-    verificationToken: '',
-  });
-  const [showSecrets, setShowSecrets] = useState({
-    clientSecret: false,
-    signingSecret: false,
-    verificationToken: false,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
   const handleInputChange = (field: keyof SlackConfig, value: string) => {
     setConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const toggleSecretVisibility = (field: keyof typeof showSecrets) => {
-    setShowSecrets(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const copyToClipboard = (value: string, label: string) => {
@@ -62,10 +47,10 @@ export const SlackIntegrationConfig = () => {
   };
 
   const handleSave = async () => {
-    if (!config.appId || !config.clientId || !config.clientSecret) {
+    if (!config.appId || !config.clientId) {
       toast({
         title: "Missing Required Fields",
-        description: "Please fill in App ID, Client ID, and Client Secret",
+        description: "Please fill in App ID and Client ID",
         variant: "destructive",
       });
       return;
@@ -83,7 +68,7 @@ export const SlackIntegrationConfig = () => {
         return;
       }
 
-      // Store in revenue_engine_config as connected integration
+      // Store only non-sensitive configuration in database
       const { error } = await supabase
         .from('revenue_engine_config')
         .upsert({
@@ -94,7 +79,6 @@ export const SlackIntegrationConfig = () => {
               app_id: config.appId,
               app_creation_date: config.appCreationDate,
               client_id: config.clientId,
-              // Note: In production, secrets should be stored encrypted
               configured: true,
             }
           },
@@ -107,8 +91,8 @@ export const SlackIntegrationConfig = () => {
 
       setIsConnected(true);
       toast({
-        title: "Slack Connected!",
-        description: "Your Slack app credentials have been saved",
+        title: "Slack Configuration Saved!",
+        description: "App ID and Client ID have been saved. Remember to configure secrets securely.",
       });
     } catch (error) {
       console.error('Error saving Slack config:', error);
@@ -150,6 +134,17 @@ export const SlackIntegrationConfig = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Security Notice */}
+          <Alert className="border-primary/30 bg-primary/5">
+            <Lock className="h-4 w-4" />
+            <AlertTitle>Secure Secrets Storage</AlertTitle>
+            <AlertDescription className="text-sm">
+              <strong>Client Secret</strong>, <strong>Signing Secret</strong>, and <strong>Verification Token</strong> 
+              must be stored as secure environment variables—never in the database. 
+              Contact your administrator to configure these secrets securely in the backend.
+            </AlertDescription>
+          </Alert>
+
           {/* App Identification */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -195,161 +190,55 @@ export const SlackIntegrationConfig = () => {
                 />
               </div>
             </div>
-          </div>
 
-          {/* OAuth Credentials */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <Key className="w-4 h-4" />
-              OAuth Credentials
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientId">Client ID</Label>
-                <div className="relative">
-                  <Input
-                    id="clientId"
-                    placeholder="1234567890.1234567890"
-                    value={config.clientId}
-                    onChange={(e) => handleInputChange('clientId', e.target.value)}
-                    className="pr-10"
-                  />
-                  {config.clientId && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                      onClick={() => copyToClipboard(config.clientId, 'Client ID')}
-                    >
-                      <Copy className="w-3 h-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="clientSecret">Client Secret</Label>
-                <p className="text-xs text-muted-foreground">
-                  You'll need to send this secret along with your client ID when making your oauth.v2.access request.
-                </p>
-                <div className="relative">
-                  <Input
-                    id="clientSecret"
-                    type={showSecrets.clientSecret ? 'text' : 'password'}
-                    placeholder="••••••••••••••••"
-                    value={config.clientSecret}
-                    onChange={(e) => handleInputChange('clientSecret', e.target.value)}
-                    className="pr-20"
-                  />
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => toggleSecretVisibility('clientSecret')}
-                    >
-                      {showSecrets.clientSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    </Button>
-                    {config.clientSecret && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => copyToClipboard(config.clientSecret, 'Client Secret')}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="clientId">Client ID</Label>
+              <p className="text-xs text-muted-foreground">
+                Public identifier for your Slack app (safe to store).
+              </p>
+              <div className="relative">
+                <Input
+                  id="clientId"
+                  placeholder="1234567890.1234567890"
+                  value={config.clientId}
+                  onChange={(e) => handleInputChange('clientId', e.target.value)}
+                  className="pr-10"
+                />
+                {config.clientId && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    onClick={() => copyToClipboard(config.clientId, 'Client ID')}
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Security Credentials */}
+          {/* Secrets Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Shield className="w-4 h-4" />
-              Security Credentials
+              Secure Secrets (Server-Side Only)
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signingSecret">Signing Secret</Label>
-                <p className="text-xs text-muted-foreground">
-                  Slack signs the requests we send you using this secret. Confirm that each request comes from Slack by verifying its unique signature.
-                </p>
-                <div className="relative">
-                  <Input
-                    id="signingSecret"
-                    type={showSecrets.signingSecret ? 'text' : 'password'}
-                    placeholder="••••••••••••••••"
-                    value={config.signingSecret}
-                    onChange={(e) => handleInputChange('signingSecret', e.target.value)}
-                    className="pr-20"
-                  />
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => toggleSecretVisibility('signingSecret')}
-                    >
-                      {showSecrets.signingSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    </Button>
-                    {config.signingSecret && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => copyToClipboard(config.signingSecret, 'Signing Secret')}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="verificationToken">Verification Token</Label>
-                <div className="relative">
-                  <Input
-                    id="verificationToken"
-                    type={showSecrets.verificationToken ? 'text' : 'password'}
-                    placeholder="••••••••••••••••"
-                    value={config.verificationToken}
-                    onChange={(e) => handleInputChange('verificationToken', e.target.value)}
-                    className="pr-20"
-                  />
-                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => toggleSecretVisibility('verificationToken')}
-                    >
-                      {showSecrets.verificationToken ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                    </Button>
-                    {config.verificationToken && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => copyToClipboard(config.verificationToken, 'Verification Token')}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-4 h-4 text-warning mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium">The following secrets must be configured securely:</p>
+                  <ul className="list-disc list-inside mt-2 text-muted-foreground space-y-1">
+                    <li><strong>SLACK_CLIENT_SECRET</strong> - Required for OAuth token exchange</li>
+                    <li><strong>SLACK_SIGNING_SECRET</strong> - Verifies requests from Slack</li>
+                    <li><strong>SLACK_VERIFICATION_TOKEN</strong> - Legacy verification (if needed)</li>
+                  </ul>
+                  <p className="mt-3 text-xs">
+                    These secrets are stored securely in the backend environment and never exposed to the client.
+                  </p>
                 </div>
               </div>
             </div>
@@ -362,7 +251,7 @@ export const SlackIntegrationConfig = () => {
               disabled={isSaving}
               className="w-full"
             >
-              {isSaving ? 'Saving...' : isConnected ? 'Update Configuration' : 'Connect Slack'}
+              {isSaving ? 'Saving...' : isConnected ? 'Update Configuration' : 'Save App Configuration'}
             </Button>
           </div>
         </CardContent>
