@@ -238,6 +238,15 @@ const IntimidationWrapper = () => {
   );
 };
 
+const AppContent = () => {
+  return (
+    <>
+      <IntimidationWrapper />
+      <AppRoutes />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -245,8 +254,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <IntimidationWrapper />
-          <AppRoutes />
+          <AppContent />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
