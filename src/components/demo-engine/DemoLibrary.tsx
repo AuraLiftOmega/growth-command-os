@@ -50,6 +50,7 @@ import { toast } from 'sonner';
 import { NarrationGenerator } from './NarrationGenerator';
 import { ShareableDemoLinks } from './ShareableDemoLinks';
 import { DemoVideoPlayer } from './DemoVideoPlayer';
+import { VideoExporter } from './VideoExporter';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /**
@@ -550,6 +551,16 @@ export const DemoLibrary = () => {
                   </Button>
                 )}
                 <div className="flex-1" />
+                
+                {/* Video Export Button */}
+                <VideoExporter
+                  demoId={currentPreviewDemo.id}
+                  variant={currentPreviewDemo.variant}
+                  industry={INDUSTRY_TEMPLATES[currentPreviewDemo.industry]?.name || currentPreviewDemo.industry}
+                  narrative={currentPreviewDemo.narrative}
+                  durationSeconds={currentPreviewDemo.duration_seconds || 120}
+                />
+                
                 <Button variant="outline" onClick={() => handleCopyEmbed(currentPreviewDemo.id)} className="gap-2">
                   <Copy className="w-4 h-4" />
                   Copy Embed

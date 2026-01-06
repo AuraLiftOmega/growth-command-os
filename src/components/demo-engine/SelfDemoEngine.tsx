@@ -12,7 +12,8 @@ import {
   VolumeX,
   Zap,
   RefreshCw,
-  Send
+  Send,
+  FlaskConical,
 } from 'lucide-react';
 import { useDemoEngineStore } from '@/stores/demo-engine-store';
 import { useDemoEngine } from '@/hooks/useDemoEngine';
@@ -25,6 +26,7 @@ import { DemoCapabilityMapper } from './DemoCapabilityMapper';
 import { DemoAnalyticsPanel } from './DemoAnalyticsPanel';
 import { DemoLibrary } from './DemoLibrary';
 import { DemoSalesAutomation } from './DemoSalesAutomation';
+import { ABTestingPanel } from './ABTestingPanel';
 import { cn } from '@/lib/utils';
 
 /**
@@ -180,6 +182,10 @@ export const SelfDemoEngine = () => {
             <Send className="w-4 h-4" />
             Deploy
           </TabsTrigger>
+          <TabsTrigger value="ab-testing" className="gap-2">
+            <FlaskConical className="w-4 h-4" />
+            A/B Testing
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
@@ -204,6 +210,10 @@ export const SelfDemoEngine = () => {
 
         <TabsContent value="deploy" className="mt-6">
           <DemoSalesAutomation />
+        </TabsContent>
+
+        <TabsContent value="ab-testing" className="mt-6">
+          <ABTestingPanel />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
