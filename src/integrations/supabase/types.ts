@@ -169,6 +169,80 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_sales_conversations: {
+        Row: {
+          booking_id: string | null
+          channel: string
+          context: Json | null
+          created_at: string
+          deal_closed: boolean | null
+          deal_value: number | null
+          funnel_stage: string
+          id: string
+          intent_level: number | null
+          last_message_at: string | null
+          messages: Json | null
+          next_action: string | null
+          prospect_company: string | null
+          prospect_email: string | null
+          prospect_name: string | null
+          prospect_phone: string | null
+          qualification_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          channel?: string
+          context?: Json | null
+          created_at?: string
+          deal_closed?: boolean | null
+          deal_value?: number | null
+          funnel_stage?: string
+          id?: string
+          intent_level?: number | null
+          last_message_at?: string | null
+          messages?: Json | null
+          next_action?: string | null
+          prospect_company?: string | null
+          prospect_email?: string | null
+          prospect_name?: string | null
+          prospect_phone?: string | null
+          qualification_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          channel?: string
+          context?: Json | null
+          created_at?: string
+          deal_closed?: boolean | null
+          deal_value?: number | null
+          funnel_stage?: string
+          id?: string
+          intent_level?: number | null
+          last_message_at?: string | null
+          messages?: Json | null
+          next_action?: string | null
+          prospect_company?: string | null
+          prospect_email?: string | null
+          prospect_name?: string | null
+          prospect_phone?: string | null
+          qualification_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_sales_conversations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "demo_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_settings: {
         Row: {
           aggressive_testing: boolean | null
@@ -214,6 +288,104 @@ export type Database = {
           scaling_now?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      booking_reminders: {
+        Row: {
+          booking_id: string
+          created_at: string
+          delivery_channel: string
+          delivery_status: string | null
+          id: string
+          reminder_type: string
+          scheduled_for: string
+          sent_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          delivery_channel?: string
+          delivery_status?: string | null
+          id?: string
+          reminder_type: string
+          scheduled_for: string
+          sent_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          delivery_channel?: string
+          delivery_status?: string | null
+          id?: string
+          reminder_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reminders_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "demo_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_integrations: {
+        Row: {
+          access_token_encrypted: string | null
+          calendar_id: string | null
+          created_at: string
+          id: string
+          is_primary: boolean
+          last_sync_at: string | null
+          provider: string
+          provider_name: string
+          refresh_token_encrypted: string | null
+          settings: Json | null
+          sync_enabled: boolean
+          sync_status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          last_sync_at?: string | null
+          provider: string
+          provider_name: string
+          refresh_token_encrypted?: string | null
+          settings?: Json | null
+          sync_enabled?: boolean
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          calendar_id?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          last_sync_at?: string | null
+          provider?: string
+          provider_name?: string
+          refresh_token_encrypted?: string | null
+          settings?: Json | null
+          sync_enabled?: boolean
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
@@ -499,6 +671,132 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      demo_availability_slots: {
+        Row: {
+          buffer_minutes: number
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          slot_duration_minutes: number
+          start_time: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buffer_minutes?: number
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          slot_duration_minutes?: number
+          start_time: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buffer_minutes?: number
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          slot_duration_minutes?: number
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_bookings: {
+        Row: {
+          attended_at: string | null
+          booking_source: string | null
+          conversation_context: Json | null
+          created_at: string
+          deal_size_estimate: number | null
+          duration_minutes: number
+          external_calendar_id: string | null
+          external_calendar_provider: string | null
+          id: string
+          outcome: string | null
+          outcome_notes: string | null
+          pre_call_email_sent: boolean | null
+          prospect_company: string | null
+          prospect_email: string
+          prospect_name: string
+          prospect_phone: string | null
+          qualification_notes: Json | null
+          qualification_score: number | null
+          reminder_sent_at: string | null
+          revenue_closed: number | null
+          scheduled_at: string
+          status: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attended_at?: string | null
+          booking_source?: string | null
+          conversation_context?: Json | null
+          created_at?: string
+          deal_size_estimate?: number | null
+          duration_minutes?: number
+          external_calendar_id?: string | null
+          external_calendar_provider?: string | null
+          id?: string
+          outcome?: string | null
+          outcome_notes?: string | null
+          pre_call_email_sent?: boolean | null
+          prospect_company?: string | null
+          prospect_email: string
+          prospect_name: string
+          prospect_phone?: string | null
+          qualification_notes?: Json | null
+          qualification_score?: number | null
+          reminder_sent_at?: string | null
+          revenue_closed?: number | null
+          scheduled_at: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attended_at?: string | null
+          booking_source?: string | null
+          conversation_context?: Json | null
+          created_at?: string
+          deal_size_estimate?: number | null
+          duration_minutes?: number
+          external_calendar_id?: string | null
+          external_calendar_provider?: string | null
+          id?: string
+          outcome?: string | null
+          outcome_notes?: string | null
+          pre_call_email_sent?: boolean | null
+          prospect_company?: string | null
+          prospect_email?: string
+          prospect_name?: string
+          prospect_phone?: string | null
+          qualification_notes?: Json | null
+          qualification_score?: number | null
+          reminder_sent_at?: string | null
+          revenue_closed?: number | null
+          scheduled_at?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       demo_capability_performance: {
         Row: {
