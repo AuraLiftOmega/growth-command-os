@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface VideoConcept {
@@ -73,6 +74,12 @@ export const useVideoGenerator = () => {
         winningAdDefinition: data.creativeDirection.winningAdDefinition,
       };
 
+      // Get the user's session for authenticated requests
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Please sign in to generate video concepts");
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video-concepts`,
         {
@@ -80,7 +87,7 @@ export const useVideoGenerator = () => {
           headers: {
             "Content-Type": "application/json",
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             prompt,
