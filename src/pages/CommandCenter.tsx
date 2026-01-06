@@ -14,7 +14,9 @@ import {
   Shield,
   Zap,
   Crosshair,
-  Network
+  Network,
+  Lock,
+  ShieldAlert
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -26,6 +28,8 @@ import { PermissionMatrix } from "@/components/command-center/PermissionMatrix";
 import ColdDMEngine from "@/components/command-center/ColdDMEngine";
 import OrgScalingEngine from "@/components/command-center/OrgScalingEngine";
 import CompetitiveKillSwitch from "@/components/command-center/CompetitiveKillSwitch";
+import MoatHardeningSystem from "@/components/command-center/MoatHardeningSystem";
+import RiskInsulationEngine from "@/components/command-center/RiskInsulationEngine";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -94,6 +98,14 @@ const CommandCenter = () => {
                 <Crosshair className="w-4 h-4" />
                 Kill-Switch
               </TabsTrigger>
+              <TabsTrigger value="moat" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+                <Lock className="w-4 h-4" />
+                Moat
+              </TabsTrigger>
+              <TabsTrigger value="risk" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
+                <ShieldAlert className="w-4 h-4" />
+                Risk
+              </TabsTrigger>
               <TabsTrigger value="permissions" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Shield className="w-4 h-4" />
                 Permissions
@@ -146,6 +158,14 @@ const CommandCenter = () => {
 
             <TabsContent value="kill-switch" className="mt-0">
               <CompetitiveKillSwitch />
+            </TabsContent>
+
+            <TabsContent value="moat" className="mt-0">
+              <MoatHardeningSystem />
+            </TabsContent>
+
+            <TabsContent value="risk" className="mt-0">
+              <RiskInsulationEngine />
             </TabsContent>
 
             <TabsContent value="permissions" className="mt-0">
