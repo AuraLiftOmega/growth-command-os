@@ -29,10 +29,11 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, inputType, onboardingContext } = await req.json() as {
+    const { prompt, inputType, onboardingContext, imageData } = await req.json() as {
       prompt: string;
       inputType: "image" | "text";
       onboardingContext: OnboardingContext;
+      imageData?: string; // base64 encoded image
     };
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -81,9 +82,29 @@ Generate video concepts that:
 6. Include suggestions for music, pacing, transitions
 7. Respect all compliance rules`;
 
-    const userPrompt = inputType === "image" 
-      ? `Based on a product image, generate 5 unique viral video ad concepts. ${prompt ? `Additional context: ${prompt}` : ""}`
-      : `Generate 5 unique viral video ad concepts based on this description: ${prompt}`;
+    // Build user message content based on input type
+    let userContent: any;
+    
+    if (inputType === "image" && imageData) {
+      // Multimodal request with image
+      userContent = [
+        {
+          type: "text",
+          text: `Analyze this product image carefully. Based on what you see in the image, generate 5 unique viral video ad concepts. Consider the product's appearance, packaging, colors, and any visible features. ${prompt ? `Additional context from the user: ${prompt}` : ""}`,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: imageData, // Already includes data:image/...;base64, prefix
+          },
+        },
+      ];
+    } else {
+      userContent = `Generate 5 unique viral video ad concepts based on this description: ${prompt}`;
+    }
+
+    console.log("Generating video concepts with input type:", inputType);
+    console.log("Has image data:", !!imageData);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -95,14 +116,14 @@ Generate video concepts that:
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userContent },
         ],
         tools: [
           {
             type: "function",
             function: {
               name: "generate_video_concepts",
-              description: "Generate structured viral video ad concepts",
+              description: "Generate structured viral video ad concepts based on the product analysis",
               parameters: {
                 type: "object",
                 properties: {
@@ -122,9 +143,21 @@ Generate video concepts that:
                         transitions: { type: "array", items: { type: "string" }, description: "Key transitions and effects" },
                         cta: { type: "string", description: "Call to action" },
                         viralScore: { type: "number", description: "Predicted viral potential 1-100" },
-                        emotionalTrigger: { type: "string", description: "Primary emotion targeted" }
+                        emotionalTrigger: { type: "string", description: "Primary emotion targeted" },
+                        productHighlights: { type: "array", items: { type: "string" }, description: "Key product features to showcase from the image" }
                       },
                       required: ["id", "title", "hook", "script", "duration", "platform", "style", "music", "cta", "viralScore", "emotionalTrigger"]
+                    }
+                  },
+                  productAnalysis: {
+                    type: "object",
+                    description: "Analysis of the product from the image (if provided)",
+                    properties: {
+                      productType: { type: "string" },
+                      keyFeatures: { type: "array", items: { type: "string" } },
+                      colors: { type: "array", items: { type: "string" } },
+                      targetAudience: { type: "string" },
+                      uniqueSellingPoints: { type: "array", items: { type: "string" } }
                     }
                   }
                 },
@@ -160,8 +193,9 @@ Generate video concepts that:
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     
     if (toolCall?.function?.arguments) {
-      const concepts = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify(concepts), {
+      const result = JSON.parse(toolCall.function.arguments);
+      console.log("Generated", result.concepts?.length, "concepts");
+      return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

@@ -15,15 +15,29 @@ export interface VideoConcept {
   cta: string;
   viralScore: number;
   emotionalTrigger: string;
+  productHighlights?: string[];
+}
+
+export interface ProductAnalysis {
+  productType?: string;
+  keyFeatures?: string[];
+  colors?: string[];
+  targetAudience?: string;
+  uniqueSellingPoints?: string[];
 }
 
 export const useVideoGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [concepts, setConcepts] = useState<VideoConcept[]>([]);
+  const [productAnalysis, setProductAnalysis] = useState<ProductAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { data } = useOnboardingStore();
 
-  const generateConcepts = async (prompt: string, inputType: "image" | "text") => {
+  const generateConcepts = async (
+    prompt: string,
+    inputType: "image" | "text",
+    imageData?: string
+  ) => {
     setIsGenerating(true);
     setError(null);
 
@@ -59,6 +73,7 @@ export const useVideoGenerator = () => {
             prompt,
             inputType,
             onboardingContext,
+            imageData,
           }),
         }
       );
@@ -76,6 +91,7 @@ export const useVideoGenerator = () => {
 
       const result = await response.json();
       setConcepts(result.concepts || []);
+      setProductAnalysis(result.productAnalysis || null);
       toast.success(`Generated ${result.concepts?.length || 0} viral video concepts!`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to generate concepts";
@@ -88,12 +104,14 @@ export const useVideoGenerator = () => {
 
   const clearConcepts = () => {
     setConcepts([]);
+    setProductAnalysis(null);
     setError(null);
   };
 
   return {
     isGenerating,
     concepts,
+    productAnalysis,
     error,
     generateConcepts,
     clearConcepts,
