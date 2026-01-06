@@ -178,20 +178,16 @@ const Auth = () => {
           </form>
 
           <div className="mt-6 pt-6 border-t border-border/40 text-center">
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              onClick={() => {
-                console.log("Toggling auth mode, current isLogin:", isLogin);
-                setIsLogin(!isLogin);
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-muted-foreground hover:text-foreground cursor-pointer relative z-50"
             >
               {isLogin ? "No access? " : "Already initialized? "}
-              <span className="text-primary font-medium ml-1">
+              <span className="text-primary font-medium ml-1 underline">
                 {isLogin ? "Request access" : "Sign in"}
               </span>
-            </Button>
+            </button>
           </div>
         </div>
 
