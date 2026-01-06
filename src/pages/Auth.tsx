@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Rocket, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,6 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Validate input
     const validation = authSchema.safeParse({ email, password });
     if (!validation.success) {
       toast.error(validation.error.errors[0].message);
@@ -41,7 +40,7 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        toast.success("Welcome back!");
+        toast.success("Access granted.");
         navigate("/onboarding");
       } else {
         const { data, error } = await supabase.auth.signUp({
@@ -53,12 +52,11 @@ const Auth = () => {
         });
         if (error) {
           if (error.message.includes("already registered")) {
-            toast.error("This email is already registered. Please sign in instead.");
+            toast.error("This email is already registered. Sign in instead.");
           } else {
             throw error;
           }
         } else {
-          // Send welcome email
           try {
             await supabase.functions.invoke("send-email", {
               body: { type: "welcome", to: email },
@@ -67,7 +65,7 @@ const Auth = () => {
             console.error("Failed to send welcome email:", emailError);
           }
           
-          toast.success("Account created! Welcome to Omega.");
+          toast.success("Account created. Welcome to DOMINION.");
           navigate("/onboarding");
         }
       }
@@ -80,52 +78,67 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-chart-4/10 rounded-full blur-[100px]" />
+      {/* Power Background Effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/3 left-1/3 w-[800px] h-[800px] bg-primary/8 rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/6 rounded-full blur-[120px]" />
+        {/* Grid overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px'
+          }}
+        />
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-md relative z-10"
       >
         {/* Logo & Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-chart-4 mb-4">
-            <Rocket className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-display font-bold mb-2">
-            Omega
+        <div className="text-center mb-10">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-card border border-border/50 mb-6 relative"
+          >
+            <Zap className="w-8 h-8 text-primary" />
+            <div className="absolute inset-0 rounded-xl bg-primary/10 blur-xl" />
+          </motion.div>
+          <h1 className="text-4xl font-bold tracking-tight mb-3">
+            DOMINION
           </h1>
-          <p className="text-muted-foreground">
-            {isLogin ? "Sign in to your account" : "Create your account to get started"}
+          <p className="text-muted-foreground text-sm tracking-wide uppercase">
+            {isLogin ? "Access Your System" : "Initialize New Instance"}
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="glass-card-elevated p-8">
+        <div className="glass-card-elevated p-8 power-border">
           <form onSubmit={handleAuth} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-primary" />
-                Email Address
+              <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                <Mail className="w-4 h-4 text-muted-foreground" />
+                Email
               </Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                className="bg-secondary/50 border-border/50 h-12"
+                placeholder="operator@company.com"
+                className="bg-secondary/60 border-border/60 h-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-primary" />
+              <Label htmlFor="password" className="flex items-center gap-2 text-sm font-medium">
+                <Lock className="w-4 h-4 text-muted-foreground" />
                 Password
               </Label>
               <div className="relative">
@@ -135,13 +148,13 @@ const Auth = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-secondary/50 border-border/50 h-12 pr-12"
+                  className="bg-secondary/60 border-border/60 h-12 pr-12 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -151,48 +164,53 @@ const Auth = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-primary hover:bg-primary/90 font-semibold text-base gap-2"
+              className="w-full h-12 btn-power rounded-lg font-semibold text-base gap-2 tracking-wide"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 <>
-                  {isLogin ? "Sign In" : "Create Account"}
+                  {isLogin ? "Enter System" : "Initialize"}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-border/50 text-center">
+          <div className="mt-6 pt-6 border-t border-border/40 text-center">
             <p className="text-sm text-muted-foreground">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              {isLogin ? "No access?" : "Already initialized?"}
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="ml-2 text-primary hover:underline font-medium"
+                className="ml-2 text-primary hover:text-primary/80 font-medium transition-colors"
               >
-                {isLogin ? "Sign up" : "Sign in"}
+                {isLogin ? "Request access" : "Sign in"}
               </button>
             </p>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 rounded-lg bg-secondary/20">
-            <p className="text-2xl font-bold text-primary mb-1">10x</p>
-            <p className="text-xs text-muted-foreground">Creative Velocity</p>
+        {/* Power Metrics */}
+        <div className="mt-8 grid grid-cols-3 gap-3 stagger-children">
+          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
+            <p className="text-2xl font-mono font-bold text-primary mb-1">∞</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Scale</p>
           </div>
-          <div className="p-4 rounded-lg bg-secondary/20">
-            <p className="text-2xl font-bold text-success mb-1">24/7</p>
-            <p className="text-xs text-muted-foreground">Automation</p>
+          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
+            <p className="text-2xl font-mono font-bold text-success mb-1">24/7</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Operate</p>
           </div>
-          <div className="p-4 rounded-lg bg-secondary/20">
-            <p className="text-2xl font-bold text-chart-4 mb-1">AI</p>
-            <p className="text-xs text-muted-foreground">Powered</p>
+          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
+            <p className="text-2xl font-mono font-bold text-accent mb-1">AI</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Intelligence</p>
           </div>
         </div>
+
+        {/* Tagline */}
+        <p className="mt-8 text-center text-xs text-muted-foreground/60 tracking-wide">
+          Replace agencies. Eliminate labor. Compound revenue.
+        </p>
       </motion.div>
     </div>
   );

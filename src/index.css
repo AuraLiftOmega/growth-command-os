@@ -2,89 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+/* DOMINION Typography - Sharp, Geometric, Decisive */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* DOMINION POWER BLACK - Deep obsidian, matte authority */
-    --background: 220 20% 4%;
-    --foreground: 0 0% 95%;
+    /* ====================================
+       DOMINION POWER COLOR ARCHITECTURE
+       ==================================== */
+    
+    /* PRIMARY BASE — OBSIDIAN POWER BLACK
+       Deep near-black, matte authority, 80-85% of all surfaces
+       Neuro effect: Authority, seriousness, focus */
+    --background: 220 15% 3%;
+    --foreground: 0 0% 92%;
 
-    --card: 220 18% 6%;
-    --card-foreground: 0 0% 95%;
+    --card: 220 14% 5%;
+    --card-foreground: 0 0% 92%;
 
-    --popover: 220 18% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 220 14% 6%;
+    --popover-foreground: 0 0% 92%;
 
-    /* ELECTRIC IMPERIAL RED - Urgency, action, dominance */
-    --primary: 0 85% 55%;
+    /* ELECTRIC IMPERIAL RED — Urgency, Action, Dominance
+       ONLY for: CTAs, revenue, bottlenecks, alerts, phase indicators
+       Neuro effect: Triggers urgency, activates decisiveness */
+    --primary: 0 90% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 10%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 220 12% 8%;
+    --secondary-foreground: 0 0% 88%;
 
-    --muted: 220 15% 12%;
-    --muted-foreground: 220 10% 50%;
+    /* Steel/Graphite neutrals */
+    --muted: 220 10% 12%;
+    --muted-foreground: 220 8% 45%;
 
-    /* NEON ROYAL PURPLE - Intelligence, AI, strategic */
-    --accent: 270 75% 60%;
+    /* NEON ROYAL PURPLE — Intelligence, AI, Strategic
+       For: AI insights, learning systems, strategy modules, compounding
+       Neuro effect: Intelligence, rarity, elite cognition */
+    --accent: 270 85% 58%;
     --accent-foreground: 0 0% 100%;
 
     /* ELECTRIC RED for destructive actions */
-    --destructive: 0 90% 50%;
+    --destructive: 0 95% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    /* VIVID EMERALD GREEN - Wins only */
-    --success: 155 80% 45%;
-    --success-foreground: 220 20% 4%;
+    /* VIVID EMERALD GREEN — Wins ONLY
+       ONLY for: Revenue increases, agency replacements, proof confirmation
+       Neuro effect: Dopamine reward loop, makes success addictive */
+    --success: 155 85% 42%;
+    --success-foreground: 220 15% 3%;
 
-    /* WARNING - Amber */
-    --warning: 38 95% 50%;
-    --warning-foreground: 220 20% 4%;
+    /* WARNING — Amber threat signal */
+    --warning: 35 100% 48%;
+    --warning-foreground: 220 15% 3%;
 
-    /* Borders and inputs */
-    --border: 220 15% 15%;
-    --input: 220 15% 12%;
-    --ring: 0 85% 55%;
+    /* Borders and inputs - Steel gray */
+    --border: 220 12% 14%;
+    --input: 220 12% 10%;
+    --ring: 0 90% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* Chart colors - Power palette */
-    --chart-1: 0 85% 55%;
-    --chart-2: 155 80% 45%;
-    --chart-3: 38 95% 50%;
-    --chart-4: 270 75% 60%;
-    --chart-5: 200 80% 55%;
+    --chart-1: 0 90% 50%;
+    --chart-2: 155 85% 42%;
+    --chart-3: 35 100% 48%;
+    --chart-4: 270 85% 58%;
+    --chart-5: 200 85% 52%;
 
-    /* Custom DOMINION tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(0 85% 55%) 0%, hsl(270 75% 60%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(155 80% 45%) 0%, hsl(155 60% 55%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(220 18% 8%) 0%, hsl(220 20% 5%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(0 85% 55% / 0.15) 0%, transparent 70%);
-    --gradient-purple: linear-gradient(135deg, hsl(270 75% 60%) 0%, hsl(280 80% 50%) 100%);
+    /* DOMINION Power Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0 90% 50%) 0%, hsl(270 85% 58%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(155 85% 42%) 0%, hsl(155 70% 50%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(220 14% 6%) 0%, hsl(220 15% 3%) 100%);
+    --gradient-glow-red: radial-gradient(ellipse at center, hsl(0 90% 50% / 0.2) 0%, transparent 70%);
+    --gradient-glow-purple: radial-gradient(ellipse at center, hsl(270 85% 58% / 0.15) 0%, transparent 70%);
+    --gradient-purple: linear-gradient(135deg, hsl(270 85% 58%) 0%, hsl(285 90% 50%) 100%);
+    --gradient-obsidian: linear-gradient(180deg, hsl(220 14% 5%) 0%, hsl(220 15% 2%) 100%);
     
-    --shadow-glow: 0 0 60px -15px hsl(0 85% 55% / 0.5);
-    --shadow-glow-purple: 0 0 60px -15px hsl(270 75% 60% / 0.4);
-    --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.6);
-    --shadow-elevated: 0 8px 32px -8px hsl(0 0% 0% / 0.8);
+    /* Power shadows */
+    --shadow-glow-red: 0 0 80px -20px hsl(0 90% 50% / 0.6);
+    --shadow-glow-purple: 0 0 80px -20px hsl(270 85% 58% / 0.5);
+    --shadow-glow-green: 0 0 60px -15px hsl(155 85% 42% / 0.5);
+    --shadow-card: 0 4px 32px -8px hsl(0 0% 0% / 0.7);
+    --shadow-elevated: 0 12px 48px -12px hsl(0 0% 0% / 0.85);
 
-    --glass-bg: hsl(220 18% 8% / 0.7);
-    --glass-border: hsl(220 15% 20% / 0.3);
+    /* Glass effects */
+    --glass-bg: hsl(220 14% 5% / 0.85);
+    --glass-border: hsl(220 12% 18% / 0.4);
 
-    /* Sidebar - Power black */
-    --sidebar-background: 220 20% 5%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 0 85% 55%;
+    /* Sidebar - Deep obsidian */
+    --sidebar-background: 220 15% 4%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 0 90% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 10%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 15% 12%;
-    --sidebar-ring: 0 85% 55%;
+    --sidebar-accent: 220 12% 8%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-border: 220 12% 10%;
+    --sidebar-ring: 0 90% 50%;
   }
 
   .dark {
-    --background: 220 20% 4%;
-    --foreground: 0 0% 95%;
+    --background: 220 15% 3%;
+    --foreground: 0 0% 92%;
   }
 }
 
@@ -93,97 +112,256 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-feature-settings: 'ss01' on, 'ss02' on;
+    letter-spacing: -0.01em;
+  }
+
+  /* Sharp, geometric typography - decisive and expensive */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+    font-weight: 800;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  /* Mono font for critical numbers */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: 'tnum' on, 'lnum' on;
   }
 }
 
 @layer components {
+  /* ====================================
+     DOMINION POWER COMPONENTS
+     ==================================== */
+
+  /* Glass cards - Dark authority */
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-border/30 rounded-xl;
+    @apply bg-card/70 backdrop-blur-xl border border-border/40 rounded-lg;
     box-shadow: var(--shadow-card);
   }
 
   .glass-card-elevated {
-    @apply bg-card/80 backdrop-blur-xl border border-border/40 rounded-xl;
+    @apply bg-card/85 backdrop-blur-xl border border-border/50 rounded-lg;
     box-shadow: var(--shadow-elevated);
   }
 
+  /* Metric cards with power hover */
   .metric-card {
-    @apply glass-card p-5 transition-all duration-300 hover:border-primary/30;
+    @apply glass-card p-5 transition-all duration-200;
   }
 
   .metric-card:hover {
-    box-shadow: var(--shadow-glow);
+    @apply border-primary/40;
+    box-shadow: var(--shadow-glow-red);
   }
 
+  /* Intelligence metric card (purple glow) */
+  .metric-card-intelligence {
+    @apply glass-card p-5 transition-all duration-200;
+  }
+
+  .metric-card-intelligence:hover {
+    @apply border-accent/40;
+    box-shadow: var(--shadow-glow-purple);
+  }
+
+  /* Success metric card (green glow) */
+  .metric-card-success {
+    @apply glass-card p-5 transition-all duration-200;
+  }
+
+  .metric-card-success:hover {
+    @apply border-success/40;
+    box-shadow: var(--shadow-glow-green);
+  }
+
+  /* Status indicators - Power signals */
   .status-dot {
-    @apply w-2 h-2 rounded-full animate-pulse;
+    @apply w-2 h-2 rounded-full;
   }
 
   .status-dot-active {
     @apply bg-accent;
-    box-shadow: 0 0 8px hsl(var(--accent));
+    box-shadow: 0 0 12px hsl(var(--accent));
+    animation: pulse-status 2s ease-in-out infinite;
   }
 
   .status-dot-warning {
     @apply bg-warning;
-    box-shadow: 0 0 8px hsl(var(--warning));
+    box-shadow: 0 0 12px hsl(var(--warning));
   }
 
   .status-dot-error {
     @apply bg-destructive;
-    box-shadow: 0 0 8px hsl(var(--destructive));
+    box-shadow: 0 0 12px hsl(var(--destructive));
+    animation: pulse-error 1.5s ease-in-out infinite;
   }
 
+  .status-dot-success {
+    @apply bg-success;
+    box-shadow: 0 0 12px hsl(var(--success));
+  }
+
+  /* DOMINION gradient text */
   .gradient-text {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
   }
 
-  .gradient-border {
-    @apply relative;
+  .gradient-text-purple {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-purple);
   }
 
-  .gradient-border::before {
+  .gradient-text-success {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-success);
+  }
+
+  /* Power border effect */
+  .power-border {
+    @apply relative overflow-hidden;
+  }
+
+  .power-border::before {
     content: '';
-    @apply absolute inset-0 rounded-xl p-[1px];
+    @apply absolute inset-0 rounded-lg p-[1px];
     background: var(--gradient-primary);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
   }
 
-  .gradient-border:hover::before {
+  .power-border:hover::before {
     opacity: 1;
   }
 
-  .glow-effect {
+  /* Intelligence border (purple) */
+  .intel-border {
+    @apply relative overflow-hidden;
+  }
+
+  .intel-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-lg p-[1px];
+    background: var(--gradient-purple);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .intel-border:hover::before {
+    opacity: 1;
+  }
+
+  /* Glow effects */
+  .glow-red {
     position: relative;
   }
 
-  .glow-effect::after {
+  .glow-red::after {
     content: '';
-    @apply absolute inset-0 -z-10 blur-3xl opacity-30;
-    background: var(--gradient-primary);
+    @apply absolute inset-0 -z-10 blur-3xl opacity-40;
+    background: var(--gradient-glow-red);
   }
 
+  .glow-purple {
+    position: relative;
+  }
+
+  .glow-purple::after {
+    content: '';
+    @apply absolute inset-0 -z-10 blur-3xl opacity-30;
+    background: var(--gradient-glow-purple);
+  }
+
+  /* Power buttons */
+  .btn-power {
+    @apply relative overflow-hidden bg-primary text-primary-foreground font-semibold;
+    @apply transition-all duration-200;
+  }
+
+  .btn-power:hover {
+    @apply bg-primary/90;
+    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.6);
+  }
+
+  .btn-power::after {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-200;
+    background: linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.1) 50%, transparent 100%);
+  }
+
+  .btn-power:hover::after {
+    opacity: 1;
+  }
+
+  /* Intelligence button */
+  .btn-intel {
+    @apply relative overflow-hidden bg-accent text-accent-foreground font-semibold;
+    @apply transition-all duration-200;
+  }
+
+  .btn-intel:hover {
+    @apply bg-accent/90;
+    box-shadow: 0 0 30px -5px hsl(var(--accent) / 0.6);
+  }
+
+  /* Critical numbers display */
+  .number-critical {
+    @apply font-mono font-bold text-foreground;
+    text-shadow: 0 0 20px hsl(var(--foreground) / 0.3);
+  }
+
+  .number-revenue {
+    @apply font-mono font-bold text-primary;
+    text-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+  }
+
+  .number-success {
+    @apply font-mono font-bold text-success;
+    text-shadow: 0 0 30px hsl(var(--success) / 0.5);
+  }
+
+  /* Scrollbar - Minimal and dark */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted)) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
@@ -191,31 +369,34 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted));
-    border-radius: 3px;
+    background: hsl(var(--border));
+    border-radius: 2px;
   }
 
-  .animate-fade-up {
-    animation: fadeUp 0.5s ease-out;
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
   }
 
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+  /* Hide scrollbar completely */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out;
-  }
-
-  .animate-slide-right {
-    animation: slideRight 0.4s ease-out;
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
+
+/* ====================================
+   DOMINION POWER ANIMATIONS
+   Controlled, deliberate, never playful
+   ==================================== */
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -235,7 +416,7 @@
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -246,7 +427,7 @@
 @keyframes slideRight {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-16px);
   }
   to {
     opacity: 1;
@@ -254,15 +435,96 @@
   }
 }
 
-@keyframes pulse-glow {
+/* Power pulse - Red glow */
+@keyframes pulse-power {
   0%, 100% {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
   50% {
-    box-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 50px hsl(var(--primary) / 0.5);
   }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+/* Status pulse */
+@keyframes pulse-status {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px hsl(var(--accent));
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 16px hsl(var(--accent));
+  }
 }
+
+/* Error pulse - Aggressive */
+@keyframes pulse-error {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 8px hsl(var(--destructive));
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 20px hsl(var(--destructive));
+  }
+}
+
+/* Success flash - Brief green pulse then fade */
+@keyframes success-flash {
+  0% {
+    box-shadow: 0 0 0 hsl(var(--success) / 0);
+  }
+  30% {
+    box-shadow: 0 0 40px hsl(var(--success) / 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 hsl(var(--success) / 0);
+  }
+}
+
+/* Subtle glow on hover */
+@keyframes hover-glow {
+  0% {
+    box-shadow: 0 0 0 hsl(var(--primary) / 0);
+  }
+  100% {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
+  }
+}
+
+/* Animation classes */
+.animate-fade-up {
+  animation: fadeUp 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s ease-out;
+}
+
+.animate-slide-right {
+  animation: slideRight 0.35s ease-out;
+}
+
+.animate-pulse-power {
+  animation: pulse-power 2s ease-in-out infinite;
+}
+
+.animate-success-flash {
+  animation: success-flash 0.8s ease-out;
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+  animation: fadeUp 0.4s ease-out backwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
