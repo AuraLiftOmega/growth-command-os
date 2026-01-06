@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.geekbot-sync]
 verify_jwt = false
+
+[functions.ai-sales-agent]
+verify_jwt = false

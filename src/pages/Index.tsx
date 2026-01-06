@@ -29,6 +29,7 @@ import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPane
 import { GeekbotWidget } from "@/components/dashboard/GeekbotWidget";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
+import { SalesAgentChat, BookingsDashboard } from "@/components/sales-agent";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
@@ -235,6 +236,16 @@ const Index = () => {
               <KPIAnalyticsDashboard />
             </div>
           )}
+
+          {/* AI Sales Agent & Bookings Row */}
+          <div className="grid grid-cols-12 gap-6 mb-6">
+            <div className="col-span-12 lg:col-span-5">
+              <SalesAgentChat />
+            </div>
+            <div className="col-span-12 lg:col-span-7">
+              <BookingsDashboard />
+            </div>
+          </div>
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-12 gap-6">
