@@ -5,6 +5,7 @@ import {
   Command,
   Plus
 } from "lucide-react";
+import { CartDrawer } from "@/components/shopify/CartDrawer";
 
 export const Header = () => {
   return (
@@ -41,6 +42,7 @@ export const Header = () => {
 
       {/* Right Section */}
       <div className="flex items-center gap-3">
+        <CartDrawer />
         <button className="relative p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <div className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
