@@ -280,7 +280,44 @@ Deno.serve(async (req) => {
         afterDate.toISOString()
       )
 
-      // Store as system events for tracking
+      // Check for blockers in each report
+      const hasBlockers = (report: GeekbotReport): boolean => {
+        for (const q of report.questions) {
+          const lowerAnswer = (q.answer || '').toLowerCase()
+          const lowerQuestion = q.text.toLowerCase()
+          if (
+            lowerQuestion.includes('blocker') ||
+            lowerQuestion.includes('blocked') ||
+            lowerQuestion.includes('obstacle')
+          ) {
+            if (q.answer && q.answer.trim() && !['no', 'none', 'n/a', '-'].includes(q.answer.toLowerCase().trim())) {
+              return true
+            }
+          }
+        }
+        return false
+      }
+
+      // Store reports to geekbot_reports table
+      for (const report of reports) {
+        await supabase.from('geekbot_reports').upsert({
+          user_id: claims.user.id,
+          geekbot_report_id: report.id.toString(),
+          standup_id: report.standup_id.toString(),
+          standup_name: report.standup_name,
+          member_id: report.member.id.toString(),
+          member_name: report.member.realname || report.member.username,
+          questions: report.questions.map(q => ({
+            question: q.text,
+            answer: q.answer || ''
+          })),
+          has_blockers: hasBlockers(report),
+          created_at: report.created_at,
+          synced_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,geekbot_report_id' })
+      }
+
+      // Also store as system events for tracking
       for (const report of reports) {
         await supabase.from('system_events').upsert({
           user_id: claims.user.id,
