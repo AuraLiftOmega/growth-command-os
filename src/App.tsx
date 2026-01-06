@@ -207,6 +207,7 @@ const AppRoutes = () => {
       />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/embed/demo/:demoId" element={<DemoEmbed />} />
+      <Route path="/demo/preview" element={<SharedDemo />} />
       <Route path="/demo/:shareCode" element={<SharedDemo />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

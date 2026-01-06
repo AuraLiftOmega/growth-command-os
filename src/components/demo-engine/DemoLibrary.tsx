@@ -23,9 +23,10 @@ import {
   SkipForward,
   Image as ImageIcon,
   Link2,
-  Volume2
+  Volume2,
+  Sparkles
 } from 'lucide-react';
-import { useDemoEngine } from '@/hooks/useDemoEngine';
+import { useDemoEngine, DemoVideo } from '@/hooks/useDemoEngine';
 import { DemoVariant } from '@/stores/demo-engine-store';
 import { INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { NarrationGenerator } from './NarrationGenerator';
 import { ShareableDemoLinks } from './ShareableDemoLinks';
+import { DemoVideoPlayer } from './DemoVideoPlayer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /**
@@ -72,11 +74,12 @@ const variantColors: Record<DemoVariant, string> = {
 };
 
 export const DemoLibrary = () => {
-  const { demos, analytics, isLoading, deleteDemo, recordView, refreshData, renderDemo, checkRenderProgress } = useDemoEngine();
+  const { demos, analytics, isLoading, deleteDemo, recordView, refreshData, renderDemo, checkRenderProgress, isInDemoMode } = useDemoEngine();
   const [renderingDemos, setRenderingDemos] = useState<Record<string, number>>({});
   const [previewDemo, setPreviewDemo] = useState<string | null>(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [useAdvancedPlayer, setUseAdvancedPlayer] = useState(true);
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Poll for render progress
@@ -198,6 +201,15 @@ export const DemoLibrary = () => {
 
   return (
     <div className="space-y-6">
+      {/* Demo Mode Indicator */}
+      {isInDemoMode && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium">Demo Mode</span>
+          <span className="text-sm text-muted-foreground">— Showing sample demos. Generate your first real demo to get started!</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -209,7 +221,7 @@ export const DemoLibrary = () => {
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-1">
             <Eye className="w-3 h-3" />
-            {totalViews} total views
+            {totalViews.toLocaleString()} total views
           </Badge>
           <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
             <RefreshCw className="w-4 h-4" />
@@ -434,98 +446,26 @@ export const DemoLibrary = () => {
           
           {currentPreviewDemo && (
             <div className="space-y-4">
-              {/* Video Preview Area */}
-              <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg overflow-hidden relative">
-                {renderingDemos[currentPreviewDemo.id] !== undefined ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                    <Film className="w-12 h-12 text-primary mb-3 animate-pulse" />
-                    <p className="text-sm font-medium mb-3">Rendering Demo Video...</p>
-                    <Progress value={renderingDemos[currentPreviewDemo.id]} className="w-full max-w-[250px]" />
-                    <p className="text-xs text-muted-foreground mt-2">{renderingDemos[currentPreviewDemo.id]}% complete</p>
-                  </div>
-                ) : currentPreviewDemo.video_url || currentPreviewDemo.thumbnail_url ? (
-                  <>
-                    <img 
-                      src={currentPreviewDemo.thumbnail_url || ''}
-                      alt="Demo preview"
-                      className={cn(
-                        "w-full h-full object-cover transition-opacity",
-                        isPlaying ? "animate-pulse" : ""
-                      )}
-                    />
-                    {/* Play overlay */}
-                    {!isPlaying && (
-                      <div 
-                        className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer hover:bg-black/30 transition-colors"
-                        onClick={handlePlayPause}
-                      >
-                        <div className="w-20 h-20 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
-                          <Play className="w-10 h-10 text-primary-foreground ml-1" />
-                        </div>
-                      </div>
-                    )}
-                    {/* Playing indicator */}
-                    {isPlaying && (
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="flex items-center gap-3 bg-background/80 backdrop-blur rounded-lg p-3">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                            <span className="text-xs font-medium">Playing</span>
-                          </div>
-                          <Progress value={(currentFrame / (currentPreviewDemo.frames_generated || 6)) * 100} className="flex-1" />
-                          <span className="text-xs text-muted-foreground">
-                            {currentFrame + 1} / {currentPreviewDemo.frames_generated || 6}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center">
-                      <ImageIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground mb-2">Demo not yet rendered</p>
-                      <p className="text-xs text-muted-foreground mb-4">Generate video frames to preview your demo</p>
-                      <Button 
-                        onClick={() => handleRender(currentPreviewDemo.id)}
-                        className="gap-2"
-                      >
-                        <Film className="w-4 h-4" />
-                        Render Demo Video
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Advanced Video Player */}
+              <DemoVideoPlayer
+                thumbnail={currentPreviewDemo.thumbnail_url}
+                narrationUrl={(currentPreviewDemo as any).narration_url}
+                narrative={currentPreviewDemo.narrative}
+                durationSeconds={currentPreviewDemo.duration_seconds || 120}
+                variant={currentPreviewDemo.variant}
+                industry={INDUSTRY_TEMPLATES[currentPreviewDemo.industry]?.name || currentPreviewDemo.industry}
+                onComplete={() => {
+                  toast.success('Demo playback complete');
+                }}
+                onProgress={(progress, watchTime) => {
+                  // Track view progress
+                  if (watchTime > 10 && !isInDemoMode) {
+                    recordView(currentPreviewDemo.id, watchTime);
+                  }
+                }}
+                className="w-full"
+              />
 
-              {/* Playback Controls */}
-              <div className="flex items-center justify-center gap-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setCurrentFrame(prev => Math.max(0, prev - 1))}
-                  disabled={!currentPreviewDemo.thumbnail_url}
-                >
-                  <SkipBack className="w-4 h-4" />
-                </Button>
-                <Button 
-                  onClick={handlePlayPause} 
-                  size="lg" 
-                  className="gap-2"
-                  disabled={!currentPreviewDemo.thumbnail_url && renderingDemos[currentPreviewDemo.id] === undefined}
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                  {isPlaying ? 'Pause' : 'Play Demo'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setCurrentFrame(prev => prev + 1)}
-                  disabled={!currentPreviewDemo.thumbnail_url}
-                >
-                  <SkipForward className="w-4 h-4" />
-                </Button>
-              </div>
 
               {/* Tabs for Narrative and Narration */}
               <Tabs defaultValue="narrative" className="w-full">
