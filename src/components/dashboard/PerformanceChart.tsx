@@ -81,7 +81,7 @@ export const PerformanceChart = () => {
           </div>
           <div>
             <h3 className="font-display font-semibold text-lg">Real-Time Performance</h3>
-            <p className="text-muted-foreground text-sm">Last 24 hours</p>
+            <p className="text-muted-foreground text-sm">Last 24 hours • Auto-refreshes every 5 min</p>
           </div>
         </div>
 

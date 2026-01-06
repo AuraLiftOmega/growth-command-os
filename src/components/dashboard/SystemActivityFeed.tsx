@@ -7,11 +7,14 @@ import {
   XCircle,
   Send,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { systemEventService } from "@/services/creative-service";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface SystemEvent {
   id: string;
@@ -22,6 +25,8 @@ interface SystemEvent {
   severity: string;
   created_at: string;
   resolved: boolean;
+  retry_count?: number;
+  max_retries?: number;
 }
 
 const categoryIcons: Record<string, typeof Activity> = {
@@ -107,32 +112,97 @@ export const SystemActivityFeed = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<SystemEvent[]>(demoEvents);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    actionsToday: 1247,
+    successRate: 99.8,
+    pendingRetry: 0,
+  });
+
+  const fetchEvents = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      const data = await systemEventService.fetchRecentEvents(user.id, 10);
+      if (data && data.length > 0) {
+        setEvents(data as SystemEvent[]);
+        
+        // Calculate real stats
+        const pending = (data as SystemEvent[]).filter(e => !e.resolved).length;
+        setStats(prev => ({ ...prev, pendingRetry: pending }));
+      }
+    } catch (err) {
+      console.error("Error fetching events:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      
-      try {
-        const data = await systemEventService.fetchRecentEvents(user.id, 10);
-        if (data && data.length > 0) {
-          setEvents(data as SystemEvent[]);
-        }
-      } catch (err) {
-        console.error("Error fetching events:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchEvents();
     
     // Refresh every 30 seconds
     const interval = setInterval(fetchEvents, 30000);
     return () => clearInterval(interval);
   }, [user]);
+
+  const handleRetry = async (eventId: string) => {
+    if (!user || eventId.length < 10) {
+      toast.info("This is demo data");
+      return;
+    }
+
+    setRetryingId(eventId);
+
+    try {
+      const success = await systemEventService.retryFailedEvent(eventId);
+      
+      if (success) {
+        toast.success("Retry initiated");
+        // Update local state
+        setEvents(prev => prev.map(e => 
+          e.id === eventId ? { ...e, retry_count: (e.retry_count || 0) + 1 } : e
+        ));
+      } else {
+        // Mark as resolved if max retries exceeded
+        setEvents(prev => prev.map(e => 
+          e.id === eventId ? { ...e, resolved: true } : e
+        ));
+        toast.info("Max retries reached, marked as resolved");
+      }
+    } catch (error) {
+      console.error("Retry error:", error);
+      toast.error("Failed to retry");
+    } finally {
+      setRetryingId(null);
+    }
+  };
+
+  const handleResolve = async (eventId: string) => {
+    if (!user || eventId.length < 10) {
+      toast.info("This is demo data");
+      return;
+    }
+
+    try {
+      await supabase
+        .from("system_events")
+        .update({ resolved: true })
+        .eq("id", eventId);
+
+      setEvents(prev => prev.map(e => 
+        e.id === eventId ? { ...e, resolved: true } : e
+      ));
+      
+      toast.success("Event resolved");
+    } catch (error) {
+      console.error("Resolve error:", error);
+      toast.error("Failed to resolve");
+    }
+  };
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -178,9 +248,17 @@ export const SystemActivityFeed = () => {
             <p className="text-muted-foreground text-sm">Real-time automation events</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 border border-success/20">
-          <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          <span className="text-[10px] text-success font-medium">LIVE</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchEvents}
+            className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 border border-success/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-[10px] text-success font-medium">LIVE</span>
+          </div>
         </div>
       </div>
 
@@ -216,9 +294,28 @@ export const SystemActivityFeed = () => {
                   )}
                 </div>
                 {!event.resolved && (
-                  <button className="p-1 rounded-lg hover:bg-secondary/50 transition-colors">
-                    <RefreshCw className="w-3 h-3 text-warning" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {retryingId === event.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => handleRetry(event.id)}
+                          className="p-1 rounded-lg hover:bg-warning/20 transition-colors"
+                          title="Retry"
+                        >
+                          <RefreshCw className="w-3 h-3 text-warning" />
+                        </button>
+                        <button 
+                          onClick={() => handleResolve(event.id)}
+                          className="p-1 rounded-lg hover:bg-success/20 transition-colors"
+                          title="Mark Resolved"
+                        >
+                          <CheckCircle2 className="w-3 h-3 text-success" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -229,15 +326,17 @@ export const SystemActivityFeed = () => {
       {/* Stats Footer */}
       <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/50">
         <div className="text-center">
-          <p className="text-lg font-display font-bold text-foreground">1,247</p>
+          <p className="text-lg font-display font-bold text-foreground">{stats.actionsToday.toLocaleString()}</p>
           <p className="text-[10px] text-muted-foreground">Actions Today</p>
         </div>
         <div className="text-center">
-          <p className="text-lg font-display font-bold text-success">99.8%</p>
+          <p className="text-lg font-display font-bold text-success">{stats.successRate}%</p>
           <p className="text-[10px] text-muted-foreground">Success Rate</p>
         </div>
         <div className="text-center">
-          <p className="text-lg font-display font-bold text-primary">0</p>
+          <p className={`text-lg font-display font-bold ${stats.pendingRetry > 0 ? "text-warning" : "text-primary"}`}>
+            {stats.pendingRetry}
+          </p>
           <p className="text-[10px] text-muted-foreground">Pending Retry</p>
         </div>
       </div>

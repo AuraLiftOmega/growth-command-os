@@ -202,7 +202,15 @@ const Landing = () => {
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8 py-6"
+                onClick={() => {
+                  // Scroll to features section as a "demo"
+                  document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
                 <Play className="mr-2 w-5 h-5" />
                 Watch Demo
               </Button>

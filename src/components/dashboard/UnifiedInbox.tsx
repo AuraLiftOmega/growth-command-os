@@ -196,7 +196,27 @@ export const UnifiedInbox = () => {
               <Zap className="w-3 h-3" />
               Auto-Response ON
             </Badge>
-            <Button variant="ghost" size="icon" onClick={() => setIsLoading(true)}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={async () => {
+                setIsLoading(true);
+                try {
+                  if (!user) return;
+                  const { data, error } = await supabase
+                    .from('comment_automations')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                  if (!error && data?.length) {
+                    setComments(data);
+                  }
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+            >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
