@@ -10,6 +10,8 @@ export { DemoSalesAutomation } from './DemoSalesAutomation';
 export { DemoVideoPlayer } from './DemoVideoPlayer';
 export { VideoExporter } from './VideoExporter';
 export { ABTestingPanel } from './ABTestingPanel';
+export { ABTestNotifications } from './ABTestNotifications';
+export { MultivariateTestingPanel } from './MultivariateTestingPanel';
 
 // Re-export hooks for external use
 export { useDemoEngine } from '@/hooks/useDemoEngine';
