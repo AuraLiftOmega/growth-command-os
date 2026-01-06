@@ -231,3 +231,168 @@ export function generateRealisticTimestamps(count: number): string[] {
     return new Date(now - hoursAgo * 60 * 60 * 1000).toISOString();
   });
 }
+
+/**
+ * DEMO MODE FALLBACK CONFIGURATION
+ * 
+ * Provides industry defaults when user skips configuration
+ * or when no real data exists.
+ */
+export interface DemoModeConfig {
+  industry: string;
+  industryName: string;
+  offerType: string;
+  salesMotion: string;
+  dealSize: 'low' | 'mid' | 'high' | 'enterprise';
+  buyingCycle: 'instant' | 'short' | 'medium' | 'long' | 'enterprise';
+  primaryKpis: string[];
+  secondaryKpis: string[];
+  benchmarks: Record<string, number>;
+  tone: string;
+  forbiddenWords: string[];
+  approvedPhrases: string[];
+}
+
+// Default fallback config for demo mode
+export const DEMO_MODE_DEFAULTS: DemoModeConfig = {
+  industry: 'ecommerce',
+  industryName: 'E-Commerce / DTC',
+  offerType: 'physical_product',
+  salesMotion: 'self_serve',
+  dealSize: 'mid',
+  buyingCycle: 'instant',
+  primaryKpis: ['Revenue', 'ROAS', 'AOV', 'Conversion Rate'],
+  secondaryKpis: ['CAC', 'LTV', 'Repeat Purchase Rate'],
+  benchmarks: { 
+    'ROAS': 3.0, 
+    'AOV': 75, 
+    'ConversionRate': 2.5,
+    'Revenue': 50000,
+    'CAC': 25,
+    'LTV': 150
+  },
+  tone: 'aggressive',
+  forbiddenWords: ['maybe', 'try', 'hope'],
+  approvedPhrases: ['scale', 'ROAS', 'AOV', 'LTV']
+};
+
+// Industry-specific demo configs
+export const INDUSTRY_DEMO_CONFIGS: Record<string, DemoModeConfig> = {
+  ecommerce: DEMO_MODE_DEFAULTS,
+  saas: {
+    industry: 'saas',
+    industryName: 'SaaS / Software',
+    offerType: 'saas',
+    salesMotion: 'product_led',
+    dealSize: 'mid',
+    buyingCycle: 'medium',
+    primaryKpis: ['MRR', 'ARR', 'Churn Rate', 'NRR'],
+    secondaryKpis: ['CAC', 'LTV:CAC', 'Activation Rate'],
+    benchmarks: { 'ChurnRate': 5, 'NRR': 110, 'LTV_CAC': 3, 'MRR': 10000 },
+    tone: 'professional',
+    forbiddenWords: ['revolutionary', 'disruptive'],
+    approvedPhrases: ['ARR', 'MRR', 'churn', 'retention']
+  },
+  agency: {
+    industry: 'agency',
+    industryName: 'Agency / Services',
+    offerType: 'agency',
+    salesMotion: 'sales_led',
+    dealSize: 'high',
+    buyingCycle: 'short',
+    primaryKpis: ['Revenue', 'Profit Margin', 'Client Retention'],
+    secondaryKpis: ['Utilization Rate', 'Project Profitability'],
+    benchmarks: { 'ProfitMargin': 30, 'ClientRetention': 85, 'Revenue': 100000 },
+    tone: 'consultative',
+    forbiddenWords: ['cheap', 'discount'],
+    approvedPhrases: ['ROI', 'partnership', 'strategy', 'execution']
+  },
+  coaching: {
+    industry: 'coaching',
+    industryName: 'Coaching / Info Products',
+    offerType: 'coaching',
+    salesMotion: 'hybrid',
+    dealSize: 'high',
+    buyingCycle: 'short',
+    primaryKpis: ['Launch Revenue', 'Enrollment Rate', 'Completion Rate'],
+    secondaryKpis: ['Refund Rate', 'Testimonial Rate', 'Upsell Rate'],
+    benchmarks: { 'EnrollmentRate': 5, 'CompletionRate': 30, 'RefundRate': 10 },
+    tone: 'aggressive',
+    forbiddenWords: ['guarantee', 'promise'],
+    approvedPhrases: ['transformation', 'results', 'proven system']
+  },
+  enterprise: {
+    industry: 'enterprise',
+    industryName: 'Enterprise / B2B',
+    offerType: 'service',
+    salesMotion: 'sales_led',
+    dealSize: 'enterprise',
+    buyingCycle: 'enterprise',
+    primaryKpis: ['Pipeline Value', 'Win Rate', 'Deal Velocity'],
+    secondaryKpis: ['ACV', 'Expansion Revenue', 'NPS'],
+    benchmarks: { 'WinRate': 25, 'DealVelocity': 90, 'PipelineValue': 500000 },
+    tone: 'technical',
+    forbiddenWords: ['revolutionary', 'game-changing'],
+    approvedPhrases: ['ROI', 'TCO', 'implementation', 'security']
+  }
+};
+
+/**
+ * Get demo mode config for a specific industry or default
+ */
+export function getDemoModeConfig(industry?: string): DemoModeConfig {
+  if (industry && INDUSTRY_DEMO_CONFIGS[industry]) {
+    return INDUSTRY_DEMO_CONFIGS[industry];
+  }
+  return DEMO_MODE_DEFAULTS;
+}
+
+/**
+ * Apply demo mode defaults to store
+ * Used when user skips configuration or enters demo mode
+ */
+export function applyDemoModeDefaults(
+  setIndustry: (industry: string, config: any) => void,
+  setOfferType: (type: string) => void,
+  setSalesMotion: (motion: string) => void,
+  setDealSize: (size: 'low' | 'mid' | 'high' | 'enterprise') => void,
+  setBuyingCycle: (cycle: 'instant' | 'short' | 'medium' | 'long' | 'enterprise') => void,
+  industry?: string
+): void {
+  const config = getDemoModeConfig(industry);
+  
+  // Create a minimal industry config object
+  const industryConfigObj = {
+    id: config.industry,
+    name: config.industryName,
+    language: {
+      terminology: {},
+      tone: config.tone as any,
+      forbiddenWords: config.forbiddenWords,
+      approvedPhrases: config.approvedPhrases
+    },
+    compliance: {
+      disclaimers: [],
+      restrictions: [],
+      requiredDisclosures: []
+    },
+    kpis: {
+      primary: config.primaryKpis,
+      secondary: config.secondaryKpis,
+      benchmarks: config.benchmarks
+    },
+    buyerPsychology: {
+      decisionMakers: [],
+      objections: [],
+      triggers: [],
+      cycleLength: config.buyingCycle
+    },
+    integrations: []
+  };
+  
+  setIndustry(config.industry, industryConfigObj);
+  setOfferType(config.offerType);
+  setSalesMotion(config.salesMotion);
+  setDealSize(config.dealSize);
+  setBuyingCycle(config.buyingCycle);
+}

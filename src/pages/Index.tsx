@@ -27,10 +27,12 @@ import { PlatformConnectionsPanel } from "@/components/dashboard/PlatformConnect
 import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
 import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
+import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useDominionStore, INDUSTRY_TEMPLATES } from "@/stores/dominion-core-store";
+import { useConfigNotifications } from "@/hooks/useConfigNotifications";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -46,6 +48,9 @@ const Index = () => {
     offerType,
     salesMotion 
   } = useDominionStore();
+
+  // Enable config change notifications
+  useConfigNotifications();
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -222,6 +227,13 @@ const Index = () => {
           <div className="mb-6">
             <ShopifyProductsPanel />
           </div>
+
+          {/* KPI Analytics Dashboard - shows when engine is configured */}
+          {isConfigured && isActive && (
+            <div className="mb-6">
+              <KPIAnalyticsDashboard />
+            </div>
+          )}
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-12 gap-6">
