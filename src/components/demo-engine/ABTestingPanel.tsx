@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   XCircle,
   ChevronRight,
+  Grid3X3,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,6 +49,8 @@ import {
 } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ABTestNotifications } from './ABTestNotifications';
+import { MultivariateTestingPanel } from './MultivariateTestingPanel';
 
 interface ABTestVariant {
   id: string;
@@ -292,22 +295,38 @@ export const ABTestingPanel = ({
   }, [industry]);
 
   return (
-    <div className="space-y-6">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <FlaskConical className="w-5 h-5 text-primary" />
+    <Tabs defaultValue="ab" className="space-y-6">
+      {/* Tab Navigation with Notifications */}
+      <div className="flex items-center justify-between">
+        <TabsList>
+          <TabsTrigger value="ab" className="gap-2">
+            <FlaskConical className="w-4 h-4" />
+            A/B Testing
+          </TabsTrigger>
+          <TabsTrigger value="multivariate" className="gap-2">
+            <Grid3X3 className="w-4 h-4" />
+            Multivariate
+          </TabsTrigger>
+        </TabsList>
+        <ABTestNotifications onViewTest={(testId) => setSelectedTest(tests.find(t => t.id === testId) || null)} />
+      </div>
+
+      <TabsContent value="ab" className="space-y-6">
+        {/* Header Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FlaskConical className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{activeTests}</p>
+                  <p className="text-sm text-muted-foreground">Active Tests</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{activeTests}</p>
-                <p className="text-sm text-muted-foreground">Active Tests</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         
         <Card>
           <CardContent className="pt-6">
@@ -673,7 +692,12 @@ export const ABTestingPanel = ({
           </CardContent>
         </Card>
       </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="multivariate">
+        <MultivariateTestingPanel />
+      </TabsContent>
+    </Tabs>
   );
 };
 
