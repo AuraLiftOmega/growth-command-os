@@ -6,8 +6,11 @@ import {
   Users, 
   Eye,
   Target,
-  AlertCircle
+  AlertCircle,
+  Settings,
+  Zap
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { MetricCard } from "@/components/dashboard/MetricCard";
@@ -24,12 +27,25 @@ import { PlatformConnectionsPanel } from "@/components/dashboard/PlatformConnect
 import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
 import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
+import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { useDominionStore, INDUSTRY_TEMPLATES } from "@/stores/dominion-core-store";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { metrics } = useAnalytics();
   const { isDemoMode } = useOnboardingStore();
+  const { 
+    industry, 
+    industryConfig, 
+    isConfigured, 
+    isActive, 
+    dealSize,
+    buyingCycle,
+    offerType,
+    salesMotion 
+  } = useDominionStore();
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -58,6 +74,71 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground">
                   Exploring with sample data. Connect your real store in Settings to go live.
                 </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Revenue Engine Status Banner */}
+          {!isConfigured && !isDemoMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <Zap className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Configure Your Revenue Engine</p>
+                  <p className="text-xs text-muted-foreground">
+                    Set up industry adaptation for personalized KPIs, tone, and automation.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate('/command-center')}
+                size="sm"
+                className="gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Configure
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Active Engine Status */}
+          {isConfigured && isActive && industryConfig && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-success/10 border border-success/30"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      DOMINION Active: {industryConfig.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {dealSize.charAt(0).toUpperCase() + dealSize.slice(1)} ticket • {buyingCycle} cycle • {industryConfig.language.tone} tone
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="text-right">
+                    <span className="text-muted-foreground">Primary KPIs</span>
+                    <p className="font-medium">{industryConfig.kpis.primary.slice(0, 2).join(', ')}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/command-center')}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}

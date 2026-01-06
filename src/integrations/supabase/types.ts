@@ -1308,6 +1308,102 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_engine_config: {
+        Row: {
+          approved_phrases: string[] | null
+          buying_cycle: string | null
+          connected_integrations: string[] | null
+          core_capabilities: Json | null
+          created_at: string
+          customer_id: string | null
+          deal_size: string | null
+          decision_makers: string[] | null
+          forbidden_words: string[] | null
+          id: string
+          industry: string | null
+          industry_config: Json | null
+          is_active: boolean | null
+          is_configured: boolean | null
+          is_founder_instance: boolean | null
+          is_self_marketing_active: boolean | null
+          kpi_benchmarks: Json | null
+          language_tone: string | null
+          objections: string[] | null
+          offer_type: string | null
+          orchestrated_tools: string[] | null
+          primary_kpis: string[] | null
+          sales_motion: string | null
+          secondary_kpis: string[] | null
+          self_as_client: boolean | null
+          tenant_mode: string | null
+          triggers: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_phrases?: string[] | null
+          buying_cycle?: string | null
+          connected_integrations?: string[] | null
+          core_capabilities?: Json | null
+          created_at?: string
+          customer_id?: string | null
+          deal_size?: string | null
+          decision_makers?: string[] | null
+          forbidden_words?: string[] | null
+          id?: string
+          industry?: string | null
+          industry_config?: Json | null
+          is_active?: boolean | null
+          is_configured?: boolean | null
+          is_founder_instance?: boolean | null
+          is_self_marketing_active?: boolean | null
+          kpi_benchmarks?: Json | null
+          language_tone?: string | null
+          objections?: string[] | null
+          offer_type?: string | null
+          orchestrated_tools?: string[] | null
+          primary_kpis?: string[] | null
+          sales_motion?: string | null
+          secondary_kpis?: string[] | null
+          self_as_client?: boolean | null
+          tenant_mode?: string | null
+          triggers?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_phrases?: string[] | null
+          buying_cycle?: string | null
+          connected_integrations?: string[] | null
+          core_capabilities?: Json | null
+          created_at?: string
+          customer_id?: string | null
+          deal_size?: string | null
+          decision_makers?: string[] | null
+          forbidden_words?: string[] | null
+          id?: string
+          industry?: string | null
+          industry_config?: Json | null
+          is_active?: boolean | null
+          is_configured?: boolean | null
+          is_founder_instance?: boolean | null
+          is_self_marketing_active?: boolean | null
+          kpi_benchmarks?: Json | null
+          language_tone?: string | null
+          objections?: string[] | null
+          offer_type?: string | null
+          orchestrated_tools?: string[] | null
+          primary_kpis?: string[] | null
+          sales_motion?: string | null
+          secondary_kpis?: string[] | null
+          self_as_client?: boolean | null
+          tenant_mode?: string | null
+          triggers?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rollout_status: {
         Row: {
           completed_at: string | null
