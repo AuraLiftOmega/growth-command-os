@@ -16,7 +16,11 @@ import {
   Crosshair,
   Network,
   Lock,
-  ShieldAlert
+  ShieldAlert,
+  Globe,
+  Link2,
+  Megaphone,
+  Building2
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -30,12 +34,20 @@ import OrgScalingEngine from "@/components/command-center/OrgScalingEngine";
 import CompetitiveKillSwitch from "@/components/command-center/CompetitiveKillSwitch";
 import MoatHardeningSystem from "@/components/command-center/MoatHardeningSystem";
 import RiskInsulationEngine from "@/components/command-center/RiskInsulationEngine";
+import { 
+  IndustryAdaptationEngine, 
+  SelfMarketingEngine, 
+  IntegrationSovereignty, 
+  MultiTenantControl 
+} from "@/components/universal";
+import { useDominionStore } from "@/stores/dominion-core-store";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const CommandCenter = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
+  const { industry, tenantMode, isSelfMarketingActive } = useDominionStore();
 
   return (
     <div className="min-h-screen bg-background flex w-full">
@@ -45,23 +57,41 @@ const CommandCenter = () => {
         <main className="p-6 pt-24">
           {/* Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center">
-                <Crown className="w-6 h-6 text-primary-foreground" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <Crown className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="font-display text-3xl font-bold gradient-text">
+                    DOMINION COMMAND
+                  </h1>
+                  <p className="text-muted-foreground">
+                    Universal Revenue Operating System • {tenantMode === 'founder' ? 'Founder Mode' : tenantMode === 'customer' ? 'Customer Mode' : 'Demo Mode'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="font-display text-3xl font-bold gradient-text">
-                  CEO COMMAND CENTER
-                </h1>
-                <p className="text-muted-foreground">
-                  Central nervous system for aggressive market domination
-                </p>
+              
+              {/* Status Indicators */}
+              <div className="flex items-center gap-4">
+                {industry && (
+                  <div className="px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
+                    <span className="text-xs font-medium text-accent capitalize">{industry}</span>
+                  </div>
+                )}
+                {isSelfMarketingActive && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-medium text-primary">Self-Marketing Live</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="bg-card/60 border border-border p-1 h-auto flex-wrap">
+              {/* Core Operations */}
               <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Eye className="w-4 h-4" />
                 Daily View
@@ -72,7 +102,7 @@ const CommandCenter = () => {
               </TabsTrigger>
               <TabsTrigger value="messages" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <MessageSquare className="w-4 h-4" />
-                Message Vault
+                Messages
               </TabsTrigger>
               <TabsTrigger value="power-users" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Users className="w-4 h-4" />
@@ -82,17 +112,39 @@ const CommandCenter = () => {
                 <Zap className="w-4 h-4" />
                 DM Engine
               </TabsTrigger>
+              
+              {/* U-ROS Modules */}
+              <div className="w-px h-6 bg-border mx-1" />
+              <TabsTrigger value="industry" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground gap-2">
+                <Globe className="w-4 h-4" />
+                Industry
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground gap-2">
+                <Link2 className="w-4 h-4" />
+                Integrations
+              </TabsTrigger>
+              <TabsTrigger value="self-marketing" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground gap-2">
+                <Megaphone className="w-4 h-4" />
+                Self-Marketing
+              </TabsTrigger>
+              <TabsTrigger value="multi-tenant" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground gap-2">
+                <Building2 className="w-4 h-4" />
+                Multi-Tenant
+              </TabsTrigger>
+              
+              {/* Defense & Scale */}
+              <div className="w-px h-6 bg-border mx-1" />
               <TabsTrigger value="rollout" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Rocket className="w-4 h-4" />
                 Rollout
               </TabsTrigger>
               <TabsTrigger value="proof" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Proof Engine
+                Proof
               </TabsTrigger>
               <TabsTrigger value="org-scaling" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Network className="w-4 h-4" />
-                Org Scaling
+                Org Scale
               </TabsTrigger>
               <TabsTrigger value="kill-switch" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground gap-2">
                 <Crosshair className="w-4 h-4" />
@@ -120,10 +172,11 @@ const CommandCenter = () => {
                 className="gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
               >
                 <Swords className="w-4 h-4" />
-                Open Revenue War Room
+                Revenue War Room
               </Button>
             </div>
 
+            {/* Core Operations */}
             <TabsContent value="overview" className="mt-0">
               <DailyCommandView />
             </TabsContent>
@@ -144,6 +197,24 @@ const CommandCenter = () => {
               <ColdDMEngine />
             </TabsContent>
 
+            {/* U-ROS Modules */}
+            <TabsContent value="industry" className="mt-0">
+              <IndustryAdaptationEngine />
+            </TabsContent>
+
+            <TabsContent value="integrations" className="mt-0">
+              <IntegrationSovereignty />
+            </TabsContent>
+
+            <TabsContent value="self-marketing" className="mt-0">
+              <SelfMarketingEngine />
+            </TabsContent>
+
+            <TabsContent value="multi-tenant" className="mt-0">
+              <MultiTenantControl />
+            </TabsContent>
+
+            {/* Defense & Scale */}
             <TabsContent value="rollout" className="mt-0">
               <DominationRollout />
             </TabsContent>
