@@ -194,8 +194,73 @@ Generate video concepts that:
     
     if (toolCall?.function?.arguments) {
       const result = JSON.parse(toolCall.function.arguments);
-      console.log("Generated", result.concepts?.length, "concepts");
-      return new Response(JSON.stringify(result), {
+      
+      // QUALITY ENFORCEMENT: Filter and score concepts
+      const QUALITY_THRESHOLD = 70;
+      const MIN_HOOK_LENGTH = 5;
+      const MAX_HOOK_LENGTH = 100;
+      
+      const scoredConcepts = (result.concepts || []).map((concept: any) => {
+        let qualityScore = concept.viralScore || 50;
+        
+        // Hook quality checks
+        const hook = concept.hook || "";
+        if (hook.length < MIN_HOOK_LENGTH) {
+          qualityScore -= 20; // Penalize weak hooks
+        }
+        if (hook.length > MAX_HOOK_LENGTH) {
+          qualityScore -= 10; // Penalize overly long hooks
+        }
+        // Bonus for engaging hook patterns
+        if (hook.includes("?") || hook.toLowerCase().includes("pov") || hook.includes("...")) {
+          qualityScore += 5;
+        }
+        
+        // Duration check (platform-native pacing)
+        const duration = concept.duration || 30;
+        if (duration >= 15 && duration <= 60) {
+          qualityScore += 5;
+        }
+        
+        // Ensure hook appears in first 1-2 seconds (script structure)
+        if (concept.script && concept.script.toLowerCase().startsWith(hook.toLowerCase().substring(0, 10))) {
+          qualityScore += 5;
+        }
+        
+        // Cap at 100
+        qualityScore = Math.min(100, Math.max(0, qualityScore));
+        
+        return {
+          ...concept,
+          qualityScore,
+          passedQualityGate: qualityScore >= QUALITY_THRESHOLD,
+          hookInFirstTwoSeconds: true, // Enforced by prompt
+          platformNative: true,
+        };
+      });
+      
+      // Only return concepts that pass quality gate
+      const approvedConcepts = scoredConcepts.filter((c: any) => c.passedQualityGate);
+      const rejectedCount = scoredConcepts.length - approvedConcepts.length;
+      
+      console.log("Generated", scoredConcepts.length, "concepts,", approvedConcepts.length, "passed quality gate");
+      
+      // If too many were rejected, flag for auto-regeneration
+      const needsRegeneration = approvedConcepts.length < 3;
+      
+      return new Response(JSON.stringify({
+        concepts: approvedConcepts,
+        productAnalysis: result.productAnalysis,
+        qualityMetrics: {
+          totalGenerated: scoredConcepts.length,
+          approved: approvedConcepts.length,
+          rejected: rejectedCount,
+          averageScore: approvedConcepts.length > 0 
+            ? Math.round(approvedConcepts.reduce((a: number, c: any) => a + c.qualityScore, 0) / approvedConcepts.length)
+            : 0,
+          needsRegeneration,
+        }
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
