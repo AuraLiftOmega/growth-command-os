@@ -1,16 +1,7 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { z } from "zod";
-
-const authSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,16 +11,20 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const validation = authSchema.safeParse({ email, password });
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
-      setLoading(false);
+    
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
       return;
     }
+    
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    
+    setLoading(true);
 
     try {
       if (isLogin) {
@@ -41,7 +36,7 @@ const Auth = () => {
         toast.success("Access granted.");
         navigate("/onboarding");
       } else {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -55,14 +50,6 @@ const Auth = () => {
             throw error;
           }
         } else {
-          try {
-            await supabase.functions.invoke("send-email", {
-              body: { type: "welcome", to: email },
-            });
-          } catch (emailError) {
-            console.error("Failed to send welcome email:", emailError);
-          }
-          
           toast.success("Account created. Welcome to DOMINION.");
           navigate("/onboarding");
         }
@@ -75,141 +62,180 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative">
-      {/* Power Background Effects - ensure they don't block interaction */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-1/3 left-1/3 w-[800px] h-[800px] bg-primary/8 rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/6 rounded-full blur-[120px]" />
-        {/* Grid overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }}
-        />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-50"
-      >
-        {/* Logo & Header */}
-        <div className="text-center mb-10">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-card border border-border/50 mb-6 relative"
-          >
-            <Zap className="w-8 h-8 text-primary" />
-            <div className="absolute inset-0 rounded-xl bg-primary/10 blur-xl" />
-          </motion.div>
-          <h1 className="text-4xl font-bold tracking-tight mb-3">
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#0a0a0c",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "24px"
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: "400px"
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h1 style={{
+            fontSize: "36px",
+            fontWeight: "bold",
+            color: "#fff",
+            marginBottom: "8px"
+          }}>
             DOMINION
           </h1>
-          <p className="text-muted-foreground text-sm tracking-wide uppercase">
-            {isLogin ? "Access Your System" : "Initialize New Instance"}
+          <p style={{ color: "#888", fontSize: "14px", textTransform: "uppercase" }}>
+            {isLogin ? "Access Your System" : "Create Account"}
           </p>
         </div>
 
-        {/* Auth Card */}
-        <div className="glass-card-elevated p-8 power-border">
-          <form onSubmit={handleAuth} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="email" className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Mail className="w-4 h-4 text-muted-foreground" />
+        {/* Form Card */}
+        <div style={{
+          backgroundColor: "#111114",
+          border: "1px solid #222",
+          borderRadius: "12px",
+          padding: "32px"
+        }}>
+          <form onSubmit={handleSubmit}>
+            {/* Email Field */}
+            <div style={{ marginBottom: "20px" }}>
+              <label 
+                htmlFor="auth-email"
+                style={{
+                  display: "block",
+                  color: "#fff",
+                  fontSize: "14px",
+                  marginBottom: "8px"
+                }}
+              >
                 Email
               </label>
               <input
-                id="email"
+                id="auth-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="operator@company.com"
+                placeholder="you@example.com"
                 autoComplete="email"
-                className="w-full h-12 px-4 rounded-md bg-secondary/60 border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                autoFocus
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  padding: "0 16px",
+                  fontSize: "16px",
+                  backgroundColor: "#1a1a1e",
+                  border: "1px solid #333",
+                  borderRadius: "8px",
+                  color: "#fff",
+                  outline: "none",
+                  boxSizing: "border-box"
+                }}
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Lock className="w-4 h-4 text-muted-foreground" />
+            {/* Password Field */}
+            <div style={{ marginBottom: "24px" }}>
+              <label 
+                htmlFor="auth-password"
+                style={{
+                  display: "block",
+                  color: "#fff",
+                  fontSize: "14px",
+                  marginBottom: "8px"
+                }}
+              >
                 Password
               </label>
-              <div className="relative">
+              <div style={{ position: "relative" }}>
                 <input
-                  id="password"
+                  id="auth-password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete={isLogin ? "current-password" : "new-password"}
-                  className="w-full h-12 px-4 pr-12 rounded-md bg-secondary/60 border border-border/60 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                  style={{
+                    width: "100%",
+                    height: "48px",
+                    padding: "0 48px 0 16px",
+                    fontSize: "16px",
+                    backgroundColor: "#1a1a1e",
+                    border: "1px solid #333",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    outline: "none",
+                    boxSizing: "border-box"
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    color: "#888",
+                    cursor: "pointer",
+                    padding: "4px"
+                  }}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
             </div>
 
-            <Button
+            {/* Submit Button */}
+            <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 btn-power rounded-lg font-semibold text-base gap-2 tracking-wide"
+              style={{
+                width: "100%",
+                height: "48px",
+                backgroundColor: "#dc2626",
+                color: "#fff",
+                fontSize: "16px",
+                fontWeight: "600",
+                border: "none",
+                borderRadius: "8px",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.7 : 1
+              }}
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <>
-                  {isLogin ? "Enter System" : "Initialize"}
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
+              {loading ? "Loading..." : (isLogin ? "Sign In" : "Create Account")}
+            </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-border/40 text-center">
+          {/* Toggle */}
+          <div style={{
+            marginTop: "24px",
+            paddingTop: "24px",
+            borderTop: "1px solid #222",
+            textAlign: "center"
+          }}>
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground cursor-pointer relative z-50"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#888",
+                fontSize: "14px",
+                cursor: "pointer"
+              }}
             >
-              {isLogin ? "No access? " : "Already initialized? "}
-              <span className="text-primary font-medium ml-1 underline">
-                {isLogin ? "Request access" : "Sign in"}
+              {isLogin ? "Need an account? " : "Have an account? "}
+              <span style={{ color: "#dc2626", textDecoration: "underline" }}>
+                {isLogin ? "Sign up" : "Sign in"}
               </span>
             </button>
           </div>
         </div>
-
-        {/* Power Metrics */}
-        <div className="mt-8 grid grid-cols-3 gap-3 stagger-children">
-          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
-            <p className="text-2xl font-mono font-bold text-primary mb-1">∞</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Scale</p>
-          </div>
-          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
-            <p className="text-2xl font-mono font-bold text-success mb-1">24/7</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Operate</p>
-          </div>
-          <div className="p-4 rounded-lg bg-card/50 border border-border/30 text-center">
-            <p className="text-2xl font-mono font-bold text-accent mb-1">AI</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Intelligence</p>
-          </div>
-        </div>
-
-        {/* Tagline */}
-        <p className="mt-8 text-center text-xs text-muted-foreground/60 tracking-wide">
-          Replace agencies. Eliminate labor. Compound revenue.
-        </p>
-      </motion.div>
+      </div>
     </div>
   );
 };
