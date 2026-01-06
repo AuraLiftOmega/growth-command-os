@@ -14,7 +14,8 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import RevenueWarRoom from "./pages/RevenueWarRoom";
 import CommandCenter from "./pages/CommandCenter";
-import { 
+import Pricing from "./pages/Pricing";
+import {
   IntimidationToggle, 
   DemoPhaseController, 
   IntimidationOverlay, 
@@ -202,6 +203,7 @@ const AppRoutes = () => {
           </ProtectedRouteWithRedirect>
         } 
       />
+      <Route path="/pricing" element={<Pricing />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
