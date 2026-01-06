@@ -16,6 +16,10 @@ export interface VideoConcept {
   viralScore: number;
   emotionalTrigger: string;
   productHighlights?: string[];
+  qualityScore?: number;
+  passedQualityGate?: boolean;
+  hookInFirstTwoSeconds?: boolean;
+  platformNative?: boolean;
 }
 
 export interface ProductAnalysis {
@@ -26,10 +30,19 @@ export interface ProductAnalysis {
   uniqueSellingPoints?: string[];
 }
 
+export interface QualityMetrics {
+  totalGenerated: number;
+  approved: number;
+  rejected: number;
+  averageScore: number;
+  needsRegeneration: boolean;
+}
+
 export const useVideoGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [concepts, setConcepts] = useState<VideoConcept[]>([]);
   const [productAnalysis, setProductAnalysis] = useState<ProductAnalysis | null>(null);
+  const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { data } = useOnboardingStore();
 
@@ -92,7 +105,22 @@ export const useVideoGenerator = () => {
       const result = await response.json();
       setConcepts(result.concepts || []);
       setProductAnalysis(result.productAnalysis || null);
-      toast.success(`Generated ${result.concepts?.length || 0} viral video concepts!`);
+      setQualityMetrics(result.qualityMetrics || null);
+      
+      const approved = result.qualityMetrics?.approved || result.concepts?.length || 0;
+      const rejected = result.qualityMetrics?.rejected || 0;
+      
+      if (rejected > 0) {
+        toast.success(`Generated ${approved} quality-approved concepts (${rejected} filtered out)`);
+      } else {
+        toast.success(`Generated ${approved} viral video concepts!`);
+      }
+      
+      // Auto-regenerate if needed (silent)
+      if (result.qualityMetrics?.needsRegeneration && approved < 3) {
+        console.log("Low quality output detected, would trigger auto-regeneration");
+        // In production, this would silently regenerate
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to generate concepts";
       setError(message);
@@ -105,6 +133,7 @@ export const useVideoGenerator = () => {
   const clearConcepts = () => {
     setConcepts([]);
     setProductAnalysis(null);
+    setQualityMetrics(null);
     setError(null);
   };
 
@@ -112,6 +141,7 @@ export const useVideoGenerator = () => {
     isGenerating,
     concepts,
     productAnalysis,
+    qualityMetrics,
     error,
     generateConcepts,
     clearConcepts,

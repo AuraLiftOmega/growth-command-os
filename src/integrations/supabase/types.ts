@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_learnings: {
+        Row: {
+          applied_to_generation: boolean | null
+          category: string
+          confidence: number | null
+          created_at: string
+          id: string
+          improvement_percentage: number | null
+          insight: string
+          signals_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_to_generation?: boolean | null
+          category: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          improvement_percentage?: number | null
+          insight: string
+          signals_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_to_generation?: boolean | null
+          category?: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          improvement_percentage?: number | null
+          insight?: string
+          signals_count?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_settings: {
         Row: {
           aggressive_testing: boolean | null
@@ -61,6 +100,200 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      comment_automations: {
+        Row: {
+          comment_author: string | null
+          comment_text: string
+          created_at: string
+          dm_sent_at: string | null
+          dm_status: string | null
+          dm_text: string | null
+          id: string
+          outcome: string | null
+          platform: string
+          post_id: string | null
+          revenue_attributed: number | null
+          user_id: string
+        }
+        Insert: {
+          comment_author?: string | null
+          comment_text: string
+          created_at?: string
+          dm_sent_at?: string | null
+          dm_status?: string | null
+          dm_text?: string | null
+          id?: string
+          outcome?: string | null
+          platform: string
+          post_id?: string | null
+          revenue_attributed?: number | null
+          user_id: string
+        }
+        Update: {
+          comment_author?: string | null
+          comment_text?: string
+          created_at?: string
+          dm_sent_at?: string | null
+          dm_status?: string | null
+          dm_text?: string | null
+          id?: string
+          outcome?: string | null
+          platform?: string
+          post_id?: string | null
+          revenue_attributed?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      creatives: {
+        Row: {
+          auto_regenerated: boolean | null
+          avg_watch_percentage: number | null
+          clicks: number | null
+          conversion_score: number | null
+          conversions: number | null
+          created_at: string
+          ctr: number | null
+          emotional_trigger: string | null
+          engagement_score: number | null
+          hook: string | null
+          hook_score: number | null
+          id: string
+          impressions: number | null
+          kill_reason: string | null
+          killed_at: string | null
+          name: string
+          passed_quality_gate: boolean | null
+          platform: string
+          published_at: string | null
+          quality_score: number | null
+          regeneration_count: number | null
+          revenue: number | null
+          roas: number | null
+          script: string | null
+          spend: number | null
+          status: string | null
+          style: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string | null
+          views: number | null
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          auto_regenerated?: boolean | null
+          avg_watch_percentage?: number | null
+          clicks?: number | null
+          conversion_score?: number | null
+          conversions?: number | null
+          created_at?: string
+          ctr?: number | null
+          emotional_trigger?: string | null
+          engagement_score?: number | null
+          hook?: string | null
+          hook_score?: number | null
+          id?: string
+          impressions?: number | null
+          kill_reason?: string | null
+          killed_at?: string | null
+          name: string
+          passed_quality_gate?: boolean | null
+          platform?: string
+          published_at?: string | null
+          quality_score?: number | null
+          regeneration_count?: number | null
+          revenue?: number | null
+          roas?: number | null
+          script?: string | null
+          spend?: number | null
+          status?: string | null
+          style?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+          views?: number | null
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          auto_regenerated?: boolean | null
+          avg_watch_percentage?: number | null
+          clicks?: number | null
+          conversion_score?: number | null
+          conversions?: number | null
+          created_at?: string
+          ctr?: number | null
+          emotional_trigger?: string | null
+          engagement_score?: number | null
+          hook?: string | null
+          hook_score?: number | null
+          id?: string
+          impressions?: number | null
+          kill_reason?: string | null
+          killed_at?: string | null
+          name?: string
+          passed_quality_gate?: boolean | null
+          platform?: string
+          published_at?: string | null
+          quality_score?: number | null
+          regeneration_count?: number | null
+          revenue?: number | null
+          roas?: number | null
+          script?: string | null
+          spend?: number | null
+          status?: string | null
+          style?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+          views?: number | null
+          watch_time_seconds?: number | null
+        }
+        Relationships: []
+      }
+      learning_signals: {
+        Row: {
+          created_at: string
+          creative_id: string | null
+          id: string
+          impact_score: number | null
+          positive_outcome: boolean | null
+          signal_data: Json
+          signal_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creative_id?: string | null
+          id?: string
+          impact_score?: number | null
+          positive_outcome?: boolean | null
+          signal_data?: Json
+          signal_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creative_id?: string | null
+          id?: string
+          impact_score?: number | null
+          positive_outcome?: boolean | null
+          signal_data?: Json
+          signal_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_signals_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       onboarding_data: {
         Row: {
@@ -188,6 +421,119 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_snapshots: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          creative_id: string | null
+          ctr: number | null
+          id: string
+          impressions: number | null
+          revenue: number | null
+          roas: number | null
+          snapshot_hour: string
+          spend: number | null
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          creative_id?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          revenue?: number | null
+          roas?: number | null
+          snapshot_hour: string
+          spend?: number | null
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          creative_id?: string | null
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          revenue?: number | null
+          roas?: number | null
+          snapshot_hour?: string
+          spend?: number | null
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_snapshots_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          created_at: string
+          id: string
+          last_sync_at: string | null
+          platform: string
+          platform_user_id: string | null
+          platform_username: string | null
+          refresh_token_encrypted: string | null
+          status: string | null
+          store_url: string | null
+          sync_status: string | null
+          token_expires_at: string | null
+          total_orders: number | null
+          total_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          platform: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          refresh_token_encrypted?: string | null
+          status?: string | null
+          store_url?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string | null
+          platform?: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          refresh_token_encrypted?: string | null
+          status?: string | null
+          store_url?: string | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           brand_name: string | null
@@ -211,6 +557,51 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      system_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_category: string
+          event_type: string
+          id: string
+          max_retries: number | null
+          metadata: Json | null
+          resolved: boolean | null
+          retry_count: number | null
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_category: string
+          event_type: string
+          id?: string
+          max_retries?: number | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          retry_count?: number | null
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_category?: string
+          event_type?: string
+          id?: string
+          max_retries?: number | null
+          metadata?: Json | null
+          resolved?: boolean | null
+          retry_count?: number | null
+          severity?: string | null
+          title?: string
           user_id?: string
         }
         Relationships: []
