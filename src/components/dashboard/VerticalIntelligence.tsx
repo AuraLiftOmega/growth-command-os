@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { 
   Sparkles, 
   Dumbbell, 
@@ -8,8 +9,11 @@ import {
   Cpu,
   FileText,
   TrendingUp,
-  Star
+  Star,
+  Loader2
 } from "lucide-react";
+import { toast } from "sonner";
+import { useVideoGenerator } from "@/hooks/useVideoGenerator";
 
 interface Vertical {
   id: string;
@@ -20,6 +24,7 @@ interface Vertical {
   topHook: string;
   learningScore: number;
   color: string;
+  promptPrefix: string;
 }
 
 const verticals: Vertical[] = [
@@ -32,6 +37,7 @@ const verticals: Vertical[] = [
     topHook: "POV: Your skin after...",
     learningScore: 92,
     color: "from-pink-500/20 to-rose-500/20",
+    promptPrefix: "Create a viral UGC-style beauty video ad featuring",
   },
   {
     id: "fitness",
@@ -42,6 +48,7 @@ const verticals: Vertical[] = [
     topHook: "I gained 10lbs and...",
     learningScore: 87,
     color: "from-orange-500/20 to-amber-500/20",
+    promptPrefix: "Create a motivational fitness video ad showcasing",
   },
   {
     id: "supplements",
@@ -52,6 +59,7 @@ const verticals: Vertical[] = [
     topHook: "My doctor asked what...",
     learningScore: 78,
     color: "from-green-500/20 to-emerald-500/20",
+    promptPrefix: "Create a testimonial-style supplement video ad about",
   },
   {
     id: "fashion",
@@ -62,6 +70,7 @@ const verticals: Vertical[] = [
     topHook: "Outfit check: $50 vs...",
     learningScore: 89,
     color: "from-violet-500/20 to-purple-500/20",
+    promptPrefix: "Create a trendy fashion GRWM video ad featuring",
   },
   {
     id: "home",
@@ -72,6 +81,7 @@ const verticals: Vertical[] = [
     topHook: "Wait till you see...",
     learningScore: 71,
     color: "from-blue-500/20 to-cyan-500/20",
+    promptPrefix: "Create a satisfying home transformation video ad showing",
   },
   {
     id: "gadgets",
@@ -82,6 +92,7 @@ const verticals: Vertical[] = [
     topHook: "This tiny thing changed...",
     learningScore: 84,
     color: "from-slate-500/20 to-zinc-500/20",
+    promptPrefix: "Create a tech unboxing video ad revealing",
   },
   {
     id: "digital",
@@ -92,10 +103,31 @@ const verticals: Vertical[] = [
     topHook: "I made $10K with...",
     learningScore: 95,
     color: "from-primary/20 to-chart-2/20",
+    promptPrefix: "Create a lifestyle transformation video ad promoting",
   },
 ];
 
 export const VerticalIntelligence = () => {
+  const [generatingVertical, setGeneratingVertical] = useState<string | null>(null);
+  const { generateConcepts, isGenerating } = useVideoGenerator();
+
+  const handleGenerate = async (vertical: Vertical) => {
+    setGeneratingVertical(vertical.id);
+    
+    try {
+      await generateConcepts(
+        `${vertical.promptPrefix} a product. Use the top-performing hook style: "${vertical.topHook}". Target the ${vertical.name.toLowerCase()} niche audience.`,
+        "text"
+      );
+      toast.success(`Generated ${vertical.name} video concepts! Check the Video Generator panel.`);
+    } catch (error) {
+      console.error("Generation error:", error);
+      toast.error("Failed to generate concepts");
+    } finally {
+      setGeneratingVertical(null);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -121,6 +153,8 @@ export const VerticalIntelligence = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {verticals.map((vertical, index) => {
             const Icon = vertical.icon;
+            const isCurrentlyGenerating = generatingVertical === vertical.id || (isGenerating && generatingVertical === vertical.id);
+            
             return (
               <motion.div
                 key={vertical.id}
@@ -164,9 +198,20 @@ export const VerticalIntelligence = () => {
                   <p className="text-xs italic text-foreground/80">"{vertical.topHook}"</p>
                 </div>
 
-                <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="w-full py-2 rounded-lg bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30 transition-colors">
-                    Generate for {vertical.name}
+                <div className="mt-3">
+                  <button 
+                    onClick={() => handleGenerate(vertical)}
+                    disabled={isCurrentlyGenerating || isGenerating}
+                    className="w-full py-2 rounded-lg bg-primary/20 text-primary text-xs font-medium hover:bg-primary/30 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isCurrentlyGenerating ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      `Generate for ${vertical.name}`
+                    )}
                   </button>
                 </div>
               </motion.div>

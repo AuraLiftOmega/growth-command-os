@@ -6,11 +6,14 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Plus
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface PlatformConnection {
   id: string;
@@ -46,6 +49,7 @@ const platformColors: Record<string, string> = {
 
 export const PlatformConnectionsPanel = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [connections, setConnections] = useState<PlatformConnection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingPlatform, setSyncingPlatform] = useState<string | null>(null);
@@ -90,11 +94,84 @@ export const PlatformConnectionsPanel = () => {
     fetchConnections();
   }, [user]);
 
-  const handleSync = async (platform: string) => {
+  const handleSync = async (platform: string, connectionId: string) => {
+    if (!user) return;
+
     setSyncingPlatform(platform);
-    // Simulate sync
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setSyncingPlatform(null);
+    
+    try {
+      // Update sync status in database
+      if (connectionId.length > 10) {
+        await supabase
+          .from("platform_connections")
+          .update({ 
+            sync_status: "syncing",
+            last_sync_at: new Date().toISOString()
+          })
+          .eq("id", connectionId);
+      }
+
+      // Simulate sync process (in real implementation, this would call the platform API)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Update local state
+      setConnections(prev => prev.map(c => 
+        c.id === connectionId 
+          ? { ...c, last_sync_at: new Date().toISOString(), sync_status: "idle" }
+          : c
+      ));
+
+      if (connectionId.length > 10) {
+        await supabase
+          .from("platform_connections")
+          .update({ sync_status: "idle" })
+          .eq("id", connectionId);
+      }
+
+      toast.success(`${platform} synced successfully!`);
+    } catch (error) {
+      console.error("Sync error:", error);
+      toast.error(`Failed to sync ${platform}`);
+    } finally {
+      setSyncingPlatform(null);
+    }
+  };
+
+  const handleConnect = async (platform: string) => {
+    if (!user) return;
+
+    if (platform === "shopify") {
+      navigate("/settings");
+      toast.info("Connect your Shopify store in Settings");
+      return;
+    }
+
+    // For other platforms, create a pending connection
+    try {
+      const { data, error } = await supabase
+        .from("platform_connections")
+        .insert({
+          user_id: user.id,
+          platform,
+          status: "pending",
+          sync_status: "syncing",
+          total_revenue: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setConnections(prev => [...prev, data as PlatformConnection]);
+      toast.success(`${platform} connection initiated! Complete setup in Settings.`);
+    } catch (error) {
+      console.error("Connect error:", error);
+      toast.error(`Failed to initiate ${platform} connection`);
+    }
+  };
+
+  const handleManage = () => {
+    navigate("/settings");
   };
 
   const getStatusIcon = (status: string, syncStatus: string) => {
@@ -128,6 +205,10 @@ export const PlatformConnectionsPanel = () => {
   const connectedCount = connections.filter(c => c.status === "connected").length;
   const totalRevenue = connections.reduce((acc, c) => acc + c.total_revenue, 0);
 
+  // Available platforms to connect
+  const availablePlatforms = ["shopify", "tiktok", "instagram", "facebook", "amazon", "pinterest", "youtube", "etsy"]
+    .filter(p => !connections.some(c => c.platform === p));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -147,7 +228,10 @@ export const PlatformConnectionsPanel = () => {
             </p>
           </div>
         </div>
-        <button className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors flex items-center gap-1">
+        <button 
+          onClick={handleManage}
+          className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors flex items-center gap-1"
+        >
           <ExternalLink className="w-3 h-3" />
           Manage
         </button>
@@ -187,7 +271,10 @@ export const PlatformConnectionsPanel = () => {
               
               {connection.status === "connected" && (
                 <button
-                  onClick={() => handleSync(connection.platform)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSync(connection.platform, connection.id);
+                  }}
                   disabled={syncingPlatform === connection.platform}
                   className="p-1.5 rounded-lg bg-background/50 hover:bg-background/80 transition-colors opacity-0 group-hover:opacity-100"
                 >
@@ -196,13 +283,33 @@ export const PlatformConnectionsPanel = () => {
               )}
               
               {connection.status === "disconnected" && (
-                <button className="text-[10px] text-primary font-medium hover:underline">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleConnect(connection.platform);
+                  }}
+                  className="text-[10px] text-primary font-medium hover:underline"
+                >
                   Connect
                 </button>
               )}
             </div>
           </motion.div>
         ))}
+
+        {/* Add new platform button */}
+        {availablePlatforms.length > 0 && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            onClick={() => handleConnect(availablePlatforms[0])}
+            className="p-4 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="w-6 h-6" />
+            <span className="text-xs font-medium">Add Platform</span>
+          </motion.button>
+        )}
       </div>
 
       {/* API Health Indicator */}
