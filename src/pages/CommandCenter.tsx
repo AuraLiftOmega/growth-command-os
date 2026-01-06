@@ -40,7 +40,8 @@ import {
   IndustryAdaptationEngine, 
   SelfMarketingEngine, 
   IntegrationSovereignty, 
-  MultiTenantControl 
+  MultiTenantControl,
+  GovernanceController 
 } from "@/components/universal";
 import { CashEngineDashboard } from "@/components/cash-engine";
 import { TrafficEngineDashboard } from "@/components/traffic-engine";
@@ -189,6 +190,10 @@ const CommandCenter = () => {
                 <Shield className="w-4 h-4" />
                 Permissions
               </TabsTrigger>
+              <TabsTrigger value="governance" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground gap-2">
+                <Crown className="w-4 h-4" />
+                Governance
+              </TabsTrigger>
             </TabsList>
 
             {/* Quick Access to War Room */}
@@ -276,6 +281,10 @@ const CommandCenter = () => {
 
             <TabsContent value="permissions" className="mt-0">
               <PermissionMatrix />
+            </TabsContent>
+
+            <TabsContent value="governance" className="mt-0">
+              <GovernanceController />
             </TabsContent>
           </Tabs>
         </main>

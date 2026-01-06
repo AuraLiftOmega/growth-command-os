@@ -263,6 +263,70 @@ export const INDUSTRY_TEMPLATES: Record<string, IndustryConfig> = {
     },
     integrations: ['salesforce', 'linkedin', 'gong', 'outreach'],
   },
+  local_services: {
+    id: 'local_services',
+    name: 'Local Services',
+    language: {
+      terminology: {
+        'customer': 'client',
+        'sale': 'booking',
+        'product': 'service',
+        'marketing': 'local reach',
+      },
+      tone: 'consultative',
+      forbiddenWords: ['nationwide', 'global'],
+      approvedPhrases: ['local', 'community', 'trusted', 'nearby'],
+    },
+    compliance: {
+      disclaimers: ['Service area restrictions apply'],
+      restrictions: ['Local licensing requirements'],
+      requiredDisclosures: ['Insurance and bonding info'],
+    },
+    kpis: {
+      primary: ['Bookings', 'Revenue', 'Review Score'],
+      secondary: ['Repeat Rate', 'Referral Rate', 'Response Time'],
+      benchmarks: { 'ReviewScore': 4.5, 'RepeatRate': 40, 'ResponseTime': 2 },
+    },
+    buyerPsychology: {
+      decisionMakers: ['Homeowner', 'Property Manager'],
+      objections: ['Trust', 'Availability', 'Price'],
+      triggers: ['Urgency', 'Local reviews', 'Referrals'],
+      cycleLength: 'instant',
+    },
+    integrations: ['google_business', 'yelp', 'square', 'calendly'],
+  },
+  high_ticket_consulting: {
+    id: 'high_ticket_consulting',
+    name: 'High-Ticket Consulting',
+    language: {
+      terminology: {
+        'customer': 'client',
+        'sale': 'engagement',
+        'product': 'advisory',
+        'marketing': 'thought leadership',
+      },
+      tone: 'consultative',
+      forbiddenWords: ['cheap', 'budget', 'basic'],
+      approvedPhrases: ['strategic', 'transformation', 'high-impact', 'exclusive'],
+    },
+    compliance: {
+      disclaimers: ['Past results do not guarantee future outcomes'],
+      restrictions: ['No guarantees on specific outcomes'],
+      requiredDisclosures: ['Engagement terms and scope'],
+    },
+    kpis: {
+      primary: ['Revenue', 'Deal Size', 'Close Rate'],
+      secondary: ['Pipeline Value', 'Client Satisfaction', 'Referrals'],
+      benchmarks: { 'DealSize': 50000, 'CloseRate': 30, 'Referrals': 40 },
+    },
+    buyerPsychology: {
+      decisionMakers: ['CEO', 'Board', 'Executive Team'],
+      objections: ['ROI uncertainty', 'Time investment', 'Past consultant failures'],
+      triggers: ['Specific expertise', 'Proven track record', 'Strategic fit'],
+      cycleLength: 'long',
+    },
+    integrations: ['hubspot', 'calendly', 'stripe', 'notion'],
+  },
 };
 
 export const useDominionStore = create<DominionCoreState>()(

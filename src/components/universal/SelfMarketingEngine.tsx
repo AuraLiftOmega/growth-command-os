@@ -14,7 +14,9 @@ import {
   Brain,
   Activity,
   Users,
-  ArrowUpRight
+  ArrowUpRight,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { useDominionStore } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
@@ -22,7 +24,7 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 /**
- * SELF-MARKETING ENGINE
+ * SELF-MARKETING ENGINE - MODULE B
  * 
  * DOMINION treats itself as a client.
  * This proves: "If it works for us, it works for you."
@@ -34,6 +36,11 @@ import { cn } from '@/lib/utils';
  * - Create demos for itself
  * - Book calls for itself
  * - Close customers for itself
+ * 
+ * ISOLATION GUARANTEE:
+ * - Toggleable and never interferes with founder's primary business
+ * - Operates on separate budget/resource allocation
+ * - Uses DOMINION's own traffic, proof, and outbound systems
  */
 
 interface SelfMetric {
@@ -46,6 +53,7 @@ interface SelfMetric {
 
 export const SelfMarketingEngine = () => {
   const { isSelfMarketingActive, toggleSelfMarketing, selfAsClient } = useDominionStore();
+  const [isolationMode, setIsolationMode] = useState(true);
   const [metrics, setMetrics] = useState<SelfMetric[]>([
     { label: 'Leads Generated', value: '847', delta: '+23 today', deltaType: 'up', icon: Users },
     { label: 'Demos Booked', value: '34', delta: '+7 this week', deltaType: 'up', icon: Calendar },
@@ -125,6 +133,34 @@ export const SelfMarketingEngine = () => {
           marketing, sales, and automation. Every feature used to sell DOMINION was built to sell 
           your products. If it works for us, it works for you.
         </p>
+      </div>
+
+      {/* Isolation Guarantee */}
+      <div className="p-4 rounded-lg bg-success/5 border border-success/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Shield className="w-5 h-5 text-success" />
+            <div>
+              <p className="text-sm font-medium">Isolation Mode</p>
+              <p className="text-xs text-muted-foreground">
+                Self-marketing operates on separate resources, never touching your primary business
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{isolationMode ? 'Isolated' : 'Shared'}</span>
+            <Switch
+              checked={isolationMode}
+              onCheckedChange={setIsolationMode}
+            />
+          </div>
+        </div>
+        {!isolationMode && (
+          <div className="mt-3 p-2 rounded bg-warning/10 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-warning" />
+            <span className="text-xs text-warning">Shared mode may impact primary business resources</span>
+          </div>
+        )}
       </div>
 
       {/* Metrics Grid */}
