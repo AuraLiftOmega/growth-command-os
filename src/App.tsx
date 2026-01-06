@@ -16,6 +16,7 @@ import RevenueWarRoom from "./pages/RevenueWarRoom";
 import CommandCenter from "./pages/CommandCenter";
 import Pricing from "./pages/Pricing";
 import DemoEmbed from "./pages/DemoEmbed";
+import SharedDemo from "./pages/SharedDemo";
 import {
   IntimidationToggle, 
   DemoPhaseController, 
@@ -206,6 +207,7 @@ const AppRoutes = () => {
       />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/embed/demo/:demoId" element={<DemoEmbed />} />
+      <Route path="/demo/:shareCode" element={<SharedDemo />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -20,6 +20,7 @@ import {
   Rocket,
   Users
 } from "lucide-react";
+import { AutoDemoPlayer } from "@/components/landing/AutoDemoPlayer";
 
 const Landing = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -497,6 +498,9 @@ const Landing = () => {
           </div>
         </div>
       </footer>
+
+      {/* Auto-Demo Player */}
+      <AutoDemoPlayer autoPlay={true} showAfterDelay={5000} />
     </div>
   );
 };
