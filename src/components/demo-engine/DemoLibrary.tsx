@@ -21,7 +21,9 @@ import {
   Pause,
   SkipBack,
   SkipForward,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Link2,
+  Volume2
 } from 'lucide-react';
 import { useDemoEngine } from '@/hooks/useDemoEngine';
 import { DemoVariant } from '@/stores/demo-engine-store';
@@ -44,6 +46,9 @@ import {
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { NarrationGenerator } from './NarrationGenerator';
+import { ShareableDemoLinks } from './ShareableDemoLinks';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 /**
  * DEMO LIBRARY
@@ -522,24 +527,65 @@ export const DemoLibrary = () => {
                 </Button>
               </div>
 
-              {/* Narrative Display */}
-              <div className="p-4 bg-secondary/30 rounded-lg">
-                <h4 className="font-semibold mb-2">Demo Narrative</h4>
-                <div className="space-y-2 text-sm">
-                  {currentPreviewDemo.narrative?.problem && (
-                    <p><span className="text-muted-foreground">Problem:</span> {currentPreviewDemo.narrative.problem}</p>
-                  )}
-                  {currentPreviewDemo.narrative?.revelation && (
-                    <p><span className="text-muted-foreground">Solution:</span> {currentPreviewDemo.narrative.revelation}</p>
-                  )}
-                  {currentPreviewDemo.narrative?.outcome && (
-                    <p><span className="text-muted-foreground">Outcome:</span> {currentPreviewDemo.narrative.outcome}</p>
-                  )}
-                  {currentPreviewDemo.narrative?.close && (
-                    <p><span className="text-muted-foreground">Close:</span> {currentPreviewDemo.narrative.close}</p>
-                  )}
-                </div>
-              </div>
+              {/* Tabs for Narrative and Narration */}
+              <Tabs defaultValue="narrative" className="w-full">
+                <TabsList className="w-full">
+                  <TabsTrigger value="narrative" className="flex-1 gap-1">
+                    <Video className="w-3 h-3" />
+                    Narrative
+                  </TabsTrigger>
+                  <TabsTrigger value="narration" className="flex-1 gap-1">
+                    <Volume2 className="w-3 h-3" />
+                    AI Narration
+                  </TabsTrigger>
+                  <TabsTrigger value="share" className="flex-1 gap-1">
+                    <Link2 className="w-3 h-3" />
+                    Share
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="narrative" className="mt-4">
+                  <div className="p-4 bg-secondary/30 rounded-lg">
+                    <h4 className="font-semibold mb-2">Demo Narrative</h4>
+                    <div className="space-y-2 text-sm">
+                      {currentPreviewDemo.narrative?.problem && (
+                        <p><span className="text-muted-foreground">Problem:</span> {currentPreviewDemo.narrative.problem}</p>
+                      )}
+                      {currentPreviewDemo.narrative?.revelation && (
+                        <p><span className="text-muted-foreground">Solution:</span> {currentPreviewDemo.narrative.revelation}</p>
+                      )}
+                      {currentPreviewDemo.narrative?.outcome && (
+                        <p><span className="text-muted-foreground">Outcome:</span> {currentPreviewDemo.narrative.outcome}</p>
+                      )}
+                      {currentPreviewDemo.narrative?.close && (
+                        <p><span className="text-muted-foreground">Close:</span> {currentPreviewDemo.narrative.close}</p>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="narration" className="mt-4">
+                  <NarrationGenerator
+                    demoId={currentPreviewDemo.id}
+                    variant={currentPreviewDemo.variant}
+                    narrationUrl={(currentPreviewDemo as any).narration_url || null}
+                    onNarrationGenerated={() => {
+                      // Refresh demos to get updated narration_url
+                      refreshData();
+                    }}
+                  />
+                </TabsContent>
+
+                <TabsContent value="share" className="mt-4">
+                  <ShareableDemoLinks
+                    demos={demos.map(d => ({
+                      id: d.id,
+                      industry: INDUSTRY_TEMPLATES[d.industry]?.name || d.industry,
+                      variant: d.variant
+                    }))}
+                  />
+                </TabsContent>
+              </Tabs>
 
               {/* Actions */}
               <div className="flex justify-between items-center gap-2">

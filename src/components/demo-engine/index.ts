@@ -1,4 +1,6 @@
 export { SelfDemoEngine } from './SelfDemoEngine';
+export { ShareableDemoLinks } from './ShareableDemoLinks';
+export { NarrationGenerator } from './NarrationGenerator';
 export { DemoVariantSelector } from './DemoVariantSelector';
 export { DemoCapabilityMapper } from './DemoCapabilityMapper';
 export { DemoGenerationPanel } from './DemoGenerationPanel';

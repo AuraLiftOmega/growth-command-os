@@ -521,6 +521,109 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_share_links: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          demo_id: string
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          revenue_attributed: number | null
+          share_code: string
+          total_watch_time_seconds: number | null
+          unique_viewers: number | null
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          demo_id: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          revenue_attributed?: number | null
+          share_code: string
+          total_watch_time_seconds?: number | null
+          unique_viewers?: number | null
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          demo_id?: string
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          revenue_attributed?: number | null
+          share_code?: string
+          total_watch_time_seconds?: number | null
+          unique_viewers?: number | null
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_share_links_demo_id_fkey"
+            columns: ["demo_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demo_share_views: {
+        Row: {
+          completion_percentage: number | null
+          converted: boolean | null
+          created_at: string
+          id: string
+          share_link_id: string
+          viewer_fingerprint: string | null
+          viewer_ip: string | null
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          completion_percentage?: number | null
+          converted?: boolean | null
+          created_at?: string
+          id?: string
+          share_link_id: string
+          viewer_fingerprint?: string | null
+          viewer_ip?: string | null
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          completion_percentage?: number | null
+          converted?: boolean | null
+          created_at?: string
+          id?: string
+          share_link_id?: string
+          viewer_fingerprint?: string | null
+          viewer_ip?: string | null
+          watch_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_share_views_share_link_id_fkey"
+            columns: ["share_link_id"]
+            isOneToOne: false
+            referencedRelation: "demo_share_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_videos: {
         Row: {
           capabilities: string[]
@@ -531,6 +634,7 @@ export type Database = {
           id: string
           industry: string
           length: string
+          narration_url: string | null
           narrative: Json
           render_error: string | null
           render_progress: number | null
@@ -552,6 +656,7 @@ export type Database = {
           id?: string
           industry: string
           length: string
+          narration_url?: string | null
           narrative?: Json
           render_error?: string | null
           render_progress?: number | null
@@ -573,6 +678,7 @@ export type Database = {
           id?: string
           industry?: string
           length?: string
+          narration_url?: string | null
           narrative?: Json
           render_error?: string | null
           render_progress?: number | null
