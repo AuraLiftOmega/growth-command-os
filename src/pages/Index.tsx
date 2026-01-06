@@ -15,6 +15,10 @@ import { PlatformIntegrations } from "@/components/dashboard/PlatformIntegration
 import { VideoGeneratorPanel } from "@/components/dashboard/VideoGeneratorPanel";
 import { CreativePerformanceTable } from "@/components/dashboard/CreativePerformanceTable";
 import { CommentAutomationPanel } from "@/components/dashboard/CommentAutomationPanel";
+import { ScaleModePanel } from "@/components/dashboard/ScaleModePanel";
+import { DataAdvantageEngine } from "@/components/dashboard/DataAdvantageEngine";
+import { VerticalIntelligence } from "@/components/dashboard/VerticalIntelligence";
+import { AutomationActivityFeed } from "@/components/dashboard/AutomationActivityFeed";
 
 const Index = () => {
   return (
@@ -77,6 +81,21 @@ const Index = () => {
             />
           </div>
 
+          {/* Scale Mode & Data Engine Row */}
+          <div className="grid grid-cols-12 gap-6 mb-6">
+            <div className="col-span-12 lg:col-span-4">
+              <ScaleModePanel />
+            </div>
+            <div className="col-span-12 lg:col-span-8">
+              <DataAdvantageEngine />
+            </div>
+          </div>
+
+          {/* Vertical Intelligence */}
+          <div className="mb-6">
+            <VerticalIntelligence />
+          </div>
+
           {/* Main Content Grid */}
           <div className="grid grid-cols-12 gap-6">
             {/* Left Column - Main Content */}
@@ -89,6 +108,7 @@ const Index = () => {
             {/* Right Column - Side Panels */}
             <div className="col-span-12 lg:col-span-4 space-y-6">
               <AIInsightsPanel />
+              <AutomationActivityFeed />
               <VideoGeneratorPanel />
             </div>
           </div>
