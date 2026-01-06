@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Video, 
@@ -12,9 +13,12 @@ import {
   Download,
   Copy,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
-import { useDemoEngineStore, DemoVariant, GeneratedDemo } from '@/stores/demo-engine-store';
+import { useDemoEngine } from '@/hooks/useDemoEngine';
+import { DemoVariant } from '@/stores/demo-engine-store';
 import { INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 /**
  * DEMO LIBRARY
@@ -48,9 +53,43 @@ const variantColors: Record<DemoVariant, string> = {
 };
 
 export const DemoLibrary = () => {
-  const { generatedDemos } = useDemoEngineStore();
+  const { demos, analytics, isLoading, deleteDemo, recordView, refreshData } = useDemoEngine();
 
-  if (generatedDemos.length === 0) {
+  const handlePreview = (demoId: string) => {
+    // Record view and show preview
+    recordView(demoId, 30);
+    toast.success('Demo preview started', {
+      description: 'View recorded for analytics'
+    });
+  };
+
+  const handleCopyEmbed = (demoId: string) => {
+    const embedCode = `<iframe src="${window.location.origin}/embed/demo/${demoId}" width="100%" height="400" frameborder="0"></iframe>`;
+    navigator.clipboard.writeText(embedCode);
+    toast.success('Embed code copied to clipboard');
+  };
+
+  const handleDownload = (demoId: string) => {
+    // In a real implementation, this would download the video file
+    toast.info('Download started', {
+      description: 'Your demo video is being prepared...'
+    });
+  };
+
+  const handleDelete = async (demoId: string) => {
+    await deleteDemo(demoId);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading demos...</p>
+      </div>
+    );
+  }
+
+  if (demos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-4">
@@ -65,6 +104,8 @@ export const DemoLibrary = () => {
     );
   }
 
+  const totalViews = Object.values(analytics).reduce((sum, a) => sum + (a?.views || 0), 0);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -72,20 +113,27 @@ export const DemoLibrary = () => {
         <div>
           <h3 className="font-semibold">Generated Demos</h3>
           <p className="text-sm text-muted-foreground">
-            {generatedDemos.length} demo{generatedDemos.length !== 1 ? 's' : ''} ready for deployment
+            {demos.length} demo{demos.length !== 1 ? 's' : ''} ready for deployment
           </p>
         </div>
-        <Badge variant="outline" className="gap-1">
-          <Eye className="w-3 h-3" />
-          {generatedDemos.reduce((sum, d) => sum + d.analytics.views, 0)} total views
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="gap-1">
+            <Eye className="w-3 h-3" />
+            {totalViews} total views
+          </Badge>
+          <Button variant="outline" size="sm" onClick={refreshData} className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Demo Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {generatedDemos.map((demo, index) => {
-          const VariantIcon = variantIcons[demo.variant];
+        {demos.map((demo, index) => {
+          const VariantIcon = variantIcons[demo.variant as DemoVariant];
           const industryName = INDUSTRY_TEMPLATES[demo.industry]?.name || demo.industry;
+          const demoAnalytics = analytics[demo.id];
 
           return (
             <motion.div
@@ -96,14 +144,24 @@ export const DemoLibrary = () => {
               className="rounded-lg border border-border bg-card overflow-hidden"
             >
               {/* Thumbnail */}
-              <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+              <div 
+                className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative flex items-center justify-center cursor-pointer group"
+                onClick={() => handlePreview(demo.id)}
+              >
+                <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Play className="w-8 h-8 text-primary ml-1" />
                 </div>
                 
+                {/* Status Indicator */}
+                {demo.status === 'generating' && (
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                )}
+                
                 {/* Variant Badge */}
                 <div className="absolute top-2 left-2">
-                  <Badge variant="secondary" className={cn("gap-1", variantColors[demo.variant])}>
+                  <Badge variant="secondary" className={cn("gap-1", variantColors[demo.variant as DemoVariant])}>
                     <VariantIcon className="w-3 h-3" />
                     {demo.variant}
                   </Badge>
@@ -124,7 +182,7 @@ export const DemoLibrary = () => {
                   <div>
                     <h4 className="font-medium">{industryName}</h4>
                     <p className="text-xs text-muted-foreground capitalize">
-                      {demo.dealSize.replace('_', ' ')} • {demo.salesStage} stage
+                      {demo.deal_size.replace('_', ' ')} • {demo.sales_stage} stage
                     </p>
                   </div>
                   
@@ -135,19 +193,19 @@ export const DemoLibrary = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem className="gap-2">
+                      <DropdownMenuItem onClick={() => handlePreview(demo.id)} className="gap-2">
                         <ExternalLink className="w-4 h-4" />
                         Preview
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2">
+                      <DropdownMenuItem onClick={() => handleCopyEmbed(demo.id)} className="gap-2">
                         <Copy className="w-4 h-4" />
                         Copy Embed
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2">
+                      <DropdownMenuItem onClick={() => handleDownload(demo.id)} className="gap-2">
                         <Download className="w-4 h-4" />
                         Download
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2 text-destructive">
+                      <DropdownMenuItem onClick={() => handleDelete(demo.id)} className="gap-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </DropdownMenuItem>
@@ -158,18 +216,18 @@ export const DemoLibrary = () => {
                 {/* Analytics */}
                 <div className="grid grid-cols-3 gap-2 text-center py-3 border-t border-border/50">
                   <div>
-                    <p className="text-lg font-mono font-bold">{demo.analytics.views}</p>
+                    <p className="text-lg font-mono font-bold">{demoAnalytics?.views || 0}</p>
                     <p className="text-xs text-muted-foreground">Views</p>
                   </div>
                   <div>
                     <p className="text-lg font-mono font-bold text-success">
-                      {demo.analytics.completionRate}%
+                      {demoAnalytics?.completion_rate?.toFixed(0) || 0}%
                     </p>
                     <p className="text-xs text-muted-foreground">Completion</p>
                   </div>
                   <div>
                     <p className="text-lg font-mono font-bold text-accent">
-                      {demo.analytics.closeRate}%
+                      {demoAnalytics?.close_rate?.toFixed(0) || 0}%
                     </p>
                     <p className="text-xs text-muted-foreground">Close Rate</p>
                   </div>
@@ -178,10 +236,10 @@ export const DemoLibrary = () => {
                 {/* Capabilities Preview */}
                 <div className="pt-3 border-t border-border/50">
                   <p className="text-xs text-muted-foreground mb-2">
-                    {demo.capabilities.length} capabilities showcased
+                    {demo.capabilities?.length || 0} capabilities showcased
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {demo.capabilities.slice(0, 3).map((cap) => (
+                    {(demo.capabilities || []).slice(0, 3).map((cap) => (
                       <span
                         key={cap}
                         className="text-xs px-1.5 py-0.5 rounded bg-secondary capitalize"
@@ -189,7 +247,7 @@ export const DemoLibrary = () => {
                         {cap.replace('_', ' ')}
                       </span>
                     ))}
-                    {demo.capabilities.length > 3 && (
+                    {(demo.capabilities?.length || 0) > 3 && (
                       <span className="text-xs text-muted-foreground">
                         +{demo.capabilities.length - 3}
                       </span>
@@ -199,7 +257,7 @@ export const DemoLibrary = () => {
 
                 {/* Created */}
                 <p className="text-xs text-muted-foreground mt-3">
-                  Created {formatDistanceToNow(new Date(demo.createdAt), { addSuffix: true })}
+                  Created {formatDistanceToNow(new Date(demo.created_at), { addSuffix: true })}
                 </p>
               </div>
             </motion.div>

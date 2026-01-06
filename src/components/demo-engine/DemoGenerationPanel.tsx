@@ -13,11 +13,11 @@ import {
   Sparkles,
   Video
 } from 'lucide-react';
-import { useDemoEngineStore, DemoLength, DealSize, SalesStage, GeneratedDemo } from '@/stores/demo-engine-store';
+import { useDemoEngineStore, DemoLength, DealSize, SalesStage } from '@/stores/demo-engine-store';
 import { useDominionStore, INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
+import { useDemoEngine } from '@/hooks/useDemoEngine';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 /**
  * DEMO VIDEO GENERATION ENGINE
@@ -58,113 +58,25 @@ export const DemoGenerationPanel = () => {
     selectedLength,
     setSelectedLength,
     selectedCapabilities,
-    capabilities,
-    addGeneratedDemo,
   } = useDemoEngineStore();
 
   const { industry: currentIndustry } = useDominionStore();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
+  const { generateDemo, isGenerating, generationProgress } = useDemoEngine();
 
   const industries = Object.entries(INDUSTRY_TEMPLATES).map(([id, config]) => ({
     id,
     name: config.name,
   }));
 
-  const generateNarrative = () => {
-    const selectedCaps = capabilities.filter(c => selectedCapabilities.includes(c.id));
-    const industryName = INDUSTRY_TEMPLATES[targetIndustry]?.name || targetIndustry;
-    
-    const narratives = {
-      standard: {
-        problem: `Most ${industryName.toLowerCase()} businesses operate with scattered tools, manual processes, and platform dependency that creates fragility at scale.`,
-        revelation: `DOMINION replaces this chaos with a unified revenue command center—one system that controls traffic, monetization, and operations.`,
-        demonstration: selectedCaps.map(c => c.description),
-        outcome: `The result: stable, scalable revenue that compounds without proportional effort increase.`,
-        close: `This is infrastructure, not software. Access is earned.`,
-      },
-      intimidation: {
-        problem: `Fragile. Platform-dependent. Reactive.`,
-        revelation: `DOMINION. One control layer. Total revenue sovereignty.`,
-        demonstration: selectedCaps.map(c => c.outcomeMetric),
-        outcome: `Scale without fragility. Control without overhead.`,
-        close: `This is infrastructure. Not everyone gets access.`,
-      },
-      enterprise: {
-        problem: `Revenue operations at scale require centralized control, risk mitigation, and governance that scattered tools cannot provide.`,
-        revelation: `DOMINION serves as the command layer—orchestrating existing systems while providing unified visibility, control, and continuity.`,
-        demonstration: selectedCaps.map(c => `${c.name}: ${c.description}`),
-        outcome: `Reduced operational risk. Revenue continuity. Governance that scales.`,
-        close: `Enterprise infrastructure for revenue control.`,
-      },
-      silent: {
-        problem: '',
-        revelation: '',
-        demonstration: selectedCaps.map(c => c.outcomeMetric),
-        outcome: '',
-        close: '',
-      },
-    };
-
-    return narratives[currentVariant];
-  };
-
   const handleGenerate = async () => {
-    if (selectedCapabilities.length === 0) {
-      toast.error('Select at least one capability to showcase');
-      return;
-    }
-
-    setIsGenerating(true);
-    setGenerationProgress(0);
-
-    // Simulate generation progress
-    const progressInterval = setInterval(() => {
-      setGenerationProgress(prev => {
-        if (prev >= 90) return prev;
-        return prev + Math.random() * 15;
-      });
-    }, 500);
-
-    try {
-      // Simulate API call for demo generation
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      const narrative = generateNarrative();
-
-      const newDemo: GeneratedDemo = {
-        id: `demo-${Date.now()}`,
-        variant: currentVariant,
-        industry: targetIndustry,
-        dealSize: targetDealSize,
-        salesStage: targetSalesStage,
-        length: selectedLength,
-        capabilities: selectedCapabilities,
-        narrative,
-        analytics: {
-          views: 0,
-          avgWatchTime: 0,
-          completionRate: 0,
-          closeRate: 0,
-          dropOffPoints: [],
-        },
-        createdAt: new Date().toISOString(),
-        status: 'ready',
-      };
-
-      addGeneratedDemo(newDemo);
-      setGenerationProgress(100);
-      
-      toast.success('Demo video generated successfully', {
-        description: `${INDUSTRY_TEMPLATES[targetIndustry]?.name} • ${currentVariant} variant`,
-      });
-    } catch (error) {
-      toast.error('Failed to generate demo');
-    } finally {
-      clearInterval(progressInterval);
-      setIsGenerating(false);
-      setGenerationProgress(0);
-    }
+    await generateDemo({
+      variant: currentVariant,
+      industry: targetIndustry,
+      dealSize: targetDealSize,
+      salesStage: targetSalesStage,
+      length: selectedLength,
+      capabilities: selectedCapabilities,
+    });
   };
 
   return (

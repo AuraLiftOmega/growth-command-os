@@ -254,6 +254,191 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_analytics: {
+        Row: {
+          avg_watch_time_seconds: number
+          close_rate: number
+          closed_deals: number
+          completion_rate: number
+          created_at: string
+          demo_id: string
+          drop_off_points: Json
+          id: string
+          revenue_attributed: number
+          updated_at: string
+          user_id: string
+          view_sessions: Json
+          views: number
+        }
+        Insert: {
+          avg_watch_time_seconds?: number
+          close_rate?: number
+          closed_deals?: number
+          completion_rate?: number
+          created_at?: string
+          demo_id: string
+          drop_off_points?: Json
+          id?: string
+          revenue_attributed?: number
+          updated_at?: string
+          user_id: string
+          view_sessions?: Json
+          views?: number
+        }
+        Update: {
+          avg_watch_time_seconds?: number
+          close_rate?: number
+          closed_deals?: number
+          completion_rate?: number
+          created_at?: string
+          demo_id?: string
+          drop_off_points?: Json
+          id?: string
+          revenue_attributed?: number
+          updated_at?: string
+          user_id?: string
+          view_sessions?: Json
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_analytics_demo_id_fkey"
+            columns: ["demo_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demo_capability_performance: {
+        Row: {
+          avg_watch_time_when_shown: number
+          capability_id: string
+          close_correlation: number
+          created_at: string
+          engagement_score: number
+          id: string
+          times_shown: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_watch_time_when_shown?: number
+          capability_id: string
+          close_correlation?: number
+          created_at?: string
+          engagement_score?: number
+          id?: string
+          times_shown?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_watch_time_when_shown?: number
+          capability_id?: string
+          close_correlation?: number
+          created_at?: string
+          engagement_score?: number
+          id?: string
+          times_shown?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_optimizations: {
+        Row: {
+          applied: boolean
+          applied_at: string | null
+          created_at: string
+          description: string
+          id: string
+          impact: string | null
+          optimization_type: string
+          priority: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          applied?: boolean
+          applied_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          impact?: string | null
+          optimization_type: string
+          priority?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          applied?: boolean
+          applied_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          impact?: string | null
+          optimization_type?: string
+          priority?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      demo_videos: {
+        Row: {
+          capabilities: string[]
+          created_at: string
+          deal_size: string
+          duration_seconds: number | null
+          id: string
+          industry: string
+          length: string
+          narrative: Json
+          sales_stage: string
+          status: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          variant: string
+          video_url: string | null
+        }
+        Insert: {
+          capabilities?: string[]
+          created_at?: string
+          deal_size: string
+          duration_seconds?: number | null
+          id?: string
+          industry: string
+          length: string
+          narrative?: Json
+          sales_stage: string
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          variant: string
+          video_url?: string | null
+        }
+        Update: {
+          capabilities?: string[]
+          created_at?: string
+          deal_size?: string
+          duration_seconds?: number | null
+          id?: string
+          industry?: string
+          length?: string
+          narrative?: Json
+          sales_stage?: string
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          variant?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       language_violations: {
         Row: {
           content: string

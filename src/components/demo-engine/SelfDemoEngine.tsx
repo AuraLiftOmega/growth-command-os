@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -10,11 +10,14 @@ import {
   Crown,
   Building2,
   VolumeX,
-  Zap
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import { useDemoEngineStore } from '@/stores/demo-engine-store';
+import { useDemoEngine } from '@/hooks/useDemoEngine';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DemoGenerationPanel } from './DemoGenerationPanel';
 import { DemoVariantSelector } from './DemoVariantSelector';
 import { DemoCapabilityMapper } from './DemoCapabilityMapper';
@@ -30,7 +33,8 @@ import { cn } from '@/lib/utils';
  */
 
 export const SelfDemoEngine = () => {
-  const { isActive, setActive, currentVariant, generatedDemos } = useDemoEngineStore();
+  const { isActive, setActive, currentVariant } = useDemoEngineStore();
+  const { demos, analytics, refreshData, isLoading } = useDemoEngine();
   const [activeTab, setActiveTab] = useState('generate');
 
   const variantLabels = {
@@ -41,6 +45,15 @@ export const SelfDemoEngine = () => {
   };
 
   const CurrentVariantIcon = variantLabels[currentVariant].icon;
+
+  // Calculate real stats
+  const totalViews = Object.values(analytics).reduce((sum, a) => sum + (a?.views || 0), 0);
+  const avgCompletionRate = Object.values(analytics).length > 0
+    ? Object.values(analytics).reduce((sum, a) => sum + (a?.completion_rate || 0), 0) / Object.values(analytics).length
+    : 0;
+  const avgCloseRate = Object.values(analytics).length > 0
+    ? Object.values(analytics).reduce((sum, a) => sum + (a?.close_rate || 0), 0) / Object.values(analytics).length
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -65,6 +78,18 @@ export const SelfDemoEngine = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Refresh Button */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshData}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+            Sync
+          </Button>
+
           {/* Current Variant Badge */}
           <Badge variant="outline" className={cn("gap-2", variantLabels[currentVariant].color)}>
             <CurrentVariantIcon className="w-3 h-3" />
@@ -108,28 +133,24 @@ export const SelfDemoEngine = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-lg bg-card border border-border">
           <p className="text-xs text-muted-foreground mb-1">Demos Generated</p>
-          <p className="text-2xl font-mono font-bold">{generatedDemos.length}</p>
+          <p className="text-2xl font-mono font-bold">{demos.length}</p>
         </div>
         <div className="p-4 rounded-lg bg-card border border-border">
           <p className="text-xs text-muted-foreground mb-1">Total Views</p>
           <p className="text-2xl font-mono font-bold">
-            {generatedDemos.reduce((sum, d) => sum + d.analytics.views, 0).toLocaleString()}
+            {totalViews.toLocaleString()}
           </p>
         </div>
         <div className="p-4 rounded-lg bg-card border border-border">
           <p className="text-xs text-muted-foreground mb-1">Avg Completion</p>
           <p className="text-2xl font-mono font-bold text-success">
-            {generatedDemos.length > 0 
-              ? `${Math.round(generatedDemos.reduce((sum, d) => sum + d.analytics.completionRate, 0) / generatedDemos.length)}%`
-              : '—'}
+            {demos.length > 0 ? `${Math.round(avgCompletionRate)}%` : '—'}
           </p>
         </div>
         <div className="p-4 rounded-lg bg-card border border-border">
           <p className="text-xs text-muted-foreground mb-1">Demo Close Rate</p>
           <p className="text-2xl font-mono font-bold text-accent">
-            {generatedDemos.length > 0 
-              ? `${Math.round(generatedDemos.reduce((sum, d) => sum + d.analytics.closeRate, 0) / generatedDemos.length)}%`
-              : '—'}
+            {demos.length > 0 ? `${Math.round(avgCloseRate)}%` : '—'}
           </p>
         </div>
       </div>
@@ -151,7 +172,7 @@ export const SelfDemoEngine = () => {
           </TabsTrigger>
           <TabsTrigger value="library" className="gap-2">
             <Video className="w-4 h-4" />
-            Library
+            Library ({demos.length})
           </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />

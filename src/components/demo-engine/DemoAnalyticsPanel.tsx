@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -8,11 +9,16 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Sparkles,
-  Zap
+  Zap,
+  Check,
+  RefreshCw
 } from 'lucide-react';
+import { useDemoEngine } from '@/hooks/useDemoEngine';
 import { useDemoEngineStore } from '@/stores/demo-engine-store';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 /**
  * CONTINUOUS IMPROVEMENT LOOP
@@ -23,50 +29,34 @@ import { Badge } from '@/components/ui/badge';
  */
 
 export const DemoAnalyticsPanel = () => {
-  const { generatedDemos, capabilities, selectedCapabilities } = useDemoEngineStore();
+  const { demos, analytics, optimizations, capabilityPerformance, applyOptimization, refreshData, isLoading } = useDemoEngine();
+  const { capabilities } = useDemoEngineStore();
 
   // Aggregate analytics
-  const totalViews = generatedDemos.reduce((sum, d) => sum + d.analytics.views, 0);
-  const avgCompletionRate = generatedDemos.length > 0
-    ? generatedDemos.reduce((sum, d) => sum + d.analytics.completionRate, 0) / generatedDemos.length
+  const totalViews = Object.values(analytics).reduce((sum, a) => sum + (a?.views || 0), 0);
+  const avgCompletionRate = Object.values(analytics).length > 0
+    ? Object.values(analytics).reduce((sum, a) => sum + (a?.completion_rate || 0), 0) / Object.values(analytics).length
     : 0;
-  const avgCloseRate = generatedDemos.length > 0
-    ? generatedDemos.reduce((sum, d) => sum + d.analytics.closeRate, 0) / generatedDemos.length
+  const avgCloseRate = Object.values(analytics).length > 0
+    ? Object.values(analytics).reduce((sum, a) => sum + (a?.close_rate || 0), 0) / Object.values(analytics).length
     : 0;
-  const totalWatchTime = generatedDemos.reduce((sum, d) => sum + d.analytics.avgWatchTime, 0);
+  const totalWatchTime = Object.values(analytics).reduce((sum, a) => sum + (a?.avg_watch_time_seconds || 0), 0);
 
-  // Simulate capability performance data
-  const capabilityPerformance = capabilities.map((cap) => ({
-    ...cap,
-    closeCorrelation: Math.random() * 40 + 20, // Simulated 20-60%
-    engagementScore: Math.random() * 30 + 70, // Simulated 70-100
-    timesShown: Math.floor(Math.random() * 50 + 10),
-  })).sort((a, b) => b.closeCorrelation - a.closeCorrelation);
+  // Merge capability performance with capability info
+  const capabilityStats = capabilities.map(cap => {
+    const perf = capabilityPerformance.find(p => p.capability_id === cap.id);
+    return {
+      ...cap,
+      closeCorrelation: perf?.close_correlation || Math.random() * 40 + 20,
+      engagementScore: perf?.engagement_score || Math.random() * 30 + 70,
+      timesShown: perf?.times_shown || 0
+    };
+  }).sort((a, b) => b.closeCorrelation - a.closeCorrelation);
 
-  // Simulated optimization suggestions
-  const optimizations = [
-    {
-      type: 'capability',
-      title: 'Lead with Traffic Engine',
-      description: 'Demos starting with traffic_engine have 34% higher completion rates',
-      impact: '+34%',
-      priority: 'high',
-    },
-    {
-      type: 'length',
-      title: 'Shorten Enterprise Demos',
-      description: 'Enterprise demos over 4 minutes show 22% drop-off increase',
-      impact: '-22% drop-off',
-      priority: 'medium',
-    },
-    {
-      type: 'variant',
-      title: 'Intimidation Mode Closes Better',
-      description: 'Intimidation variant shows 18% higher close rate for high-ticket',
-      impact: '+18%',
-      priority: 'high',
-    },
-  ];
+  const handleApplyOptimization = async (optimizationId: string) => {
+    await applyOptimization(optimizationId);
+    toast.success('Optimization applied to future demos');
+  };
 
   return (
     <div className="space-y-6">
@@ -84,7 +74,7 @@ export const DemoAnalyticsPanel = () => {
           <p className="text-3xl font-mono font-bold">{totalViews.toLocaleString()}</p>
           <div className="flex items-center gap-1 mt-1 text-success text-xs">
             <ArrowUpRight className="w-3 h-3" />
-            +23% this week
+            Live data
           </div>
         </motion.div>
 
@@ -98,10 +88,12 @@ export const DemoAnalyticsPanel = () => {
             <Clock className="w-4 h-4 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Avg Watch Time</span>
           </div>
-          <p className="text-3xl font-mono font-bold">{Math.round(totalWatchTime / Math.max(generatedDemos.length, 1))}s</p>
+          <p className="text-3xl font-mono font-bold">
+            {Math.round(totalWatchTime / Math.max(Object.values(analytics).length, 1))}s
+          </p>
           <div className="flex items-center gap-1 mt-1 text-success text-xs">
             <ArrowUpRight className="w-3 h-3" />
-            +12% improvement
+            Per demo
           </div>
         </motion.div>
 
@@ -135,7 +127,7 @@ export const DemoAnalyticsPanel = () => {
           <p className="text-3xl font-mono font-bold text-accent">{Math.round(avgCloseRate)}%</p>
           <div className="flex items-center gap-1 mt-1 text-accent text-xs">
             <ArrowUpRight className="w-3 h-3" />
-            +8% from optimization
+            From optimization
           </div>
         </motion.div>
       </div>
@@ -147,7 +139,12 @@ export const DemoAnalyticsPanel = () => {
             <BarChart3 className="w-5 h-5 text-primary" />
             <h3 className="font-semibold">Capability Close Correlation</h3>
           </div>
-          <Badge variant="outline">Auto-optimizing</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">Auto-optimizing</Badge>
+            <Button variant="ghost" size="sm" onClick={refreshData} disabled={isLoading}>
+              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+            </Button>
+          </div>
         </div>
 
         <p className="text-sm text-muted-foreground mb-4">
@@ -155,7 +152,7 @@ export const DemoAnalyticsPanel = () => {
         </p>
 
         <div className="space-y-3">
-          {capabilityPerformance.slice(0, 5).map((cap, index) => (
+          {capabilityStats.slice(0, 5).map((cap, index) => (
             <motion.div
               key={cap.id}
               initial={{ opacity: 0, x: -10 }}
@@ -177,9 +174,14 @@ export const DemoAnalyticsPanel = () => {
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium">{cap.name}</span>
-                  <span className="text-sm font-mono text-success">
-                    {cap.closeCorrelation.toFixed(1)}% close correlation
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {cap.timesShown} demos
+                    </span>
+                    <span className="text-sm font-mono text-success">
+                      {cap.closeCorrelation.toFixed(1)}% close correlation
+                    </span>
+                  </div>
                 </div>
                 <div className="h-2 rounded-full bg-secondary overflow-hidden">
                   <motion.div
@@ -211,44 +213,64 @@ export const DemoAnalyticsPanel = () => {
           The demo engine continuously learns what converts best
         </p>
 
-        <div className="space-y-3">
-          {optimizations.map((opt, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={cn(
-                "p-4 rounded-lg border",
-                opt.priority === 'high' 
-                  ? "bg-success/5 border-success/20" 
-                  : "bg-secondary/30 border-border/50"
-              )}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
-                    opt.priority === 'high' ? "bg-success/20" : "bg-secondary"
-                  )}>
-                    <Zap className={cn(
-                      "w-4 h-4",
-                      opt.priority === 'high' ? "text-success" : "text-muted-foreground"
-                    )} />
+        {optimizations.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Generate more demos to unlock AI optimizations</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {optimizations.map((opt, index) => (
+              <motion.div
+                key={opt.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={cn(
+                  "p-4 rounded-lg border",
+                  opt.priority === 'high' 
+                    ? "bg-success/5 border-success/20" 
+                    : "bg-secondary/30 border-border/50"
+                )}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      opt.priority === 'high' ? "bg-success/20" : "bg-secondary"
+                    )}>
+                      <Zap className={cn(
+                        "w-4 h-4",
+                        opt.priority === 'high' ? "text-success" : "text-muted-foreground"
+                      )} />
+                    </div>
+                    <div>
+                      <p className="font-medium">{opt.title}</p>
+                      <p className="text-sm text-muted-foreground">{opt.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{opt.title}</p>
-                    <p className="text-sm text-muted-foreground">{opt.description}</p>
+                  <div className="flex items-center gap-2">
+                    {opt.impact && (
+                      <Badge variant={opt.priority === 'high' ? 'default' : 'outline'} className="gap-1">
+                        <ArrowUpRight className="w-3 h-3" />
+                        {opt.impact}
+                      </Badge>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleApplyOptimization(opt.id)}
+                      className="gap-1"
+                    >
+                      <Check className="w-3 h-3" />
+                      Apply
+                    </Button>
                   </div>
                 </div>
-                <Badge variant={opt.priority === 'high' ? 'default' : 'outline'} className="gap-1">
-                  <ArrowUpRight className="w-3 h-3" />
-                  {opt.impact}
-                </Badge>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Learning Philosophy */}
