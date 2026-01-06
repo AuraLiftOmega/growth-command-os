@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.slack-webhook]
 verify_jwt = false
+
+[functions.geekbot-sync]
+verify_jwt = false
