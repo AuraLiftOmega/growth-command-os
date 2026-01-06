@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { OnboardingData, defaultOnboardingData } from '@/lib/onboarding-schema';
+import { OnboardingData, defaultOnboardingData, industryDefaultsData } from '@/lib/onboarding-schema';
 import { onboardingService } from '@/services/database-service';
 
 interface OnboardingStore {
@@ -10,6 +10,7 @@ interface OnboardingStore {
   userId: string | null;
   isLoading: boolean;
   isSynced: boolean;
+  isDemoMode: boolean;
   setStep: (step: number) => void;
   updateData: <K extends keyof OnboardingData>(section: K, values: Partial<OnboardingData[K]>) => void;
   setCompleted: (completed: boolean) => void;
@@ -18,6 +19,8 @@ interface OnboardingStore {
   setUserId: (userId: string | null) => void;
   loadFromDatabase: (userId: string) => Promise<void>;
   saveToDatabase: () => Promise<void>;
+  applyIndustryDefaults: () => void;
+  enableDemoMode: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingStore>()((set, get) => ({
@@ -28,6 +31,7 @@ export const useOnboardingStore = create<OnboardingStore>()((set, get) => ({
   userId: null,
   isLoading: false,
   isSynced: false,
+  isDemoMode: false,
 
   setStep: (step) => {
     set({ currentStep: step });
@@ -97,7 +101,25 @@ export const useOnboardingStore = create<OnboardingStore>()((set, get) => ({
     isCompleted: false, 
     inputQualityScore: 0,
     isSynced: false,
+    isDemoMode: false,
   }),
+
+  applyIndustryDefaults: () => {
+    set({ 
+      data: industryDefaultsData,
+      isCompleted: true,
+      inputQualityScore: 85,
+    });
+  },
+
+  enableDemoMode: () => {
+    set({
+      data: industryDefaultsData,
+      isCompleted: true,
+      inputQualityScore: 85,
+      isDemoMode: true,
+    });
+  },
 
   setUserId: (userId) => set({ userId }),
 

@@ -5,7 +5,8 @@ import {
   ShoppingCart, 
   Users, 
   Eye,
-  Target
+  Target,
+  AlertCircle
 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -24,9 +25,11 @@ import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
 import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useOnboardingStore } from "@/stores/onboarding-store";
 
 const Index = () => {
   const { metrics } = useAnalytics();
+  const { isDemoMode } = useOnboardingStore();
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -42,6 +45,23 @@ const Index = () => {
         <Header />
         
         <div className="p-6">
+          {/* Demo Mode Banner */}
+          {isDemoMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-accent/10 border border-accent/30 flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-accent" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Demo Mode Active</p>
+                <p className="text-xs text-muted-foreground">
+                  Exploring with sample data. Connect your real store in Settings to go live.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Top Metrics Row */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             <MetricCard
