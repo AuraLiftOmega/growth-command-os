@@ -260,6 +260,74 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_demo_triggers: {
+        Row: {
+          auto_send: boolean | null
+          conversions: number | null
+          created_at: string
+          deal_size_max: number | null
+          deal_size_min: number | null
+          demo_id: string
+          demos_sent: number | null
+          id: string
+          industry_match: string[] | null
+          sales_stage: string
+          send_delay_minutes: number | null
+          status: string
+          trigger_name: string
+          triggers_fired: number | null
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          auto_send?: boolean | null
+          conversions?: number | null
+          created_at?: string
+          deal_size_max?: number | null
+          deal_size_min?: number | null
+          demo_id: string
+          demos_sent?: number | null
+          id?: string
+          industry_match?: string[] | null
+          sales_stage: string
+          send_delay_minutes?: number | null
+          status?: string
+          trigger_name: string
+          triggers_fired?: number | null
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          auto_send?: boolean | null
+          conversions?: number | null
+          created_at?: string
+          deal_size_max?: number | null
+          deal_size_min?: number | null
+          demo_id?: string
+          demos_sent?: number | null
+          id?: string
+          industry_match?: string[] | null
+          sales_stage?: string
+          send_delay_minutes?: number | null
+          status?: string
+          trigger_name?: string
+          triggers_fired?: number | null
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_demo_triggers_demo_id_fkey"
+            columns: ["demo_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_analytics: {
         Row: {
           avg_watch_time_seconds: number
@@ -351,6 +419,68 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      demo_deployments: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          demo_id: string
+          deployment_config: Json
+          deployment_name: string
+          deployment_type: string
+          embed_code: string | null
+          id: string
+          public_url: string | null
+          revenue_attributed: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          demo_id: string
+          deployment_config?: Json
+          deployment_name: string
+          deployment_type: string
+          embed_code?: string | null
+          id?: string
+          public_url?: string | null
+          revenue_attributed?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          demo_id?: string
+          deployment_config?: Json
+          deployment_name?: string
+          deployment_type?: string
+          embed_code?: string | null
+          id?: string
+          public_url?: string | null
+          revenue_attributed?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_deployments_demo_id_fkey"
+            columns: ["demo_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       demo_optimizations: {
         Row: {
@@ -454,6 +584,60 @@ export type Database = {
           user_id?: string
           variant?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      email_sequences: {
+        Row: {
+          created_at: string
+          description: string | null
+          emails: Json
+          id: string
+          name: string
+          revenue_attributed: number | null
+          status: string
+          total_clicks: number | null
+          total_conversions: number | null
+          total_opens: number | null
+          total_sent: number | null
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          emails?: Json
+          id?: string
+          name: string
+          revenue_attributed?: number | null
+          status?: string
+          total_clicks?: number | null
+          total_conversions?: number | null
+          total_opens?: number | null
+          total_sent?: number | null
+          trigger_config?: Json | null
+          trigger_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emails?: Json
+          id?: string
+          name?: string
+          revenue_attributed?: number | null
+          status?: string
+          total_clicks?: number | null
+          total_conversions?: number | null
+          total_opens?: number | null
+          total_sent?: number | null
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -937,6 +1121,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sales_page_embeds: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          demo_id: string
+          embed_code: string
+          embed_config: Json | null
+          embed_type: string
+          engagement_time_seconds: number | null
+          id: string
+          page_name: string
+          page_url: string | null
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          demo_id: string
+          embed_code: string
+          embed_config?: Json | null
+          embed_type: string
+          engagement_time_seconds?: number | null
+          id?: string
+          page_name: string
+          page_url?: string | null
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          demo_id?: string
+          embed_code?: string
+          embed_config?: Json | null
+          embed_type?: string
+          engagement_time_seconds?: number | null
+          id?: string
+          page_name?: string
+          page_url?: string | null
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_page_embeds_demo_id_fkey"
+            columns: ["demo_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strategic_doctrine: {
         Row: {
