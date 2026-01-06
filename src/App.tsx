@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -106,6 +107,7 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/landing" element={<Landing />} />
       <Route 
         path="/auth" 
         element={
