@@ -77,9 +77,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      {/* Power Background Effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative">
+      {/* Power Background Effects - ensure they don't block interaction */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute top-1/3 left-1/3 w-[800px] h-[800px] bg-primary/8 rounded-full blur-[150px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/6 rounded-full blur-[120px]" />
         {/* Grid overlay */}
@@ -96,7 +96,7 @@ const Auth = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-10"
+        className="w-full max-w-md relative z-50"
       >
         {/* Logo & Header */}
         <div className="text-center mb-10">
