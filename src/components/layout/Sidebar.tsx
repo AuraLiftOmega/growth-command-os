@@ -62,8 +62,8 @@ export const Sidebar = () => {
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg">Command</h1>
-            <p className="text-xs text-muted-foreground">AI Commerce OS</p>
+            <h1 className="font-display font-bold text-lg">Omega</h1>
+            <p className="text-xs text-muted-foreground">AI Commerce Platform</p>
           </div>
         </div>
       </div>

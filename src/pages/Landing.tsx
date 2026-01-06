@@ -151,7 +151,7 @@ const Landing = () => {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">ScaleAI</span>
+              <span className="text-xl font-bold">Omega</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a>
@@ -401,7 +401,7 @@ const Landing = () => {
               Loved by 10,000+ Brands
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See what our customers have to say about ScaleAI.
+              See what our customers have to say about Omega.
             </p>
           </motion.div>
 
@@ -456,7 +456,7 @@ const Landing = () => {
             Ready to 10x Your Revenue?
           </h2>
           <p className="text-xl text-muted-foreground mb-10">
-            Join 10,000+ brands using ScaleAI to automate their growth.
+            Join 10,000+ brands using Omega to automate their growth.
             Start your free trial today—no credit card required.
           </p>
           <Link to="/auth">
@@ -476,7 +476,7 @@ const Landing = () => {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold">ScaleAI</span>
+              <span className="text-xl font-bold">Omega</span>
             </div>
             <div className="flex items-center gap-8 text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
@@ -484,7 +484,7 @@ const Landing = () => {
               <a href="#" className="hover:text-foreground transition-colors">Contact</a>
             </div>
             <p className="text-muted-foreground text-sm">
-              © 2024 ScaleAI. All rights reserved.
+              © 2024 Omega. All rights reserved.
             </p>
           </div>
         </div>

@@ -17,7 +17,7 @@ export const Header = () => {
     >
       {/* Left Section */}
       <div className="flex items-center gap-4">
-        <h2 className="font-display font-semibold text-xl">Command Center</h2>
+        <h2 className="font-display font-semibold text-xl">Omega Dashboard</h2>
         <div className="flex items-center gap-1 px-2 py-1 rounded bg-muted text-muted-foreground">
           <div className="status-dot status-dot-active" />
           <span className="text-xs font-medium">All systems live</span>
