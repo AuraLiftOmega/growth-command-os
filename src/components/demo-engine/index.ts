@@ -8,6 +8,8 @@ export { DemoLibrary } from './DemoLibrary';
 export { DemoAnalyticsPanel } from './DemoAnalyticsPanel';
 export { DemoSalesAutomation } from './DemoSalesAutomation';
 export { DemoVideoPlayer } from './DemoVideoPlayer';
+export { VideoExporter } from './VideoExporter';
+export { ABTestingPanel } from './ABTestingPanel';
 
 // Re-export hooks for external use
 export { useDemoEngine } from '@/hooks/useDemoEngine';
