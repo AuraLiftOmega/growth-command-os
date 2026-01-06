@@ -3,6 +3,7 @@
  * 
  * Automatic notifications when tests reach statistical significance:
  * - In-app notifications
+ * - Email notifications via Resend
  * - Winner recommendations
  * - Performance data summaries
  */
@@ -20,14 +21,18 @@ import {
   Sparkles,
   AlertTriangle,
   BarChart3,
+  Send,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ABTestNotification {
   id: string;
@@ -39,17 +44,23 @@ interface ABTestNotification {
   winnerName?: string;
   improvement?: number;
   confidence?: number;
+  totalViews?: number;
+  totalConversions?: number;
+  revenueAttributed?: number;
   createdAt: string;
   read: boolean;
   actionTaken: boolean;
+  emailSent: boolean;
 }
 
 interface NotificationPreferences {
   inApp: boolean;
   email: boolean;
+  emailAddress: string;
   significanceThreshold: number;
   sampleMilestones: boolean;
   autoWinnerDeclaration: boolean;
+  autoSendEmail: boolean;
 }
 
 interface ABTestNotificationsProps {
@@ -68,9 +79,13 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
     winnerName: 'Intimidation (Challenger)',
     improvement: 42.7,
     confidence: 94.2,
+    totalViews: 1670,
+    totalConversions: 216,
+    revenueAttributed: 623700,
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
     read: false,
     actionTaken: false,
+    emailSent: false,
   },
   {
     id: 'notif-2',
@@ -82,9 +97,13 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
     winnerName: 'Short Demo (90s)',
     improvement: 48,
     confidence: 98.7,
+    totalViews: 2423,
+    totalConversions: 243,
+    revenueAttributed: 768400,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     read: true,
     actionTaken: true,
+    emailSent: true,
   },
   {
     id: 'notif-3',
@@ -93,24 +112,81 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
     type: 'sample_milestone',
     title: '📊 Sample Milestone Reached',
     message: 'Your test has reached 1,000 total views. Statistical reliability is improving.',
+    totalViews: 1000,
     createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
     read: true,
     actionTaken: false,
+    emailSent: false,
   },
 ];
 
 export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) => {
   const [notifications, setNotifications] = useState<ABTestNotification[]>(DEMO_NOTIFICATIONS);
   const [showPanel, setShowPanel] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     inApp: true,
     email: true,
+    emailAddress: '',
     significanceThreshold: 95,
     sampleMilestones: true,
     autoWinnerDeclaration: false,
+    autoSendEmail: false,
   });
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Send email notification
+  const sendEmailNotification = useCallback(async (notification: ABTestNotification) => {
+    if (!preferences.emailAddress) {
+      toast.error('Please enter an email address in preferences');
+      return;
+    }
+
+    setIsSendingEmail(notification.id);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-ab-test-notification', {
+        body: {
+          recipientEmail: preferences.emailAddress,
+          recipientName: 'Team',
+          notificationType: notification.type === 'winner_found' ? 'winner_declared' : notification.type,
+          testName: notification.testName,
+          winnerName: notification.winnerName,
+          improvement: notification.improvement,
+          confidence: notification.confidence,
+          totalViews: notification.totalViews,
+          totalConversions: notification.totalConversions,
+          revenueAttributed: notification.revenueAttributed,
+          testDuration: '7 days',
+          recommendedActions: [
+            'Review the full test results in your dashboard',
+            'Apply the winning variant to 100% of traffic',
+            'Document learnings for future tests',
+            'Plan your next optimization experiment',
+          ],
+          dashboardUrl: window.location.origin + '/?tab=ab-testing',
+        },
+      });
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(n => n.id === notification.id ? { ...n, emailSent: true } : n)
+      );
+
+      toast.success('Email notification sent!', {
+        description: `Sent to ${preferences.emailAddress}`,
+      });
+    } catch (error: any) {
+      console.error('Failed to send email:', error);
+      toast.error('Failed to send email', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setIsSendingEmail(null);
+    }
+  }, [preferences.emailAddress]);
 
   // Mark notification as read
   const markAsRead = useCallback((notifId: string) => {
@@ -140,7 +216,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
     setNotifications(prev => prev.filter(n => n.id !== notifId));
   }, []);
 
-  // Simulate real-time notification (for demo)
+  // Simulate real-time notification with auto email (for demo)
   useEffect(() => {
     const timer = setTimeout(() => {
       const existingNotif = notifications.find(n => n.id === 'notif-realtime');
@@ -153,9 +229,12 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
           title: '📈 Confidence Increasing',
           message: 'Test confidence has increased to 94.5%. Getting closer to the 95% threshold!',
           confidence: 94.5,
+          totalViews: 1720,
+          totalConversions: 224,
           createdAt: new Date().toISOString(),
           read: false,
           actionTaken: false,
+          emailSent: false,
         };
         setNotifications(prev => [newNotif, ...prev]);
         
@@ -168,11 +247,16 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
             },
           });
         }
+
+        // Auto-send email if enabled
+        if (preferences.autoSendEmail && preferences.email && preferences.emailAddress) {
+          sendEmailNotification(newNotif);
+        }
       }
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, [notifications, preferences.inApp, onViewTest]);
+  }, [notifications, preferences, onViewTest, sendEmailNotification]);
 
   const getNotificationIcon = (type: ABTestNotification['type']) => {
     switch (type) {
@@ -224,7 +308,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="absolute right-0 top-12 w-96 bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
+              className="absolute right-0 top-12 w-[420px] bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
             >
               {/* Header */}
               <div className="p-4 border-b flex items-center justify-between">
@@ -242,7 +326,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
               </div>
 
               {/* Notifications List */}
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto">
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
                     <motion.div
@@ -264,24 +348,50 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                             <p className="font-medium text-sm">
                               {notification.title}
                             </p>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                dismissNotification(notification.id);
-                              }}
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Send Email Button */}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                  "h-6 w-6",
+                                  notification.emailSent && "text-green-500"
+                                )}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!notification.emailSent) {
+                                    sendEmailNotification(notification);
+                                  }
+                                }}
+                                disabled={notification.emailSent || isSendingEmail === notification.id}
+                              >
+                                {isSendingEmail === notification.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : notification.emailSent ? (
+                                  <CheckCircle2 className="w-3 h-3" />
+                                ) : (
+                                  <Mail className="w-3 h-3" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  dismissNotification(notification.id);
+                                }}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
                             {notification.message}
                           </p>
                           
                           {/* Stats badges */}
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
                             {notification.confidence && (
                               <Badge variant="secondary" className="text-xs">
                                 {notification.confidence}% confidence
@@ -290,6 +400,12 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                             {notification.improvement && (
                               <Badge className="text-xs bg-green-500/10 text-green-600">
                                 +{notification.improvement}% improvement
+                              </Badge>
+                            )}
+                            {notification.emailSent && (
+                              <Badge variant="outline" className="text-xs gap-1">
+                                <Mail className="w-2 h-2" />
+                                Emailed
                               </Badge>
                             )}
                           </div>
@@ -312,11 +428,27 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
               </div>
 
               {/* Preferences Footer */}
-              <div className="p-4 border-t bg-muted/30">
-                <p className="text-xs font-medium mb-3">Notification Preferences</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">In-app notifications</Label>
+              <div className="p-4 border-t bg-muted/30 space-y-3">
+                <p className="text-xs font-medium">Notification Preferences</p>
+                
+                {/* Email Address Input */}
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <Input
+                    type="email"
+                    placeholder="Enter email for notifications"
+                    className="h-8 text-xs"
+                    value={preferences.emailAddress}
+                    onChange={(e) => 
+                      setPreferences(prev => ({ ...prev, emailAddress: e.target.value }))
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center justify-between p-2 rounded bg-background">
+                    <Label className="text-xs">In-app</Label>
                     <Switch
                       checked={preferences.inApp}
                       onCheckedChange={(checked) => 
@@ -324,8 +456,8 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                       }
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Email notifications</Label>
+                  <div className="flex items-center justify-between p-2 rounded bg-background">
+                    <Label className="text-xs">Email</Label>
                     <Switch
                       checked={preferences.email}
                       onCheckedChange={(checked) =>
@@ -333,12 +465,21 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                       }
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Auto-declare winners at 95%</Label>
+                  <div className="flex items-center justify-between p-2 rounded bg-background">
+                    <Label className="text-xs">Auto-winners</Label>
                     <Switch
                       checked={preferences.autoWinnerDeclaration}
                       onCheckedChange={(checked) =>
                         setPreferences(prev => ({ ...prev, autoWinnerDeclaration: checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded bg-background">
+                    <Label className="text-xs">Auto-email</Label>
+                    <Switch
+                      checked={preferences.autoSendEmail}
+                      onCheckedChange={(checked) =>
+                        setPreferences(prev => ({ ...prev, autoSendEmail: checked }))
                       }
                     />
                   </div>
