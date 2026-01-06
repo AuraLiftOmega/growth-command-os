@@ -343,6 +343,145 @@ const generateDiscordEmbed = (data: DigestRequest) => {
   };
 };
 
+// Generate Microsoft Teams Adaptive Card
+const generateTeamsCard = (data: DigestRequest) => {
+  const { digestType, tests, totalActiveTests, totalRevenue, topPerformer, dashboardUrl } = data;
+  
+  const formatCurrency = (amount: number) => 
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'running': return '🔄';
+      case 'completed': return '✅';
+      case 'winner_declared': return '🏆';
+      case 'paused': return '⏸️';
+      default: return '📊';
+    }
+  };
+
+  const testItems = tests.slice(0, 5).map(test => ({
+    type: "Container",
+    items: [
+      {
+        type: "ColumnSet",
+        columns: [
+          {
+            type: "Column",
+            width: "auto",
+            items: [{ type: "TextBlock", text: getStatusIcon(test.status), size: "Medium" }]
+          },
+          {
+            type: "Column",
+            width: "stretch",
+            items: [
+              { type: "TextBlock", text: test.name, weight: "Bolder", wrap: true },
+              { 
+                type: "TextBlock", 
+                text: `${test.confidence.toFixed(1)}% confidence • ${test.totalViews} views${test.improvement ? ` • +${test.improvement.toFixed(1)}%` : ''}`,
+                size: "Small",
+                color: "Light",
+                wrap: true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    separator: true
+  }));
+
+  return {
+    type: "message",
+    attachments: [{
+      contentType: "application/vnd.microsoft.card.adaptive",
+      contentUrl: null,
+      content: {
+        $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
+        type: "AdaptiveCard",
+        version: "1.4",
+        body: [
+          {
+            type: "Container",
+            style: digestType === 'daily' ? 'emphasis' : 'accent',
+            items: [
+              {
+                type: "TextBlock",
+                text: `📊 ${digestType === 'daily' ? 'Daily' : 'Weekly'} A/B Test Digest`,
+                weight: "Bolder",
+                size: "Large",
+                color: "Light"
+              },
+              {
+                type: "TextBlock",
+                text: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+                size: "Small",
+                color: "Light"
+              }
+            ]
+          },
+          {
+            type: "ColumnSet",
+            columns: [
+              {
+                type: "Column",
+                width: "stretch",
+                items: [
+                  { type: "TextBlock", text: "Active Tests", size: "Small", color: "Light" },
+                  { type: "TextBlock", text: String(totalActiveTests), weight: "Bolder", size: "ExtraLarge" }
+                ]
+              },
+              {
+                type: "Column",
+                width: "stretch",
+                items: [
+                  { type: "TextBlock", text: "Total Revenue", size: "Small", color: "Light" },
+                  { type: "TextBlock", text: formatCurrency(totalRevenue), weight: "Bolder", size: "ExtraLarge", color: "Good" }
+                ]
+              },
+              {
+                type: "Column",
+                width: "stretch",
+                items: [
+                  { type: "TextBlock", text: "Total Tests", size: "Small", color: "Light" },
+                  { type: "TextBlock", text: String(tests.length), weight: "Bolder", size: "ExtraLarge" }
+                ]
+              }
+            ]
+          },
+          ...(topPerformer ? [{
+            type: "Container",
+            style: "warning",
+            items: [
+              { type: "TextBlock", text: "🏆 Top Performer", weight: "Bolder" },
+              { type: "TextBlock", text: topPerformer.name, weight: "Bolder", size: "Medium" },
+              { 
+                type: "TextBlock", 
+                text: `${topPerformer.confidence.toFixed(1)}% confidence${topPerformer.improvement ? ` • +${topPerformer.improvement.toFixed(1)}% improvement` : ''}`,
+                size: "Small"
+              }
+            ]
+          }] : []),
+          {
+            type: "TextBlock",
+            text: "All Tests",
+            weight: "Bolder",
+            spacing: "Medium"
+          },
+          ...testItems
+        ],
+        actions: dashboardUrl ? [
+          {
+            type: "Action.OpenUrl",
+            title: "View All Tests",
+            url: dashboardUrl
+          }
+        ] : []
+      }
+    }]
+  };
+};
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("A/B Test digest request received");
 
@@ -353,7 +492,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const body = await req.json();
     const { 
-      type, // 'email', 'slack', 'discord'
+      type, // 'email', 'slack', 'discord', 'teams'
       webhookUrl,
       ...data 
     } = body as DigestRequest & { type: string; webhookUrl?: string };
@@ -394,6 +533,27 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Discord notification sent successfully");
       return new Response(
         JSON.stringify({ success: true, message: "Discord notification sent" }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (type === 'teams' && webhookUrl) {
+      const teamsPayload = generateTeamsCard(data);
+      const teamsResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamsPayload),
+      });
+
+      if (!teamsResponse.ok) {
+        const errorText = await teamsResponse.text();
+        console.error("Teams webhook error:", errorText);
+        throw new Error(`Teams webhook failed: ${teamsResponse.statusText}`);
+      }
+
+      console.log("Teams notification sent successfully");
+      return new Response(
+        JSON.stringify({ success: true, message: "Teams notification sent" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

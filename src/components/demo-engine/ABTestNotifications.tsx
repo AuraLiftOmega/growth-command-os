@@ -4,8 +4,9 @@
  * Automatic notifications when tests reach statistical significance:
  * - In-app notifications
  * - Email notifications via Resend
- * - Winner recommendations
- * - Performance data summaries
+ * - Slack, Discord, and Microsoft Teams webhooks
+ * - Scheduled digests (daily/weekly)
+ * - Database persistence for all settings
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -30,6 +31,9 @@ import {
   Settings2,
   Play,
   TestTube2,
+  Save,
+  Users,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +46,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ABTestNotification {
   id: string;
@@ -80,6 +85,9 @@ interface NotificationPreferences {
   // Discord settings
   discordEnabled: boolean;
   discordWebhookUrl: string;
+  // Teams settings
+  teamsEnabled: boolean;
+  teamsWebhookUrl: string;
 }
 
 interface ABTestNotificationsProps {
@@ -177,32 +185,190 @@ const DEMO_TESTS = [
   },
 ];
 
+const DEFAULT_PREFERENCES: NotificationPreferences = {
+  inApp: true,
+  email: true,
+  emailAddress: '',
+  significanceThreshold: 95,
+  sampleMilestones: true,
+  autoWinnerDeclaration: false,
+  autoSendEmail: false,
+  digestEnabled: false,
+  digestFrequency: 'daily',
+  digestTime: '09:00',
+  slackEnabled: false,
+  slackWebhookUrl: '',
+  discordEnabled: false,
+  discordWebhookUrl: '',
+  teamsEnabled: false,
+  teamsWebhookUrl: '',
+};
+
 export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<ABTestNotification[]>(DEMO_NOTIFICATIONS);
   const [showPanel, setShowPanel] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState<string | null>(null);
   const [isSendingDigest, setIsSendingDigest] = useState(false);
   const [isSendingSlack, setIsSendingSlack] = useState(false);
   const [isSendingDiscord, setIsSendingDiscord] = useState(false);
+  const [isSendingTeams, setIsSendingTeams] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [activeTab, setActiveTab] = useState('notifications');
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    inApp: true,
-    email: true,
-    emailAddress: '',
-    significanceThreshold: 95,
-    sampleMilestones: true,
-    autoWinnerDeclaration: false,
-    autoSendEmail: false,
-    digestEnabled: false,
-    digestFrequency: 'daily',
-    digestTime: '09:00',
-    slackEnabled: false,
-    slackWebhookUrl: '',
-    discordEnabled: false,
-    discordWebhookUrl: '',
-  });
+  const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Load settings from database
+  const loadSettings = useCallback(async () => {
+    if (!user?.id) return;
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ab_test_notification_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Not found is OK
+        throw error;
+      }
+
+      if (data) {
+        setPreferences({
+          inApp: data.in_app_enabled ?? true,
+          email: data.email_enabled ?? true,
+          emailAddress: data.email_address ?? '',
+          significanceThreshold: data.significance_threshold ?? 95,
+          sampleMilestones: data.sample_milestones ?? true,
+          autoWinnerDeclaration: data.auto_winner_declaration ?? false,
+          autoSendEmail: data.auto_send_email ?? false,
+          digestEnabled: data.digest_enabled ?? false,
+          digestFrequency: (data.digest_frequency as 'daily' | 'weekly') ?? 'daily',
+          digestTime: data.digest_time ?? '09:00',
+          slackEnabled: data.slack_enabled ?? false,
+          slackWebhookUrl: data.slack_webhook_url ?? '',
+          discordEnabled: data.discord_enabled ?? false,
+          discordWebhookUrl: data.discord_webhook_url ?? '',
+          teamsEnabled: data.teams_enabled ?? false,
+          teamsWebhookUrl: data.teams_webhook_url ?? '',
+        });
+      }
+    } catch (error: any) {
+      console.error('Failed to load notification settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
+  // Save settings to database
+  const saveSettings = useCallback(async () => {
+    if (!user?.id) {
+      toast.error('Please sign in to save settings');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const settingsData = {
+        user_id: user.id,
+        email_address: preferences.emailAddress,
+        in_app_enabled: preferences.inApp,
+        email_enabled: preferences.email,
+        auto_winner_declaration: preferences.autoWinnerDeclaration,
+        auto_send_email: preferences.autoSendEmail,
+        significance_threshold: preferences.significanceThreshold,
+        sample_milestones: preferences.sampleMilestones,
+        digest_enabled: preferences.digestEnabled,
+        digest_frequency: preferences.digestFrequency,
+        digest_time: preferences.digestTime,
+        slack_enabled: preferences.slackEnabled,
+        slack_webhook_url: preferences.slackWebhookUrl,
+        discord_enabled: preferences.discordEnabled,
+        discord_webhook_url: preferences.discordWebhookUrl,
+        teams_enabled: preferences.teamsEnabled,
+        teams_webhook_url: preferences.teamsWebhookUrl,
+      };
+
+      const { error } = await supabase
+        .from('ab_test_notification_settings')
+        .upsert(settingsData, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
+      setHasUnsavedChanges(false);
+      toast.success('Settings saved successfully!');
+
+      // Update digest schedule if enabled
+      if (preferences.digestEnabled) {
+        await updateDigestSchedule();
+      }
+    } catch (error: any) {
+      console.error('Failed to save settings:', error);
+      toast.error('Failed to save settings', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [user?.id, preferences]);
+
+  // Update digest schedule in database
+  const updateDigestSchedule = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Get settings ID
+      const { data: settings } = await supabase
+        .from('ab_test_notification_settings')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!settings) return;
+
+      // Calculate next scheduled time
+      const now = new Date();
+      const [hours, minutes] = preferences.digestTime.split(':').map(Number);
+      const nextScheduled = new Date();
+      nextScheduled.setHours(hours, minutes, 0, 0);
+      
+      if (nextScheduled <= now) {
+        nextScheduled.setDate(nextScheduled.getDate() + (preferences.digestFrequency === 'weekly' ? 7 : 1));
+      }
+
+      // Upsert schedule
+      await supabase
+        .from('ab_test_digest_schedules')
+        .upsert({
+          user_id: user.id,
+          settings_id: settings.id,
+          digest_type: preferences.digestFrequency,
+          scheduled_time: preferences.digestTime,
+          next_scheduled_at: nextScheduled.toISOString(),
+          is_active: preferences.digestEnabled,
+        }, { onConflict: 'settings_id' });
+    } catch (error) {
+      console.error('Failed to update digest schedule:', error);
+    }
+  };
+
+  // Load settings on mount
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  // Track unsaved changes
+  const updatePreferences = useCallback((updater: (prev: NotificationPreferences) => NotificationPreferences) => {
+    setPreferences(prev => {
+      const newPrefs = updater(prev);
+      setHasUnsavedChanges(true);
+      return newPrefs;
+    });
+  }, []);
 
   // Send email notification
   const sendEmailNotification = useCallback(async (notification: ABTestNotification) => {
@@ -257,7 +423,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
   }, [preferences.emailAddress]);
 
   // Send digest
-  const sendDigest = useCallback(async (type: 'email' | 'slack' | 'discord') => {
+  const sendDigest = useCallback(async (type: 'email' | 'slack' | 'discord' | 'teams') => {
     const digestData = {
       recipientEmail: preferences.emailAddress,
       recipientName: 'Team',
@@ -288,6 +454,12 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
         return;
       }
       setIsSendingDiscord(true);
+    } else if (type === 'teams') {
+      if (!preferences.teamsWebhookUrl) {
+        toast.error('Please enter a Teams webhook URL');
+        return;
+      }
+      setIsSendingTeams(true);
     }
 
     try {
@@ -295,16 +467,20 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
         body: {
           type,
           webhookUrl: type === 'slack' ? preferences.slackWebhookUrl : 
-                      type === 'discord' ? preferences.discordWebhookUrl : undefined,
+                      type === 'discord' ? preferences.discordWebhookUrl : 
+                      type === 'teams' ? preferences.teamsWebhookUrl : undefined,
           ...digestData,
         },
       });
 
       if (error) throw error;
 
+      const channelName = type === 'email' ? `to ${preferences.emailAddress}` : 
+                          type === 'slack' ? 'to Slack channel' : 
+                          type === 'discord' ? 'to Discord channel' : 'to Teams channel';
+
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} digest sent!`, {
-        description: type === 'email' ? `Sent to ${preferences.emailAddress}` : 
-                     type === 'slack' ? 'Posted to Slack channel' : 'Posted to Discord channel',
+        description: channelName,
       });
     } catch (error: any) {
       console.error(`Failed to send ${type} digest:`, error);
@@ -315,6 +491,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
       setIsSendingDigest(false);
       setIsSendingSlack(false);
       setIsSendingDiscord(false);
+      setIsSendingTeams(false);
     }
   }, [preferences]);
 
@@ -438,7 +615,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="absolute right-0 top-12 w-[420px] bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
+              className="absolute right-0 top-12 w-[440px] bg-background border rounded-lg shadow-lg z-50 overflow-hidden"
             >
               {/* Header */}
               <div className="p-4 border-b flex items-center justify-between">
@@ -448,16 +625,39 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                     {unreadCount} unread notifications
                   </p>
                 </div>
-                {unreadCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-                    Mark all read
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {hasUnsavedChanges && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={saveSettings}
+                      disabled={isSaving}
+                      className="h-7 text-xs gap-1"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Save className="w-3 h-3" />
+                      )}
+                      Save
+                    </Button>
+                  )}
+                  {unreadCount > 0 && (
+                    <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+                      Mark all read
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Notifications List */}
-              <div className="max-h-80 overflow-y-auto">
-                {notifications.length > 0 ? (
+              <div className="max-h-72 overflow-y-auto">
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <Loader2 className="w-8 h-8 mx-auto text-muted-foreground mb-2 animate-spin" />
+                    <p className="text-sm text-muted-foreground">Loading...</p>
+                  </div>
+                ) : notifications.length > 0 ? (
                   notifications.map((notification) => (
                     <motion.div
                       key={notification.id}
@@ -585,7 +785,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         className="h-8 text-xs"
                         value={preferences.emailAddress}
                         onChange={(e) => 
-                          setPreferences(prev => ({ ...prev, emailAddress: e.target.value }))
+                          updatePreferences(prev => ({ ...prev, emailAddress: e.target.value }))
                         }
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -597,7 +797,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.inApp}
                           onCheckedChange={(checked) => 
-                            setPreferences(prev => ({ ...prev, inApp: checked }))
+                            updatePreferences(prev => ({ ...prev, inApp: checked }))
                           }
                         />
                       </div>
@@ -606,7 +806,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.email}
                           onCheckedChange={(checked) =>
-                            setPreferences(prev => ({ ...prev, email: checked }))
+                            updatePreferences(prev => ({ ...prev, email: checked }))
                           }
                         />
                       </div>
@@ -615,7 +815,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.autoWinnerDeclaration}
                           onCheckedChange={(checked) =>
-                            setPreferences(prev => ({ ...prev, autoWinnerDeclaration: checked }))
+                            updatePreferences(prev => ({ ...prev, autoWinnerDeclaration: checked }))
                           }
                         />
                       </div>
@@ -624,11 +824,17 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.autoSendEmail}
                           onCheckedChange={(checked) =>
-                            setPreferences(prev => ({ ...prev, autoSendEmail: checked }))
+                            updatePreferences(prev => ({ ...prev, autoSendEmail: checked }))
                           }
                         />
                       </div>
                     </div>
+
+                    {!user && (
+                      <div className="text-xs text-amber-600 bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                        ⚠️ Sign in to save your notification settings
+                      </div>
+                    )}
                   </TabsContent>
 
                   {/* Digest Tab */}
@@ -641,7 +847,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                       <Switch
                         checked={preferences.digestEnabled}
                         onCheckedChange={(checked) =>
-                          setPreferences(prev => ({ ...prev, digestEnabled: checked }))
+                          updatePreferences(prev => ({ ...prev, digestEnabled: checked }))
                         }
                       />
                     </div>
@@ -659,7 +865,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                             <Select
                               value={preferences.digestFrequency}
                               onValueChange={(value: 'daily' | 'weekly') =>
-                                setPreferences(prev => ({ ...prev, digestFrequency: value }))
+                                updatePreferences(prev => ({ ...prev, digestFrequency: value }))
                               }
                             >
                               <SelectTrigger className="h-8 text-xs">
@@ -678,7 +884,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                               className="h-8 text-xs"
                               value={preferences.digestTime}
                               onChange={(e) =>
-                                setPreferences(prev => ({ ...prev, digestTime: e.target.value }))
+                                updatePreferences(prev => ({ ...prev, digestTime: e.target.value }))
                               }
                               onClick={(e) => e.stopPropagation()}
                             />
@@ -717,7 +923,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                   </TabsContent>
 
                   {/* Webhooks Tab */}
-                  <TabsContent value="webhooks" className="p-4 space-y-4 m-0">
+                  <TabsContent value="webhooks" className="p-4 space-y-4 m-0 max-h-64 overflow-y-auto">
                     {/* Slack Integration */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -730,7 +936,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.slackEnabled}
                           onCheckedChange={(checked) =>
-                            setPreferences(prev => ({ ...prev, slackEnabled: checked }))
+                            updatePreferences(prev => ({ ...prev, slackEnabled: checked }))
                           }
                         />
                       </div>
@@ -746,7 +952,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                             className="h-8 text-xs"
                             value={preferences.slackWebhookUrl}
                             onChange={(e) =>
-                              setPreferences(prev => ({ ...prev, slackWebhookUrl: e.target.value }))
+                              updatePreferences(prev => ({ ...prev, slackWebhookUrl: e.target.value }))
                             }
                             onClick={(e) => e.stopPropagation()}
                           />
@@ -785,7 +991,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                         <Switch
                           checked={preferences.discordEnabled}
                           onCheckedChange={(checked) =>
-                            setPreferences(prev => ({ ...prev, discordEnabled: checked }))
+                            updatePreferences(prev => ({ ...prev, discordEnabled: checked }))
                           }
                         />
                       </div>
@@ -801,7 +1007,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                             className="h-8 text-xs"
                             value={preferences.discordWebhookUrl}
                             onChange={(e) =>
-                              setPreferences(prev => ({ ...prev, discordWebhookUrl: e.target.value }))
+                              updatePreferences(prev => ({ ...prev, discordWebhookUrl: e.target.value }))
                             }
                             onClick={(e) => e.stopPropagation()}
                           />
@@ -821,6 +1027,61 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
                               <>
                                 <Play className="w-3 h-3" />
                                 Test Discord Webhook
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Microsoft Teams Integration */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-[#6264A7] rounded flex items-center justify-center">
+                            <Users className="w-3 h-3 text-white" />
+                          </div>
+                          <Label className="text-xs font-medium">Microsoft Teams</Label>
+                        </div>
+                        <Switch
+                          checked={preferences.teamsEnabled}
+                          onCheckedChange={(checked) =>
+                            updatePreferences(prev => ({ ...prev, teamsEnabled: checked }))
+                          }
+                        />
+                      </div>
+                      
+                      {preferences.teamsEnabled && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="space-y-2"
+                        >
+                          <Input
+                            placeholder="https://outlook.office.com/webhook/..."
+                            className="h-8 text-xs"
+                            value={preferences.teamsWebhookUrl}
+                            onChange={(e) =>
+                              updatePreferences(prev => ({ ...prev, teamsWebhookUrl: e.target.value }))
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full h-8 text-xs gap-1"
+                            onClick={() => sendDigest('teams')}
+                            disabled={isSendingTeams || !preferences.teamsWebhookUrl}
+                          >
+                            {isSendingTeams ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-3 h-3" />
+                                Test Teams Webhook
                               </>
                             )}
                           </Button>

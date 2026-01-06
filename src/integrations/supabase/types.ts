@@ -14,6 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_digest_schedules: {
+        Row: {
+          created_at: string
+          digest_type: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          next_scheduled_at: string | null
+          scheduled_time: string
+          settings_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_type: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          scheduled_time: string
+          settings_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_type?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          next_scheduled_at?: string | null
+          scheduled_time?: string
+          settings_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_digest_schedules_settings_id_fkey"
+            columns: ["settings_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_notification_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ab_test_notification_settings: {
+        Row: {
+          auto_send_email: boolean | null
+          auto_winner_declaration: boolean | null
+          created_at: string
+          digest_enabled: boolean | null
+          digest_frequency: string | null
+          digest_time: string | null
+          discord_enabled: boolean | null
+          discord_webhook_url: string | null
+          email_address: string | null
+          email_enabled: boolean | null
+          id: string
+          in_app_enabled: boolean | null
+          sample_milestones: boolean | null
+          significance_threshold: number | null
+          slack_enabled: boolean | null
+          slack_webhook_url: string | null
+          teams_enabled: boolean | null
+          teams_webhook_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_send_email?: boolean | null
+          auto_winner_declaration?: boolean | null
+          created_at?: string
+          digest_enabled?: boolean | null
+          digest_frequency?: string | null
+          digest_time?: string | null
+          discord_enabled?: boolean | null
+          discord_webhook_url?: string | null
+          email_address?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          sample_milestones?: boolean | null
+          significance_threshold?: number | null
+          slack_enabled?: boolean | null
+          slack_webhook_url?: string | null
+          teams_enabled?: boolean | null
+          teams_webhook_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_send_email?: boolean | null
+          auto_winner_declaration?: boolean | null
+          created_at?: string
+          digest_enabled?: boolean | null
+          digest_frequency?: string | null
+          digest_time?: string | null
+          discord_enabled?: boolean | null
+          discord_webhook_url?: string | null
+          email_address?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          in_app_enabled?: boolean | null
+          sample_milestones?: boolean | null
+          significance_threshold?: number | null
+          slack_enabled?: boolean | null
+          slack_webhook_url?: string | null
+          teams_enabled?: boolean | null
+          teams_webhook_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_learnings: {
         Row: {
           applied_to_generation: boolean | null
