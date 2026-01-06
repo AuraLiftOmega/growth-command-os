@@ -19,6 +19,10 @@ interface DemoVideo {
   thumbnail_url: string | null;
   duration_seconds: number | null;
   status: 'generating' | 'ready' | 'optimizing' | 'failed';
+  render_progress: number | null;
+  render_error: string | null;
+  frames_generated: number | null;
+  total_frames: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -201,6 +205,77 @@ export function useDemoEngine() {
     }
   }, [user]);
 
+  // Render a demo video (generate actual video frames)
+  const renderDemo = useCallback(async (demoId: string, forceRerender = false) => {
+    if (!user) {
+      toast.error('Please sign in to render videos');
+      return null;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      toast.info('Starting video render...', {
+        description: 'This may take a few minutes'
+      });
+
+      const response = await supabase.functions.invoke('render-demo-video', {
+        body: { demoId, forceRerender }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Render failed');
+      }
+
+      const result = response.data;
+
+      if (result.success) {
+        // Update local state with video URLs
+        setDemos(prev => prev.map(d => 
+          d.id === demoId 
+            ? { ...d, video_url: result.video_url, thumbnail_url: result.thumbnail_url, status: 'ready' as const }
+            : d
+        ));
+
+        toast.success('Video rendered successfully!', {
+          description: `${result.frames_generated} frames generated`
+        });
+
+        return result;
+      } else {
+        throw new Error(result.error || 'Render failed');
+      }
+    } catch (error) {
+      console.error('Render error:', error);
+      toast.error('Failed to render video', {
+        description: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return null;
+    }
+  }, [user]);
+
+  // Check render progress for a demo
+  const checkRenderProgress = useCallback(async (demoId: string) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('demo_videos')
+        .select('render_progress, frames_generated, total_frames, status, render_error')
+        .eq('id', demoId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error checking render progress:', error);
+      return null;
+    }
+  }, [user]);
+
   // Generate a new demo video
   const generateDemo = useCallback(async (config: {
     variant: DemoVariant;
@@ -209,6 +284,7 @@ export function useDemoEngine() {
     salesStage: SalesStage;
     length: DemoLength;
     capabilities: string[];
+    autoRender?: boolean;
   }) => {
     if (!user) {
       toast.error('Please sign in to generate demos');
@@ -290,6 +366,14 @@ export function useDemoEngine() {
       // Refresh optimizations
       fetchOptimizations();
 
+      // Auto-render if requested
+      if (config.autoRender !== false) {
+        // Start rendering in background
+        setTimeout(() => {
+          renderDemo(demo.id);
+        }, 500);
+      }
+
       return demo;
 
     } catch (error) {
@@ -303,7 +387,7 @@ export function useDemoEngine() {
       setIsGenerating(false);
       setGenerationProgress(0);
     }
-  }, [user, addGeneratedDemo, fetchOptimizations]);
+  }, [user, addGeneratedDemo, fetchOptimizations, renderDemo]);
 
   // Record a view for a demo
   const recordView = useCallback(async (demoId: string, watchTimeSeconds: number) => {
@@ -447,6 +531,8 @@ export function useDemoEngine() {
     
     // Actions
     generateDemo,
+    renderDemo,
+    checkRenderProgress,
     recordView,
     recordClose,
     deleteDemo,

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Video, 
   Play, 
@@ -15,19 +15,32 @@ import {
   Trash2,
   ExternalLink,
   RefreshCw,
-  Loader2
+  Loader2,
+  Film,
+  X,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useDemoEngine } from '@/hooks/useDemoEngine';
 import { DemoVariant } from '@/stores/demo-engine-store';
 import { INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -36,6 +49,7 @@ import { toast } from 'sonner';
  * DEMO LIBRARY
  * 
  * Browse, manage, and deploy generated demo videos
+ * Includes real video playback and rendering controls
  */
 
 const variantIcons: Record<DemoVariant, any> = {
@@ -53,14 +67,78 @@ const variantColors: Record<DemoVariant, string> = {
 };
 
 export const DemoLibrary = () => {
-  const { demos, analytics, isLoading, deleteDemo, recordView, refreshData } = useDemoEngine();
+  const { demos, analytics, isLoading, deleteDemo, recordView, refreshData, renderDemo, checkRenderProgress } = useDemoEngine();
+  const [renderingDemos, setRenderingDemos] = useState<Record<string, number>>({});
+  const [previewDemo, setPreviewDemo] = useState<string | null>(null);
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Poll for render progress
+  useEffect(() => {
+    const renderingIds = Object.keys(renderingDemos);
+    if (renderingIds.length === 0) return;
+
+    const interval = setInterval(async () => {
+      for (const demoId of renderingIds) {
+        const progress = await checkRenderProgress(demoId);
+        if (progress) {
+          if (progress.status === 'ready' || progress.status === 'failed') {
+            setRenderingDemos(prev => {
+              const next = { ...prev };
+              delete next[demoId];
+              return next;
+            });
+            refreshData();
+          } else {
+            setRenderingDemos(prev => ({
+              ...prev,
+              [demoId]: progress.render_progress || 0
+            }));
+          }
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [renderingDemos, checkRenderProgress, refreshData]);
+
+  // Cleanup play interval
+  useEffect(() => {
+    return () => {
+      if (playIntervalRef.current) {
+        clearInterval(playIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const handleRender = async (demoId: string) => {
+    setRenderingDemos(prev => ({ ...prev, [demoId]: 0 }));
+    await renderDemo(demoId);
+  };
 
   const handlePreview = (demoId: string) => {
-    // Record view and show preview
+    setPreviewDemo(demoId);
+    setCurrentFrame(0);
+    setIsPlaying(false);
     recordView(demoId, 30);
-    toast.success('Demo preview started', {
-      description: 'View recorded for analytics'
-    });
+  };
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      if (playIntervalRef.current) {
+        clearInterval(playIntervalRef.current);
+        playIntervalRef.current = null;
+      }
+      setIsPlaying(false);
+    } else {
+      const demo = demos.find(d => d.id === previewDemo);
+      const frameCount = demo?.frames_generated || 6;
+      playIntervalRef.current = setInterval(() => {
+        setCurrentFrame(prev => (prev + 1) % frameCount);
+      }, 2000);
+      setIsPlaying(true);
+    }
   };
 
   const handleCopyEmbed = (demoId: string) => {
@@ -70,10 +148,16 @@ export const DemoLibrary = () => {
   };
 
   const handleDownload = (demoId: string) => {
-    // In a real implementation, this would download the video file
-    toast.info('Download started', {
-      description: 'Your demo video is being prepared...'
-    });
+    const demo = demos.find(d => d.id === demoId);
+    if (demo?.video_url) {
+      window.open(demo.video_url, '_blank');
+      toast.success('Download started');
+    } else {
+      toast.info('Rendering video first...', {
+        description: 'Video will download when ready'
+      });
+      handleRender(demoId);
+    }
   };
 
   const handleDelete = async (demoId: string) => {
@@ -105,6 +189,7 @@ export const DemoLibrary = () => {
   }
 
   const totalViews = Object.values(analytics).reduce((sum, a) => sum + (a?.views || 0), 0);
+  const currentPreviewDemo = demos.find(d => d.id === previewDemo);
 
   return (
     <div className="space-y-6">
@@ -148,12 +233,32 @@ export const DemoLibrary = () => {
                 className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative flex items-center justify-center cursor-pointer group"
                 onClick={() => handlePreview(demo.id)}
               >
-                <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Play className="w-8 h-8 text-primary ml-1" />
+                {demo.thumbnail_url ? (
+                  <img 
+                    src={demo.thumbnail_url} 
+                    alt={`${industryName} demo`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : null}
+                
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-16 h-16 rounded-full bg-background/80 backdrop-blur flex items-center justify-center">
+                    <Play className="w-8 h-8 text-primary ml-1" />
+                  </div>
                 </div>
                 
+                {/* Rendering Progress */}
+                {renderingDemos[demo.id] !== undefined && (
+                  <div className="absolute inset-0 bg-background/90 flex flex-col items-center justify-center p-4">
+                    <Film className="w-8 h-8 text-primary mb-2 animate-pulse" />
+                    <p className="text-sm font-medium mb-2">Rendering Video...</p>
+                    <Progress value={renderingDemos[demo.id]} className="w-full max-w-[200px]" />
+                    <p className="text-xs text-muted-foreground mt-1">{renderingDemos[demo.id]}%</p>
+                  </div>
+                )}
+                
                 {/* Status Indicator */}
-                {demo.status === 'generating' && (
+                {demo.status === 'generating' && !renderingDemos[demo.id] && (
                   <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                   </div>
@@ -166,6 +271,16 @@ export const DemoLibrary = () => {
                     {demo.variant}
                   </Badge>
                 </div>
+
+                {/* Render Status */}
+                {demo.video_url && (
+                  <div className="absolute top-2 right-2">
+                    <Badge variant="default" className="gap-1 bg-green-600">
+                      <Film className="w-3 h-3" />
+                      Rendered
+                    </Badge>
+                  </div>
+                )}
 
                 {/* Duration */}
                 <div className="absolute bottom-2 right-2">
@@ -205,6 +320,12 @@ export const DemoLibrary = () => {
                         <Download className="w-4 h-4" />
                         Download
                       </DropdownMenuItem>
+                      {!demo.video_url && (
+                        <DropdownMenuItem onClick={() => handleRender(demo.id)} className="gap-2">
+                          <Film className="w-4 h-4" />
+                          Render Video
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDelete(demo.id)} className="gap-2 text-destructive">
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -264,6 +385,109 @@ export const DemoLibrary = () => {
           );
         })}
       </div>
+
+      {/* Preview Modal */}
+      <Dialog open={!!previewDemo} onOpenChange={(open) => !open && setPreviewDemo(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {currentPreviewDemo && (
+                <>
+                  <Video className="w-5 h-5" />
+                  {INDUSTRY_TEMPLATES[currentPreviewDemo.industry]?.name || currentPreviewDemo.industry} Demo
+                  <Badge variant="secondary" className="ml-2 capitalize">
+                    {currentPreviewDemo.variant}
+                  </Badge>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {currentPreviewDemo && (
+            <div className="space-y-4">
+              {/* Video Preview Area */}
+              <div className="aspect-video bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg overflow-hidden relative">
+                {currentPreviewDemo.thumbnail_url ? (
+                  <img 
+                    src={currentPreviewDemo.thumbnail_url}
+                    alt="Demo preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <ImageIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No frames rendered yet</p>
+                      <Button 
+                        onClick={() => handleRender(currentPreviewDemo.id)}
+                        className="mt-4 gap-2"
+                        disabled={renderingDemos[currentPreviewDemo.id] !== undefined}
+                      >
+                        {renderingDemos[currentPreviewDemo.id] !== undefined ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Rendering... {renderingDemos[currentPreviewDemo.id]}%
+                          </>
+                        ) : (
+                          <>
+                            <Film className="w-4 h-4" />
+                            Render Video
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Playback Controls */}
+              <div className="flex items-center justify-center gap-4">
+                <Button variant="outline" size="sm" onClick={() => setCurrentFrame(prev => Math.max(0, prev - 1))}>
+                  <SkipBack className="w-4 h-4" />
+                </Button>
+                <Button onClick={handlePlayPause} size="lg" className="gap-2">
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                  {isPlaying ? 'Pause' : 'Play'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setCurrentFrame(prev => prev + 1)}>
+                  <SkipForward className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Narrative Display */}
+              <div className="p-4 bg-secondary/30 rounded-lg">
+                <h4 className="font-semibold mb-2">Demo Narrative</h4>
+                <div className="space-y-2 text-sm">
+                  {currentPreviewDemo.narrative?.problem && (
+                    <p><span className="text-muted-foreground">Problem:</span> {currentPreviewDemo.narrative.problem}</p>
+                  )}
+                  {currentPreviewDemo.narrative?.revelation && (
+                    <p><span className="text-muted-foreground">Solution:</span> {currentPreviewDemo.narrative.revelation}</p>
+                  )}
+                  {currentPreviewDemo.narrative?.outcome && (
+                    <p><span className="text-muted-foreground">Outcome:</span> {currentPreviewDemo.narrative.outcome}</p>
+                  )}
+                  {currentPreviewDemo.narrative?.close && (
+                    <p><span className="text-muted-foreground">Close:</span> {currentPreviewDemo.narrative.close}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => handleCopyEmbed(currentPreviewDemo.id)} className="gap-2">
+                  <Copy className="w-4 h-4" />
+                  Copy Embed
+                </Button>
+                <Button onClick={() => handleDownload(currentPreviewDemo.id)} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
