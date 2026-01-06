@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ShopifyProduct, createStorefrontCheckout } from '@/lib/shopify';
+import { ShopifyProduct, createShopifyClient, SHOPIFY_API_VERSION } from '@/lib/multi-tenant-shopify';
+import { toast } from 'sonner';
 
 export interface CartItem {
   product: ShopifyProduct;
@@ -15,6 +16,9 @@ export interface CartItem {
     name: string;
     value: string;
   }>;
+  // Multi-tenant store info
+  storeDomain: string;
+  storefrontToken: string;
 }
 
 interface CartStore {
@@ -38,6 +42,43 @@ interface CartStore {
   getTotalPrice: () => number;
 }
 
+// Create checkout using the store credentials from the cart items
+async function createMultiTenantCheckout(items: CartItem[]): Promise<string> {
+  if (items.length === 0) {
+    throw new Error('Cart is empty');
+  }
+
+  // Get store credentials from first item (all items should be from same store)
+  const { storeDomain, storefrontToken } = items[0];
+
+  // Create a pseudo store connection for the client
+  const storeConnection = {
+    id: 'cart-checkout',
+    user_id: '',
+    store_name: 'Checkout',
+    store_domain: storeDomain,
+    storefront_access_token: storefrontToken,
+    admin_access_token: null,
+    is_active: true,
+    is_primary: false,
+    last_synced_at: null,
+    products_count: 0,
+    orders_count: 0,
+    total_revenue: 0,
+    connected_at: '',
+    updated_at: '',
+  };
+
+  const client = createShopifyClient(storeConnection);
+  
+  const cartItems = items.map(item => ({
+    variantId: item.variantId,
+    quantity: item.quantity,
+  }));
+
+  return await client.createCheckout(cartItems);
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -49,6 +90,15 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const { items } = get();
+        
+        // Check if item is from a different store
+        if (items.length > 0 && items[0].storeDomain !== item.storeDomain) {
+          toast.error("Can't add items from different stores", {
+            description: "Please checkout or clear your cart first",
+          });
+          return;
+        }
+        
         const existingItem = items.find(i => i.variantId === item.variantId);
         
         if (existingItem) {
@@ -99,15 +149,14 @@ export const useCartStore = create<CartStore>()(
 
         setLoading(true);
         try {
-          const cartItems = items.map(item => ({
-            variantId: item.variantId,
-            quantity: item.quantity
-          }));
-          const checkoutUrl = await createStorefrontCheckout(cartItems);
+          const checkoutUrl = await createMultiTenantCheckout(items);
           setCheckoutUrl(checkoutUrl);
           return checkoutUrl;
         } catch (error) {
           console.error('Failed to create checkout:', error);
+          toast.error("Checkout failed", {
+            description: error instanceof Error ? error.message : "Please try again",
+          });
           return null;
         } finally {
           setLoading(false);

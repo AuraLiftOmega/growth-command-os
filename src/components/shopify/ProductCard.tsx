@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { ShoppingCart, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ShopifyProduct } from "@/lib/shopify";
+import { ShopifyProduct } from "@/lib/multi-tenant-shopify";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
+import type { UserStoreConnection } from "@/hooks/useUserStore";
 
 interface ProductCardProps {
   product: ShopifyProduct;
   index?: number;
+  store?: UserStoreConnection | null;
 }
 
-export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+export const ProductCard = ({ product, index = 0, store }: ProductCardProps) => {
   const addItem = useCartStore(state => state.addItem);
   const { node } = product;
   
@@ -26,13 +28,20 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       return;
     }
 
+    if (!store) {
+      toast.error("Store not connected");
+      return;
+    }
+
     addItem({
       product,
       variantId: firstVariant.id,
       variantTitle: firstVariant.title,
       price: firstVariant.price,
       quantity: 1,
-      selectedOptions: firstVariant.selectedOptions || []
+      selectedOptions: firstVariant.selectedOptions || [],
+      storeDomain: store.store_domain,
+      storefrontToken: store.storefront_access_token,
     });
 
     toast.success("Added to cart", {
