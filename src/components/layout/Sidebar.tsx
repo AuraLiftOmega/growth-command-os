@@ -9,7 +9,8 @@ import {
   Store,
   Calendar,
   Users,
-  Zap
+  Zap,
+  Swords
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +26,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/dashboard" },
+  { icon: <Swords className="w-5 h-5" />, label: "Revenue War Room", path: "/war-room", badge: "SALES" },
   { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/dashboard", badge: "AI" },
   { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/dashboard" },
   { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/dashboard" },
@@ -40,9 +42,10 @@ export const Sidebar = () => {
   const { user } = useAuth();
   const { subscription, isTrialing, trialDaysLeft } = useSubscription();
 
-  const isActive = (path: string) => {
+  const isActive = (path: string, label: string) => {
     if (path === "/settings") return location.pathname === "/settings";
-    return location.pathname === "/dashboard" && path === "/dashboard";
+    if (path === "/war-room") return location.pathname === "/war-room";
+    return location.pathname === "/dashboard" && path === "/dashboard" && label === "Dashboard";
   };
 
   const planName = subscription ? PLAN_FEATURES[subscription.plan].name : "Free";
@@ -71,7 +74,7 @@ export const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
-          const active = isActive(item.path) && item.label === "Dashboard";
+          const active = isActive(item.path, item.label);
           return (
             <motion.button
               key={item.label}
