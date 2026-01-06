@@ -15,8 +15,10 @@ import {
   Users,
   Zap,
   ArrowRight,
-  Shield
+  Shield,
+  Settings
 } from 'lucide-react';
+import { SlackIntegrationConfig } from '@/components/integrations/SlackIntegrationConfig';
 import { useDominionStore } from '@/stores/dominion-core-store';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -81,12 +83,18 @@ export const IntegrationSovereignty = () => {
   const { connectedIntegrations, addIntegration, removeIntegration } = useDominionStore();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS);
+  const [showSlackConfig, setShowSlackConfig] = useState(false);
 
   const filteredIntegrations = selectedCategory === 'all' 
     ? integrations 
     : integrations.filter(i => i.category === selectedCategory);
 
   const handleConnect = (integrationId: string) => {
+    // Special handling for Slack to show config modal
+    if (integrationId === 'slack') {
+      setShowSlackConfig(true);
+      return;
+    }
     addIntegration(integrationId);
     setIntegrations(prev => prev.map(i => 
       i.id === integrationId ? { ...i, status: 'connected' as const, orchestrated: true } : i
@@ -313,6 +321,23 @@ export const IntegrationSovereignty = () => {
           DOMINION never requires full system replacement. Your tools execute, DOMINION commands.
         </p>
       </div>
+
+      {/* Slack Configuration Modal */}
+      {showSlackConfig && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4 z-10"
+              onClick={() => setShowSlackConfig(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+            <SlackIntegrationConfig />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
