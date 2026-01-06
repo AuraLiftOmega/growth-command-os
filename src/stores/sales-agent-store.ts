@@ -18,6 +18,7 @@ export interface Message {
   metadata?: {
     intent_level?: number;
     action_type?: 'question' | 'value_delivery' | 'booking_offer' | 'close_attempt' | 'objection_handle';
+    suggestBooking?: boolean;
   };
 }
 
