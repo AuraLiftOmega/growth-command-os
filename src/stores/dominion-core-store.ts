@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { revenueEngineService, RevenueEngineUpdate } from '@/services/revenue-engine-service';
 
 // CORE ENGINE - Revenue mechanics that never change
 export type CoreCapability = 
@@ -89,16 +90,31 @@ interface DominionCoreState {
   connectedIntegrations: string[];
   orchestratedTools: string[];
   
+  // Configuration Status
+  isConfigured: boolean;
+  isActive: boolean;
+  isLoading: boolean;
+  isSynced: boolean;
+  userId: string | null;
+  
   // Actions
   setTenantMode: (mode: TenantMode) => void;
   setIndustry: (industry: string, config: IndustryConfig) => void;
   setOfferType: (type: OfferType) => void;
   setSalesMotion: (motion: SalesMotion) => void;
   setDealSize: (size: 'low' | 'mid' | 'high' | 'enterprise') => void;
+  setBuyingCycle: (cycle: 'instant' | 'short' | 'medium' | 'long' | 'enterprise') => void;
   toggleSelfMarketing: () => void;
   addIntegration: (integration: string) => void;
   removeIntegration: (integration: string) => void;
   resetToFounder: () => void;
+  
+  // Database sync
+  setUserId: (userId: string | null) => void;
+  loadFromDatabase: (userId: string) => Promise<void>;
+  saveToDatabase: () => Promise<boolean>;
+  activateEngine: () => Promise<boolean>;
+  applyIndustryDefaults: (industry: string, config: IndustryConfig) => Promise<void>;
 }
 
 // Pre-built Industry Templates
@@ -368,39 +384,186 @@ export const useDominionStore = create<DominionCoreState>()(
       connectedIntegrations: ['shopify'],
       orchestratedTools: [],
       
-      // Actions
-      setTenantMode: (mode) => set({ 
-        tenantMode: mode,
-        isFounderInstance: mode === 'founder'
-      }),
+      // Configuration Status
+      isConfigured: false,
+      isActive: false,
+      isLoading: false,
+      isSynced: false,
+      userId: null,
       
-      setIndustry: (industry, config) => set({
-        industry,
-        industryConfig: config,
-      }),
+      // Actions
+      setTenantMode: (mode) => {
+        set({ 
+          tenantMode: mode,
+          isFounderInstance: mode === 'founder'
+        });
+        get().saveToDatabase();
+      },
+      
+      setIndustry: (industry, config) => {
+        set({
+          industry,
+          industryConfig: config,
+          buyingCycle: config.buyerPsychology.cycleLength,
+        });
+      },
       
       setOfferType: (type) => set({ offerType: type }),
       setSalesMotion: (motion) => set({ salesMotion: motion }),
       setDealSize: (size) => set({ dealSize: size }),
+      setBuyingCycle: (cycle) => set({ buyingCycle: cycle }),
       
-      toggleSelfMarketing: () => set((state) => ({
-        isSelfMarketingActive: !state.isSelfMarketingActive,
-        selfAsClient: !state.isSelfMarketingActive,
-      })),
+      toggleSelfMarketing: () => {
+        set((state) => ({
+          isSelfMarketingActive: !state.isSelfMarketingActive,
+          selfAsClient: !state.isSelfMarketingActive,
+        }));
+        get().saveToDatabase();
+      },
       
-      addIntegration: (integration) => set((state) => ({
-        connectedIntegrations: [...state.connectedIntegrations, integration],
-      })),
+      addIntegration: (integration) => {
+        set((state) => ({
+          connectedIntegrations: [...state.connectedIntegrations, integration],
+        }));
+        get().saveToDatabase();
+      },
       
-      removeIntegration: (integration) => set((state) => ({
-        connectedIntegrations: state.connectedIntegrations.filter(i => i !== integration),
-      })),
+      removeIntegration: (integration) => {
+        set((state) => ({
+          connectedIntegrations: state.connectedIntegrations.filter(i => i !== integration),
+        }));
+        get().saveToDatabase();
+      },
       
-      resetToFounder: () => set({
-        tenantMode: 'founder',
-        isFounderInstance: true,
-        customerId: null,
-      }),
+      resetToFounder: () => {
+        set({
+          tenantMode: 'founder',
+          isFounderInstance: true,
+          customerId: null,
+        });
+        get().saveToDatabase();
+      },
+      
+      // Database sync
+      setUserId: (userId) => set({ userId }),
+      
+      loadFromDatabase: async (userId: string) => {
+        set({ isLoading: true, userId });
+        try {
+          const config = await revenueEngineService.fetchConfig(userId);
+          if (config) {
+            set({
+              industry: config.industry,
+              industryConfig: config.industry_config,
+              offerType: config.offer_type as OfferType | null,
+              salesMotion: config.sales_motion as SalesMotion | null,
+              dealSize: config.deal_size,
+              buyingCycle: config.buying_cycle,
+              coreCapabilities: config.core_capabilities as Record<CoreCapability, boolean>,
+              isSelfMarketingActive: config.is_self_marketing_active,
+              selfAsClient: config.self_as_client,
+              connectedIntegrations: config.connected_integrations || ['shopify'],
+              orchestratedTools: config.orchestrated_tools || [],
+              tenantMode: config.tenant_mode,
+              isFounderInstance: config.is_founder_instance,
+              customerId: config.customer_id,
+              isConfigured: config.is_configured,
+              isActive: config.is_active,
+              isSynced: true,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to load revenue engine config:", error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+      
+      saveToDatabase: async () => {
+        const state = get();
+        if (!state.userId) return false;
+        
+        const updates: RevenueEngineUpdate = {
+          industry: state.industry,
+          industry_config: state.industryConfig,
+          offer_type: state.offerType,
+          sales_motion: state.salesMotion,
+          deal_size: state.dealSize,
+          buying_cycle: state.buyingCycle,
+          core_capabilities: state.coreCapabilities,
+          is_self_marketing_active: state.isSelfMarketingActive,
+          self_as_client: state.selfAsClient,
+          connected_integrations: state.connectedIntegrations,
+          orchestrated_tools: state.orchestratedTools,
+          tenant_mode: state.tenantMode,
+          is_founder_instance: state.isFounderInstance,
+          customer_id: state.customerId,
+        };
+        
+        const success = await revenueEngineService.updateConfig(state.userId, updates);
+        if (success) {
+          set({ isSynced: true });
+        }
+        return success;
+      },
+      
+      activateEngine: async () => {
+        const state = get();
+        if (!state.userId) return false;
+        
+        // Apply industry defaults if available
+        const industryConfig = state.industryConfig;
+        
+        const updates: RevenueEngineUpdate = {
+          industry: state.industry,
+          industry_config: industryConfig,
+          offer_type: state.offerType,
+          sales_motion: state.salesMotion,
+          deal_size: state.dealSize,
+          buying_cycle: state.buyingCycle,
+          core_capabilities: state.coreCapabilities,
+          is_self_marketing_active: state.isSelfMarketingActive,
+          self_as_client: state.selfAsClient,
+          connected_integrations: state.connectedIntegrations,
+          orchestrated_tools: state.orchestratedTools,
+          tenant_mode: state.tenantMode,
+          is_founder_instance: state.isFounderInstance,
+          customer_id: state.customerId,
+          is_configured: true,
+          is_active: true,
+          // Apply industry-specific settings
+          language_tone: industryConfig?.language.tone,
+          primary_kpis: industryConfig?.kpis.primary,
+          secondary_kpis: industryConfig?.kpis.secondary,
+          kpi_benchmarks: industryConfig?.kpis.benchmarks,
+          approved_phrases: industryConfig?.language.approvedPhrases,
+          forbidden_words: industryConfig?.language.forbiddenWords,
+          decision_makers: industryConfig?.buyerPsychology.decisionMakers,
+          objections: industryConfig?.buyerPsychology.objections,
+          triggers: industryConfig?.buyerPsychology.triggers,
+        };
+        
+        const success = await revenueEngineService.activateEngine(state.userId, updates);
+        if (success) {
+          set({ isConfigured: true, isActive: true, isSynced: true });
+        }
+        return success;
+      },
+      
+      applyIndustryDefaults: async (industry: string, config: IndustryConfig) => {
+        const state = get();
+        
+        set({
+          industry,
+          industryConfig: config,
+          buyingCycle: config.buyerPsychology.cycleLength,
+          connectedIntegrations: config.integrations,
+        });
+        
+        if (state.userId) {
+          await revenueEngineService.applyIndustryDefaults(state.userId, industry, config);
+        }
+      },
     }),
     {
       name: 'dominion-core',

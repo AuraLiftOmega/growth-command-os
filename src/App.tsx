@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { useDominionStore } from "@/stores/dominion-core-store";
 import { useEffect } from "react";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
@@ -38,10 +39,14 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { isCompleted, loadFromDatabase, isLoading } = useOnboardingStore();
+  const { loadFromDatabase: loadDominion, setUserId: setDominionUserId } = useDominionStore();
 
   useEffect(() => {
     if (user && !isLoading) {
       loadFromDatabase(user.id);
+      // Also load dominion config
+      setDominionUserId(user.id);
+      loadDominion(user.id);
     }
   }, [user]);
 
@@ -127,10 +132,14 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 const ProtectedRouteWithRedirect = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const { isCompleted, loadFromDatabase, isLoading } = useOnboardingStore();
+  const { loadFromDatabase: loadDominion, setUserId: setDominionUserId } = useDominionStore();
 
   useEffect(() => {
     if (user && !isLoading) {
       loadFromDatabase(user.id);
+      // Also load dominion config
+      setDominionUserId(user.id);
+      loadDominion(user.id);
     }
   }, [user]);
 
