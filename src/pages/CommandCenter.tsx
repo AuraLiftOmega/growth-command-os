@@ -22,7 +22,8 @@ import {
   Megaphone,
   Building2,
   DollarSign,
-  Radio
+  Radio,
+  Video
 } from "lucide-react";
 import { StrategicDoctrine } from "@/components/command-center/StrategicDoctrine";
 import { MessageVault } from "@/components/command-center/MessageVault";
@@ -45,9 +46,11 @@ import {
 } from "@/components/universal";
 import { CashEngineDashboard } from "@/components/cash-engine";
 import { TrafficEngineDashboard } from "@/components/traffic-engine";
+import { SelfDemoEngine } from "@/components/demo-engine";
 import { useDominionStore } from "@/stores/dominion-core-store";
 import { useCashEngineStore } from "@/stores/cash-engine-store";
 import { useTrafficEngineStore } from "@/stores/traffic-engine-store";
+import { useDemoEngineStore } from "@/stores/demo-engine-store";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -57,6 +60,7 @@ const CommandCenter = () => {
   const { industry, tenantMode, isSelfMarketingActive } = useDominionStore();
   const { isActive: isCashEngineActive } = useCashEngineStore();
   const { isActive: isTrafficEngineActive } = useTrafficEngineStore();
+  const { isActive: isDemoEngineActive } = useDemoEngineStore();
   return (
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar />
@@ -103,6 +107,12 @@ const CommandCenter = () => {
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-xs font-medium text-emerald-400">Traffic Engine Live</span>
+                  </div>
+                )}
+                {isDemoEngineActive && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                    <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
+                    <span className="text-xs font-medium text-violet-400">Demo Engine Active</span>
                   </div>
                 )}
               </div>
@@ -158,6 +168,10 @@ const CommandCenter = () => {
               <TabsTrigger value="traffic-engine" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-2">
                 <Radio className="w-4 h-4" />
                 Traffic Engine
+              </TabsTrigger>
+              <TabsTrigger value="demo-engine" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white gap-2">
+                <Video className="w-4 h-4" />
+                Demo Engine
               </TabsTrigger>
               
               {/* Defense & Scale */}
@@ -252,6 +266,10 @@ const CommandCenter = () => {
 
             <TabsContent value="traffic-engine" className="mt-0">
               <TrafficEngineDashboard />
+            </TabsContent>
+
+            <TabsContent value="demo-engine" className="mt-0">
+              <SelfDemoEngine />
             </TabsContent>
 
             {/* Defense & Scale */}
