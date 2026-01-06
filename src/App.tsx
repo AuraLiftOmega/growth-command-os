@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useEffect } from "react";
@@ -211,6 +211,33 @@ const AppRoutes = () => {
   );
 };
 
+// Wrapper to conditionally render intimidation components (not on auth/landing pages)
+const IntimidationWrapper = () => {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/auth' || location.pathname === '/';
+  
+  if (isAuthPage) return null;
+  
+  return (
+    <>
+      {/* FOUNDER INTIMIDATION MODE™ - Global Components */}
+      <IntimidationOverlay />
+      <DemoView />
+      <IntimidationToggle />
+      <DemoPhaseController />
+      <ResidualCue />
+      
+      {/* HIGH-TICKET CLOSE VARIANT™ - Stacks on Intimidation Mode */}
+      <HighTicketToggle />
+      <ClosePhaseController />
+      <OpportunityCostEscalator />
+      <DecisionCollapseView />
+      <ObjectionNeutralizationPanel />
+      <FinalCloseSequence />
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -218,21 +245,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          {/* FOUNDER INTIMIDATION MODE™ - Global Components */}
-          <IntimidationOverlay />
-          <DemoView />
-          <IntimidationToggle />
-          <DemoPhaseController />
-          <ResidualCue />
-          
-          {/* HIGH-TICKET CLOSE VARIANT™ - Stacks on Intimidation Mode */}
-          <HighTicketToggle />
-          <ClosePhaseController />
-          <OpportunityCostEscalator />
-          <DecisionCollapseView />
-          <ObjectionNeutralizationPanel />
-          <FinalCloseSequence />
-          
+          <IntimidationWrapper />
           <AppRoutes />
         </AuthProvider>
       </BrowserRouter>
