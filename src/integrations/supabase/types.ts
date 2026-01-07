@@ -1107,6 +1107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_leads: {
+        Row: {
+          created_at: string
+          email: string
+          email_sent: boolean
+          id: string
+          industry: string | null
+          metadata: Json | null
+          source: string
+          store_name: string | null
+          subscribed_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          email_sent?: boolean
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          source?: string
+          store_name?: string | null
+          subscribed_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          email_sent?: boolean
+          id?: string
+          industry?: string | null
+          metadata?: Json | null
+          source?: string
+          store_name?: string | null
+          subscribed_at?: string
+        }
+        Relationships: []
+      }
       email_sequences: {
         Row: {
           created_at: string
@@ -1838,6 +1874,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_setups: {
+        Row: {
+          created_at: string
+          description: string | null
+          email: string | null
+          generated_config: Json | null
+          id: string
+          industry: string
+          products: Json | null
+          status: string
+          store_name: string
+          target_audience: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          generated_config?: Json | null
+          id?: string
+          industry: string
+          products?: Json | null
+          status?: string
+          store_name: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          generated_config?: Json | null
+          id?: string
+          industry?: string
+          products?: Json | null
+          status?: string
+          store_name?: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       strategic_doctrine: {
         Row: {

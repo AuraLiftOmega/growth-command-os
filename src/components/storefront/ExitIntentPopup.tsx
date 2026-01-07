@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { X, Gift, ArrowRight } from 'lucide-react';
+import { X, Gift, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'exit_popup_dismissed';
 
@@ -49,18 +50,28 @@ export function ExitIntentPopup() {
 
     setIsSubmitting(true);
     
-    // Simulate API call - in production, connect to your email service
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    localStorage.setItem(STORAGE_KEY, 'true');
-    setIsVisible(false);
-    
-    toast({
-      title: "You're in!",
-      description: "Check your inbox for your exclusive guide.",
-    });
-    
-    setIsSubmitting(false);
+    try {
+      const { error } = await supabase.functions.invoke('capture-lead', {
+        body: {
+          email,
+          source: 'exit_intent_popup',
+          metadata: { device: 'desktop', trigger: 'exit_intent' },
+        },
+      });
+
+      if (error) throw error;
+
+      localStorage.setItem(STORAGE_KEY, 'true');
+      localStorage.setItem('lead_captured', 'true');
+      setIsVisible(false);
+      
+      toast.success("You're in! Check your inbox for your exclusive guide.");
+    } catch (error) {
+      console.error('Error capturing lead:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +83,7 @@ export function ExitIntentPopup() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
             onClick={handleDismiss}
           />
           
@@ -86,7 +97,7 @@ export function ExitIntentPopup() {
           >
             <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
               {/* Header with gradient */}
-              <div className="bg-gradient-to-br from-primary to-primary/80 p-6 text-primary-foreground relative">
+              <div className="bg-gradient-to-br from-primary to-chart-4 p-6 text-primary-foreground relative">
                 <button
                   onClick={handleDismiss}
                   className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/20 transition-colors"
@@ -112,7 +123,7 @@ export function ExitIntentPopup() {
               {/* Content */}
               <div className="p-6">
                 <p className="text-muted-foreground mb-6">
-                  Join 10,000+ merchants who launched profitable stores. Get our 
+                  Join 1,200+ merchants who launched profitable stores. Get our 
                   <span className="text-foreground font-medium"> step-by-step guide </span> 
                   plus exclusive tips delivered to your inbox.
                 </p>
@@ -125,6 +136,7 @@ export function ExitIntentPopup() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="h-12"
+                    autoComplete="email"
                   />
                   
                   <Button 
@@ -133,7 +145,10 @@ export function ExitIntentPopup() {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
-                      'Sending...'
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
                     ) : (
                       <>
                         Get Free Guide
