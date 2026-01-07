@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+const ADMIN_EMAIL = "ryanauralift@gmail.com";
+
 export interface Subscription {
   id: string;
   user_id: string;
@@ -62,13 +64,19 @@ export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
     if (!user) {
       setSubscription(null);
+      setIsAdmin(false);
       setIsLoading(false);
       return;
     }
+
+    // Check if user is admin
+    const userIsAdmin = user.email === ADMIN_EMAIL;
+    setIsAdmin(userIsAdmin);
 
     try {
       setIsLoading(true);
@@ -118,13 +126,14 @@ export function useSubscription() {
     ? Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
 
-  const canAddStore = subscription 
+  // Admin always bypasses limits
+  const canAddStore = isAdmin || (subscription 
     ? subscription.stores_limit === -1 || subscription.stores_used < subscription.stores_limit
-    : false;
+    : false);
 
-  const canGenerateVideo = subscription
+  const canGenerateVideo = isAdmin || (subscription
     ? subscription.monthly_video_credits === -1 || subscription.videos_used_this_month < subscription.monthly_video_credits
-    : false;
+    : false);
 
   const planFeatures = subscription ? PLAN_FEATURES[subscription.plan] : PLAN_FEATURES.free;
 
@@ -137,6 +146,7 @@ export function useSubscription() {
     canAddStore,
     canGenerateVideo,
     planFeatures,
+    isAdmin,
     refetch: fetchSubscription,
   };
 }
