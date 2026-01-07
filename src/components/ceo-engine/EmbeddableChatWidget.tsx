@@ -68,7 +68,6 @@ export function EmbeddableChatWidget({
       // Generate a temporary conversation ID for anonymous users
       const tempId = crypto.randomUUID();
       setConversationId(tempId);
-      }
     } catch (error) {
       console.error('Error initializing conversation:', error);
     }
