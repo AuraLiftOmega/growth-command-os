@@ -18,11 +18,10 @@ import { useNavigate } from "react-router-dom";
 interface PlatformConnection {
   id: string;
   platform: string;
-  status: 'connected' | 'pending' | 'disconnected' | 'error';
-  total_revenue: number;
-  last_sync_at: string | null;
-  sync_status: string;
-  platform_username: string | null;
+  is_connected: boolean;
+  health_status: 'healthy' | 'degraded' | 'disconnected' | null;
+  handle: string | null;
+  last_health_check: string | null;
 }
 
 const platformIcons: Record<string, string> = {
@@ -31,7 +30,6 @@ const platformIcons: Record<string, string> = {
   instagram: "📸",
   facebook: "📘",
   amazon: "📦",
-  etsy: "🎨",
   pinterest: "📌",
   youtube: "📺",
 };
@@ -42,7 +40,6 @@ const platformColors: Record<string, string> = {
   instagram: "from-purple-500/20 to-pink-500/20",
   facebook: "from-blue-500/20 to-blue-600/20",
   amazon: "from-orange-500/20 to-yellow-500/20",
-  etsy: "from-orange-400/20 to-red-500/20",
   pinterest: "from-red-500/20 to-red-600/20",
   youtube: "from-red-600/20 to-red-700/20",
 };
@@ -52,7 +49,8 @@ export const PlatformConnectionsPanel = () => {
   const navigate = useNavigate();
   const [connections, setConnections] = useState<PlatformConnection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [syncingPlatform, setSyncingPlatform] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+  const [hasRealData, setHasRealData] = useState(false);
 
   useEffect(() => {
     const fetchConnections = async () => {
@@ -60,32 +58,31 @@ export const PlatformConnectionsPanel = () => {
       
       try {
         const { data, error } = await supabase
-          .from("platform_connections")
-          .select("*")
+          .from("platform_accounts")
+          .select("id, platform, is_connected, health_status, handle, last_health_check")
           .eq("user_id", user.id);
         
         if (error) throw error;
         
         if (data && data.length > 0) {
           setConnections(data as PlatformConnection[]);
+          setHasRealData(true);
         } else {
-          // Demo connections
+          // Show Shopify as connected (we have the integration)
+          // Other platforms as not connected
           setConnections([
-            { id: "1", platform: "shopify", status: "connected", total_revenue: 847200, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "mystore" },
-            { id: "2", platform: "tiktok", status: "connected", total_revenue: 312800, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "@brand" },
-            { id: "3", platform: "instagram", status: "connected", total_revenue: 198400, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "@brand" },
-            { id: "4", platform: "facebook", status: "connected", total_revenue: 523100, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "Brand Page" },
-            { id: "5", platform: "amazon", status: "pending", total_revenue: 156700, last_sync_at: null, sync_status: "syncing", platform_username: null },
-            { id: "6", platform: "pinterest", status: "pending", total_revenue: 42300, last_sync_at: null, sync_status: "syncing", platform_username: null },
+            { id: 'shopify-default', platform: 'shopify', is_connected: true, health_status: 'healthy', handle: 'lovable-project-7fb70', last_health_check: new Date().toISOString() },
+            { id: 'tiktok-default', platform: 'tiktok', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
+            { id: 'instagram-default', platform: 'instagram', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
+            { id: 'facebook-default', platform: 'facebook', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
+            { id: 'youtube-default', platform: 'youtube', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
+            { id: 'pinterest-default', platform: 'pinterest', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
           ]);
+          setHasRealData(false);
         }
       } catch (err) {
         console.error("Error fetching connections:", err);
-        // Use demo data on error
-        setConnections([
-          { id: "1", platform: "shopify", status: "connected", total_revenue: 847200, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "mystore" },
-          { id: "2", platform: "tiktok", status: "connected", total_revenue: 312800, last_sync_at: new Date().toISOString(), sync_status: "idle", platform_username: "@brand" },
-        ]);
+        setConnections([]);
       } finally {
         setIsLoading(false);
       }
@@ -94,100 +91,55 @@ export const PlatformConnectionsPanel = () => {
     fetchConnections();
   }, [user]);
 
-  const handleSync = async (platform: string, connectionId: string) => {
+  const handleHealthCheck = async () => {
     if (!user) return;
+    setIsChecking(true);
 
-    setSyncingPlatform(platform);
-    
     try {
-      // Update sync status in database
-      if (connectionId.length > 10) {
-        await supabase
-          .from("platform_connections")
-          .update({ 
-            sync_status: "syncing",
-            last_sync_at: new Date().toISOString()
-          })
-          .eq("id", connectionId);
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/platform-health-check`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${session.session.access_token}`,
+          },
+          body: JSON.stringify({ user_id: user.id }),
+        }
+      );
+
+      if (response.ok) {
+        toast.success('Health check completed');
+        // Refetch connections
+        const { data } = await supabase
+          .from("platform_accounts")
+          .select("id, platform, is_connected, health_status, handle, last_health_check")
+          .eq("user_id", user.id);
+        
+        if (data && data.length > 0) {
+          setConnections(data as PlatformConnection[]);
+          setHasRealData(true);
+        }
       }
-
-      // Simulate sync process (in real implementation, this would call the platform API)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Update local state
-      setConnections(prev => prev.map(c => 
-        c.id === connectionId 
-          ? { ...c, last_sync_at: new Date().toISOString(), sync_status: "idle" }
-          : c
-      ));
-
-      if (connectionId.length > 10) {
-        await supabase
-          .from("platform_connections")
-          .update({ sync_status: "idle" })
-          .eq("id", connectionId);
-      }
-
-      toast.success(`${platform} synced successfully!`);
-    } catch (error) {
-      console.error("Sync error:", error);
-      toast.error(`Failed to sync ${platform}`);
+    } catch (err) {
+      console.error('Health check failed:', err);
+      toast.error('Health check failed');
     } finally {
-      setSyncingPlatform(null);
+      setIsChecking(false);
     }
   };
 
-  const handleConnect = async (platform: string) => {
-    if (!user) return;
-
-    if (platform === "shopify") {
-      navigate("/settings");
-      toast.info("Connect your Shopify store in Settings");
-      return;
+  const getStatusIcon = (connection: PlatformConnection) => {
+    if (!connection.is_connected) return <WifiOff className="w-3 h-3 text-muted-foreground" />;
+    switch (connection.health_status) {
+      case "healthy": return <CheckCircle2 className="w-3 h-3 text-success" />;
+      case "degraded": return <AlertTriangle className="w-3 h-3 text-warning" />;
+      default: return <Clock className="w-3 h-3 text-muted-foreground" />;
     }
-
-    // For other platforms, create a pending connection
-    try {
-      const { data, error } = await supabase
-        .from("platform_connections")
-        .insert({
-          user_id: user.id,
-          platform,
-          status: "pending",
-          sync_status: "syncing",
-          total_revenue: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setConnections(prev => [...prev, data as PlatformConnection]);
-      toast.success(`${platform} connection initiated! Complete setup in Settings.`);
-    } catch (error) {
-      console.error("Connect error:", error);
-      toast.error(`Failed to initiate ${platform} connection`);
-    }
-  };
-
-  const handleManage = () => {
-    navigate("/settings");
-  };
-
-  const getStatusIcon = (status: string, syncStatus: string) => {
-    if (syncStatus === "syncing") return <RefreshCw className="w-3 h-3 animate-spin text-warning" />;
-    switch (status) {
-      case "connected": return <CheckCircle2 className="w-3 h-3 text-success" />;
-      case "pending": return <Clock className="w-3 h-3 text-warning" />;
-      case "error": return <AlertTriangle className="w-3 h-3 text-destructive" />;
-      default: return <WifiOff className="w-3 h-3 text-muted-foreground" />;
-    }
-  };
-
-  const formatRevenue = (amount: number) => {
-    if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
-    if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
-    return `$${amount}`;
   };
 
   if (isLoading) {
@@ -202,12 +154,8 @@ export const PlatformConnectionsPanel = () => {
     );
   }
 
-  const connectedCount = connections.filter(c => c.status === "connected").length;
-  const totalRevenue = connections.reduce((acc, c) => acc + c.total_revenue, 0);
-
-  // Available platforms to connect
-  const availablePlatforms = ["shopify", "tiktok", "instagram", "facebook", "amazon", "pinterest", "youtube", "etsy"]
-    .filter(p => !connections.some(c => c.platform === p));
+  const connectedCount = connections.filter(c => c.is_connected).length;
+  const healthyCount = connections.filter(c => c.health_status === 'healthy').length;
 
   return (
     <motion.div
@@ -224,17 +172,27 @@ export const PlatformConnectionsPanel = () => {
           <div>
             <h3 className="font-display font-semibold text-lg">Platform Hub</h3>
             <p className="text-muted-foreground text-sm">
-              {connectedCount} connected • {formatRevenue(totalRevenue)} total
+              {connectedCount} connected • {healthyCount} healthy
             </p>
           </div>
         </div>
-        <button 
-          onClick={handleManage}
-          className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors flex items-center gap-1"
-        >
-          <ExternalLink className="w-3 h-3" />
-          Manage
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleHealthCheck}
+            disabled={isChecking}
+            className="px-3 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-medium hover:bg-secondary/80 transition-colors flex items-center gap-1"
+          >
+            <RefreshCw className={`w-3 h-3 ${isChecking ? 'animate-spin' : ''}`} />
+            Check
+          </button>
+          <button 
+            onClick={() => navigate("/settings")}
+            className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Manage
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -244,49 +202,35 @@ export const PlatformConnectionsPanel = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-            className={`p-4 rounded-xl bg-gradient-to-br ${platformColors[connection.platform] || "from-secondary to-secondary"} border border-border/30 hover:border-primary/30 transition-all cursor-pointer group`}
+            className={`p-4 rounded-xl bg-gradient-to-br ${platformColors[connection.platform] || "from-secondary to-secondary"} border border-border/30 hover:border-primary/30 transition-all`}
           >
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-xl">{platformIcons[connection.platform]}</span>
                 <div>
                   <p className="text-sm font-semibold capitalize">{connection.platform}</p>
-                  {connection.platform_username && (
-                    <p className="text-[10px] text-muted-foreground">{connection.platform_username}</p>
+                  {connection.handle && (
+                    <p className="text-[10px] text-muted-foreground">{connection.handle}</p>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                {getStatusIcon(connection.status, syncingPlatform === connection.platform ? "syncing" : connection.sync_status)}
-              </div>
+              {getStatusIcon(connection)}
             </div>
 
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-lg font-display font-bold text-success">
-                  {formatRevenue(connection.total_revenue)}
-                </p>
-                <p className="text-[10px] text-muted-foreground">Revenue</p>
-              </div>
-              
-              {connection.status === "connected" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSync(connection.platform, connection.id);
-                  }}
-                  disabled={syncingPlatform === connection.platform}
-                  className="p-1.5 rounded-lg bg-background/50 hover:bg-background/80 transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <RefreshCw className={`w-3 h-3 text-muted-foreground ${syncingPlatform === connection.platform ? "animate-spin" : ""}`} />
-                </button>
-              )}
-              
-              {connection.status === "disconnected" && (
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-medium ${
+                connection.is_connected ? 'text-success' : 'text-muted-foreground'
+              }`}>
+                {connection.is_connected ? 'Connected' : 'Not connected'}
+              </span>
+              {!connection.is_connected && (
                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleConnect(connection.platform);
+                  onClick={() => {
+                    if (connection.platform === 'shopify') {
+                      navigate('/settings');
+                    } else {
+                      toast.info(`${connection.platform} connection coming soon`);
+                    }
                   }}
                   className="text-[10px] text-primary font-medium hover:underline"
                 >
@@ -296,32 +240,27 @@ export const PlatformConnectionsPanel = () => {
             </div>
           </motion.div>
         ))}
-
-        {/* Add new platform button */}
-        {availablePlatforms.length > 0 && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            onClick={() => handleConnect(availablePlatforms[0])}
-            className="p-4 rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <Plus className="w-6 h-6" />
-            <span className="text-xs font-medium">Add Platform</span>
-          </motion.button>
-        )}
       </div>
 
       {/* API Health Indicator */}
       <div className="mt-4 p-3 rounded-lg bg-secondary/30 border border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-xs text-muted-foreground">All APIs healthy</span>
+            <div className={`w-2 h-2 rounded-full ${
+              healthyCount === connectedCount ? 'bg-success animate-pulse' : 'bg-warning'
+            }`} />
+            <span className="text-xs text-muted-foreground">
+              {healthyCount === connectedCount 
+                ? 'All connected APIs healthy' 
+                : `${healthyCount}/${connectedCount} APIs healthy`
+              }
+            </span>
           </div>
-          <span className="text-[10px] text-muted-foreground">
-            Auto-retry enabled for outages
-          </span>
+          {!hasRealData && (
+            <span className="text-[10px] text-muted-foreground">
+              Run health check for live status
+            </span>
+          )}
         </div>
       </div>
     </motion.div>
