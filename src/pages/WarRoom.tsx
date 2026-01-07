@@ -3,13 +3,25 @@ import { Header } from "@/components/layout/Header";
 import { LethalWarRoom } from "@/components/war-room/LethalWarRoom";
 import { CRMDashboard } from "@/components/crm/CRMDashboard";
 import { LiveProfitEngine } from "@/components/autonomous/LiveProfitEngine";
+import { RealVideoSwarm } from "@/components/autonomous/RealVideoSwarm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Users, Zap, Brain, DollarSign, Flame } from "lucide-react";
+import { Target, Users, Zap, DollarSign, Flame, Video, Rocket } from "lucide-react";
 import { CEOChatWidget } from "@/components/ceo-engine/CEOChatWidget";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const WarRoom = () => {
+  const [swarmVideos, setSwarmVideos] = useState<any[]>([]);
+  const [swarmActive, setSwarmActive] = useState(false);
+
+  const handleSwarmComplete = (videos: any[]) => {
+    setSwarmVideos(videos);
+    setSwarmActive(false);
+    toast.success(`🎉 Swarm complete! ${videos.filter(v => v.status === 'published').length} videos published!`);
+  };
+
   return (
     <div className="min-h-screen bg-background flex w-full">
       <Sidebar />
@@ -32,16 +44,26 @@ const WarRoom = () => {
                   <Badge className="bg-success/20 text-success animate-pulse">
                     PROFITS COMPOUNDING
                   </Badge>
+                  {swarmActive && (
+                    <Badge className="bg-primary/20 text-primary animate-pulse gap-1">
+                      <Rocket className="w-3 h-3" />
+                      SWARM ACTIVE
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-muted-foreground">
-                  Real-time autonomous revenue generation across all channels
+                  Real-time autonomous revenue generation • 15 products • 6 channels • Real Replicate AI
                 </p>
               </div>
             </div>
           </motion.div>
 
-          <Tabs defaultValue="live-profits" className="space-y-6">
+          <Tabs defaultValue="swarm" className="space-y-6">
             <TabsList className="bg-card border">
+              <TabsTrigger value="swarm" className="gap-2">
+                <Video className="h-4 w-4" />
+                Video Swarm
+              </TabsTrigger>
               <TabsTrigger value="live-profits" className="gap-2">
                 <DollarSign className="h-4 w-4" />
                 Live Profits
@@ -59,6 +81,10 @@ const WarRoom = () => {
                 Autonomy Control
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="swarm">
+              <RealVideoSwarm onComplete={handleSwarmComplete} />
+            </TabsContent>
 
             <TabsContent value="live-profits">
               <LiveProfitEngine />
