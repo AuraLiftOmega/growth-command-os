@@ -488,17 +488,65 @@ export type Database = {
         }
         Relationships: []
       }
+      creative_metrics: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          creative_id: string
+          ctr: number | null
+          id: string
+          impressions: number | null
+          observed_at: string
+          platform: string
+          revenue: number | null
+          roas: number | null
+          spend: number | null
+          user_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          creative_id: string
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          observed_at?: string
+          platform: string
+          revenue?: number | null
+          roas?: number | null
+          spend?: number | null
+          user_id: string
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          creative_id?: string
+          ctr?: number | null
+          id?: string
+          impressions?: number | null
+          observed_at?: string
+          platform?: string
+          revenue?: number | null
+          roas?: number | null
+          spend?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       creatives: {
         Row: {
           auto_regenerated: boolean | null
           avg_watch_percentage: number | null
+          captions: Json | null
           clicks: number | null
           conversion_score: number | null
           conversions: number | null
           created_at: string
           ctr: number | null
+          duration_seconds: number | null
           emotional_trigger: string | null
           engagement_score: number | null
+          error: string | null
           hook: string | null
           hook_score: number | null
           id: string
@@ -516,6 +564,7 @@ export type Database = {
           revenue: number | null
           roas: number | null
           script: string | null
+          shopify_product_id: string | null
           spend: number | null
           status: string | null
           style: string | null
@@ -529,13 +578,16 @@ export type Database = {
         Insert: {
           auto_regenerated?: boolean | null
           avg_watch_percentage?: number | null
+          captions?: Json | null
           clicks?: number | null
           conversion_score?: number | null
           conversions?: number | null
           created_at?: string
           ctr?: number | null
+          duration_seconds?: number | null
           emotional_trigger?: string | null
           engagement_score?: number | null
+          error?: string | null
           hook?: string | null
           hook_score?: number | null
           id?: string
@@ -553,6 +605,7 @@ export type Database = {
           revenue?: number | null
           roas?: number | null
           script?: string | null
+          shopify_product_id?: string | null
           spend?: number | null
           status?: string | null
           style?: string | null
@@ -566,13 +619,16 @@ export type Database = {
         Update: {
           auto_regenerated?: boolean | null
           avg_watch_percentage?: number | null
+          captions?: Json | null
           clicks?: number | null
           conversion_score?: number | null
           conversions?: number | null
           created_at?: string
           ctr?: number | null
+          duration_seconds?: number | null
           emotional_trigger?: string | null
           engagement_score?: number | null
+          error?: string | null
           hook?: string | null
           hook_score?: number | null
           id?: string
@@ -590,6 +646,7 @@ export type Database = {
           revenue?: number | null
           roas?: number | null
           script?: string | null
+          shopify_product_id?: string | null
           spend?: number | null
           status?: string | null
           style?: string | null
@@ -1558,6 +1615,45 @@ export type Database = {
           },
         ]
       }
+      platform_accounts: {
+        Row: {
+          created_at: string
+          credentials_encrypted: Json | null
+          handle: string | null
+          health_status: string | null
+          id: string
+          is_connected: boolean | null
+          last_health_check: string | null
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credentials_encrypted?: Json | null
+          handle?: string | null
+          health_status?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_health_check?: string | null
+          platform: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credentials_encrypted?: Json | null
+          handle?: string | null
+          health_status?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_health_check?: string | null
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       platform_connections: {
         Row: {
           access_token_encrypted: string | null
@@ -1814,6 +1910,45 @@ export type Database = {
           metric_value?: string | null
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      publish_jobs: {
+        Row: {
+          created_at: string
+          creative_id: string
+          error: string | null
+          external_post_id: string | null
+          id: string
+          platform: string
+          status: string
+          updated_at: string
+          upload_pack_url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creative_id: string
+          error?: string | null
+          external_post_id?: string | null
+          id?: string
+          platform: string
+          status?: string
+          updated_at?: string
+          upload_pack_url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creative_id?: string
+          error?: string | null
+          external_post_id?: string | null
+          id?: string
+          platform?: string
+          status?: string
+          updated_at?: string
+          upload_pack_url?: string | null
           user_id?: string
         }
         Relationships: []
@@ -2314,6 +2449,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           videos_used_this_month?: number
+        }
+        Relationships: []
+      }
+      system_checks: {
+        Row: {
+          check_name: string
+          check_type: string
+          error: string | null
+          id: string
+          ran_at: string
+          result: Json | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          check_name: string
+          check_type: string
+          error?: string | null
+          id?: string
+          ran_at?: string
+          result?: Json | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          check_name?: string
+          check_type?: string
+          error?: string | null
+          id?: string
+          ran_at?: string
+          result?: Json | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }

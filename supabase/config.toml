@@ -44,3 +44,24 @@ verify_jwt = false
 
 [functions.ai-sales-agent]
 verify_jwt = false
+
+[functions.generate-video-ad]
+verify_jwt = false
+
+[functions.shopify-webhook-orders]
+verify_jwt = false
+
+[functions.run-automation-jobs]
+verify_jwt = false
+
+[functions.platform-health-check]
+verify_jwt = false
+
+[functions.run-system-checks]
+verify_jwt = false
+
+[functions.generate-store]
+verify_jwt = false
+
+[functions.capture-lead]
+verify_jwt = false
