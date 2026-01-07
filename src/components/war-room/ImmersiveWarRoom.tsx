@@ -10,12 +10,13 @@ import {
   Activity, AlertTriangle, ArrowUpRight, ArrowDownRight, 
   Brain, DollarSign, Eye, Target, Zap, Users, ShoppingCart,
   TrendingUp, Play, Pause, RefreshCw, MessageSquare, Mic, MicOff,
-  Bot, Cpu, Network, Sparkles, BarChart3, PieChart, LineChart
+  Bot, Cpu, Network, Sparkles, BarChart3, PieChart, LineChart,
+  Globe, Leaf, Coins, Shield, Languages
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminEntitlements } from "@/hooks/useAdminEntitlements";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 import { toast } from "sonner";
 
 interface DecisionLogEntry {
@@ -26,11 +27,6 @@ interface DecisionLogEntry {
   confidence: number | null;
   created_at: string;
   execution_status: string | null;
-  impact_metrics?: unknown;
-}
-  confidence: number;
-  created_at: string;
-  execution_status: string;
   impact_metrics?: Record<string, unknown>;
 }
 
@@ -41,9 +37,16 @@ interface AgentStatus {
   decisions24h: number;
   avgConfidence: number;
   color: string;
+  icon: string;
 }
 
-const CHART_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
+interface PipelineStage {
+  name: string;
+  value: number;
+  deals: number;
+}
+
+const CHART_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
 export const ImmersiveWarRoom = () => {
   const { user } = useAuth();
@@ -56,23 +59,57 @@ export const ImmersiveWarRoom = () => {
   const [ceoBrainInput, setCeoBrainInput] = useState("");
   const [ceoBrainResponse, setCeoBrainResponse] = useState("");
   const [isThinking, setIsThinking] = useState(false);
+  const [sustainabilityScore, setSustainabilityScore] = useState(78);
   
   const [revenueData, setRevenueData] = useState<{ hour: string; revenue: number; orders: number }[]>([]);
+  const [pipelineData, setPipelineData] = useState<PipelineStage[]>([]);
   const [agentStatus, setAgentStatus] = useState<AgentStatus[]>([
-    { name: 'Sales Agent', status: 'active', lastAction: 'Qualified lead', decisions24h: 12, avgConfidence: 0.87, color: '#10b981' },
-    { name: 'Creative Agent', status: 'processing', lastAction: 'Generating video', decisions24h: 8, avgConfidence: 0.92, color: '#3b82f6' },
-    { name: 'Optimization Agent', status: 'active', lastAction: 'SEO update', decisions24h: 15, avgConfidence: 0.89, color: '#8b5cf6' },
-    { name: 'Analytics Agent', status: 'idle', lastAction: 'Metrics sync', decisions24h: 24, avgConfidence: 0.94, color: '#f59e0b' },
+    { name: 'Sales Agent', status: 'active', lastAction: 'Qualified lead', decisions24h: 12, avgConfidence: 0.87, color: '#10b981', icon: '💼' },
+    { name: 'Creative Agent', status: 'processing', lastAction: 'Generating video', decisions24h: 8, avgConfidence: 0.92, color: '#3b82f6', icon: '🎨' },
+    { name: 'Optimization Agent', status: 'active', lastAction: 'SEO update', decisions24h: 15, avgConfidence: 0.89, color: '#8b5cf6', icon: '⚡' },
+    { name: 'Analytics Agent', status: 'idle', lastAction: 'Metrics sync', decisions24h: 24, avgConfidence: 0.94, color: '#f59e0b', icon: '📊' },
+    { name: 'Forecasting Agent', status: 'active', lastAction: 'Demand prediction', decisions24h: 6, avgConfidence: 0.91, color: '#ef4444', icon: '🔮' },
+    { name: 'Global Agent', status: 'idle', lastAction: 'Translation sync', decisions24h: 3, avgConfidence: 0.88, color: '#06b6d4', icon: '🌍' },
   ]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   // Initialize speech recognition
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognitionAPI) {
+        recognitionRef.current = new SpeechRecognitionAPI();
+        const recognition = recognitionRef.current as any;
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0].transcript)
+            .join('');
+          setVoiceCommand(transcript);
+          
+          if (event.results[0].isFinal) {
+            handleVoiceCommand(transcript);
+            setIsListening(false);
+          }
+        };
+        
+        recognition.onerror = () => {
+          setIsListening(false);
+          toast.error('Voice recognition error');
+        };
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (user) {
       fetchDecisions();
       fetchMetrics();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     }
   }, [user]);
 
@@ -139,11 +176,11 @@ export const ImmersiveWarRoom = () => {
         })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    return () => { supabase.removeChannel(channel); };
   };
 
   const toggleVoiceCommand = () => {
-    const recognition = recognitionRef.current as any;
+    const recognition = recognitionRef.current;
     if (!recognition) {
       toast.error('Speech recognition not supported');
       return;
@@ -172,6 +209,9 @@ export const ImmersiveWarRoom = () => {
     } else if (lowerCommand.includes('generate creative') || lowerCommand.includes('new video')) {
       toast.info('🎤 Voice command: Queuing creative generation...');
       await runAgentTask('creative', 'Generate new video ad concept');
+    } else if (lowerCommand.includes('forecast') || lowerCommand.includes('predict')) {
+      toast.info('🎤 Voice command: Running forecasting...');
+      await runAgentTask('forecasting', 'Predict next week revenue and demand');
     } else {
       setCeoBrainInput(command);
       await sendToCeoBrain(command);
@@ -224,7 +264,7 @@ export const ImmersiveWarRoom = () => {
       
       if (error) throw error;
       
-      const response = data?.decision || 'I\'ve analyzed your request and queued the appropriate actions.';
+      const response = data?.decision?.decision || data?.decision || 'I\'ve analyzed your request and queued the appropriate actions.';
       setCeoBrainResponse(response);
       toast.success('CEO Brain responded');
     } catch (err) {
@@ -259,7 +299,7 @@ export const ImmersiveWarRoom = () => {
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
-              LETHAL WAR ROOM
+              LETHAL WAR ROOM 2026
             </h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
@@ -274,6 +314,12 @@ export const ImmersiveWarRoom = () => {
               ⚡ GOD MODE ACTIVE
             </Badge>
           )}
+          
+          {/* Sustainability Score */}
+          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-xl px-3 py-2">
+            <Leaf className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-medium text-green-500">{sustainabilityScore}%</span>
+          </div>
           
           {/* Voice Command */}
           <Button
@@ -320,21 +366,21 @@ export const ImmersiveWarRoom = () => {
       )}
 
       {/* Agent Status Bar */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-6 gap-3">
         {agentStatus.map((agent) => (
-          <Card key={agent.name} className="bg-card/50 backdrop-blur border-muted">
-            <CardContent className="p-4">
+          <Card key={agent.name} className="bg-card/50 backdrop-blur border-muted hover:border-primary/30 transition-all cursor-pointer" onClick={() => runAgentTask(agent.name.split(' ')[0].toLowerCase(), 'Run analysis cycle')}>
+            <CardContent className="p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5" style={{ color: agent.color }} />
-                  <span className="font-medium text-sm">{agent.name}</span>
+                  <span className="text-lg">{agent.icon}</span>
+                  <span className="font-medium text-xs">{agent.name}</span>
                 </div>
                 <div className={`w-2 h-2 rounded-full ${getStatusColor(agent.status)}`} />
               </div>
               <p className="text-xs text-muted-foreground truncate">{agent.lastAction}</p>
               <div className="flex items-center justify-between mt-2 text-xs">
                 <span>{agent.decisions24h} decisions</span>
-                <span className="text-green-500">{(agent.avgConfidence * 100).toFixed(0)}% conf</span>
+                <span className="text-green-500">{(agent.avgConfidence * 100).toFixed(0)}%</span>
               </div>
             </CardContent>
           </Card>
@@ -451,22 +497,23 @@ export const ImmersiveWarRoom = () => {
                       decision.decision_type.includes('sales') ? 'bg-green-500/20' :
                       decision.decision_type.includes('creative') ? 'bg-blue-500/20' :
                       decision.decision_type.includes('optimization') ? 'bg-purple-500/20' :
-                      'bg-orange-500/20'
+                      'bg-yellow-500/20'
                     }`}>
-                      {decision.decision_type.includes('sales') ? <Users className="h-4 w-4 text-green-500" /> :
-                       decision.decision_type.includes('creative') ? <Zap className="h-4 w-4 text-blue-500" /> :
-                       decision.decision_type.includes('optimization') ? <TrendingUp className="h-4 w-4 text-purple-500" /> :
-                       <Brain className="h-4 w-4 text-orange-500" />}
+                      <Bot className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{decision.action_taken}</span>
-                        <Badge variant="outline" className="text-xs shrink-0">
-                          {((decision.confidence || 0) * 100).toFixed(0)}%
-                        </Badge>
+                        {decision.confidence && (
+                          <Badge variant="outline" className="text-xs">
+                            {(decision.confidence * 100).toFixed(0)}% conf
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{decision.reasoning}</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">
+                      <p className="text-xs text-muted-foreground truncate mt-1">
+                        {decision.reasoning || decision.decision_type}
+                      </p>
+                      <p className="text-xs text-muted-foreground/70">
                         {new Date(decision.created_at).toLocaleTimeString()}
                       </p>
                     </div>
@@ -478,20 +525,21 @@ export const ImmersiveWarRoom = () => {
         </Card>
 
         {/* CEO Brain Chat */}
-        <Card className="border-primary/20">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" />
-              CEO Brain Command
-              <Badge className="ml-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                AI POWERED
+              <Brain className="h-5 w-5 text-red-500" />
+              CEO Brain
+              <Badge variant="outline" className="ml-auto">
+                <Globe className="h-3 w-3 mr-1" />
+                Multi-lingual
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Command the AI CEO... (e.g., 'Optimize all underperforming creatives')"
+                placeholder="Command your AI CEO..."
                 value={ceoBrainInput}
                 onChange={(e) => setCeoBrainInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && sendToCeoBrain(ceoBrainInput)}
@@ -499,43 +547,96 @@ export const ImmersiveWarRoom = () => {
               />
               <Button 
                 onClick={() => sendToCeoBrain(ceoBrainInput)}
-                disabled={isThinking || !ceoBrainInput.trim()}
+                disabled={isThinking}
+                className="bg-gradient-to-r from-red-600 to-orange-600"
               >
-                {isThinking ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <MessageSquare className="h-4 w-4" />
-                )}
+                {isThinking ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
               </Button>
             </div>
-
+            
             {ceoBrainResponse && (
-              <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20">
+              <div className="p-4 bg-muted/50 rounded-lg border">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <Brain className="h-5 w-5 text-primary" />
+                  <div className="p-2 bg-red-500/20 rounded-lg">
+                    <Brain className="h-4 w-4 text-red-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">CEO Brain Response</p>
+                    <p className="text-sm font-medium">CEO Brain</p>
                     <p className="text-sm text-muted-foreground mt-1">{ceoBrainResponse}</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => runAgentTask('sales', 'Review and prioritize hot leads')}>
-                <Users className="h-3 w-3 mr-1" /> Review Leads
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="outline" size="sm" onClick={() => runAgentTask('forecasting', 'Generate demand forecast')}>
+                <TrendingUp className="h-3 w-3 mr-1" /> Forecast
               </Button>
-              <Button variant="outline" size="sm" onClick={() => runAgentTask('creative', 'Generate new viral video concepts')}>
-                <Zap className="h-3 w-3 mr-1" /> New Creatives
+              <Button variant="outline" size="sm" onClick={() => runAgentTask('optimization', 'Optimize pricing')}>
+                <DollarSign className="h-3 w-3 mr-1" /> Price
               </Button>
-              <Button variant="outline" size="sm" onClick={() => runAgentTask('optimization', 'Run full SEO optimization')}>
-                <TrendingUp className="h-3 w-3 mr-1" /> Optimize SEO
+              <Button variant="outline" size="sm" onClick={() => runAgentTask('creative', 'Generate new creative')}>
+                <Sparkles className="h-3 w-3 mr-1" /> Create
               </Button>
-              <Button variant="outline" size="sm" onClick={() => runAgentTask('analytics', 'Generate revenue attribution report')}>
-                <BarChart3 className="h-3 w-3 mr-1" /> Revenue Report
-              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Advanced Features Row */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <Leaf className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="font-medium">Sustainability</p>
+                <p className="text-2xl font-bold text-green-500">{sustainabilityScore}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/20 rounded-lg">
+                <Globe className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="font-medium">Global Reach</p>
+                <p className="text-2xl font-bold text-blue-500">12 Markets</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border-purple-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <Coins className="h-5 w-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="font-medium">Web3 Ready</p>
+                <p className="text-2xl font-bold text-purple-500">NFT + Crypto</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/5 border-yellow-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-500/20 rounded-lg">
+                <Shield className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div>
+                <p className="font-medium">Ethical AI</p>
+                <p className="text-2xl font-bold text-yellow-500">Audited</p>
+              </div>
             </div>
           </CardContent>
         </Card>
