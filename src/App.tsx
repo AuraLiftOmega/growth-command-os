@@ -8,6 +8,7 @@ import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useDominionStore } from "@/stores/dominion-core-store";
 import { useEffect } from "react";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
@@ -178,7 +179,7 @@ const ProtectedRouteWithRedirect = ({ children }: { children: React.ReactNode })
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<StoreBuilder />} />
+      <Route path="/" element={<Navigate to="/auth" replace />} />
       <Route path="/setup" element={<StoreSetupWizard />} />
       <Route path="/store-generated" element={<StoreGenerated />} />
       <Route path="/landing" element={<Landing />} />
@@ -209,6 +210,14 @@ const AppRoutes = () => {
       />
       <Route 
         path="/dashboard" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <Dashboard />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
+      <Route 
+        path="/dashboard-legacy" 
         element={
           <ProtectedRouteWithRedirect>
             <Index />
