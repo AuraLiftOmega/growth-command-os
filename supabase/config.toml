@@ -48,6 +48,9 @@ verify_jwt = false
 [functions.generate-video-ad]
 verify_jwt = false
 
+[functions.autonomous-engine]
+verify_jwt = false
+
 [functions.shopify-webhook-orders]
 verify_jwt = false
 
