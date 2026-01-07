@@ -167,10 +167,33 @@ export function GeekbotConfig() {
       </CardHeader>
       <CardContent className="space-y-6">
         {!isConnected ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Geekbot API key not configured.</p>
-            <p className="text-sm mt-2">Add your API key in project settings to connect.</p>
+          <div className="space-y-4">
+            <div className="text-center py-4 text-muted-foreground">
+              <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">Geekbot Demo Mode</p>
+              <p className="text-sm mt-2">Connect your Geekbot API key to enable real syncing</p>
+            </div>
+            {/* Demo standup data */}
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span>9:00 AM (UTC)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span>5 demo members</span>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <strong>Sample Questions:</strong>
+                <ul className="mt-1 space-y-1">
+                  <li>• What did you accomplish yesterday?</li>
+                  <li>• What will you work on today?</li>
+                  <li>• Any blockers?</li>
+                </ul>
+              </div>
+            </div>
           </div>
         ) : (
           <>

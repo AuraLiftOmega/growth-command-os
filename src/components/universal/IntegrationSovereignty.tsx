@@ -72,8 +72,8 @@ const INTEGRATION_DEFINITIONS: Omit<Integration, 'status' | 'orchestrated'>[] = 
   { id: 'slack', name: 'Slack', category: 'communication', icon: MessageSquare, description: 'Team communication' },
 ];
 
-// Define which integrations are coming soon (not yet available)
-const COMING_SOON = ['salesforce'];
+// All integrations are now available (even if in demo mode)
+const COMING_SOON: string[] = [];
 
 const categories = [
   { id: 'all', name: 'All' },

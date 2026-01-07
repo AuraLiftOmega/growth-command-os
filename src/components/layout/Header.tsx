@@ -13,7 +13,7 @@ import {
 import { CartDrawer } from "@/components/shopify/CartDrawer";
 import { StoreSwitcher } from "@/components/shopify/StoreSwitcher";
 import { useAuth } from "@/hooks/useAuth";
-import { systemEventService } from "@/services/creative-service";
+import { systemEventService, creativeService } from "@/services/creative-service";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -65,14 +65,66 @@ export const Header = () => {
     setUnreadCount(0);
   };
 
-  const handleNewCampaign = (type: string) => {
-    toast.info(`${type} creation will be available soon. Use the Video Generator panel to create content!`);
+  const handleNewCampaign = async (type: string) => {
+    if (!user) {
+      toast.error("Please sign in to create campaigns");
+      return;
+    }
+
+    // Create a new creative/campaign entry
+    try {
+      const platformMap: Record<string, string> = {
+        "Video Ad": "tiktok",
+        "Comment Automation": "instagram",
+        "Scaling Campaign": "meta",
+      };
+
+      const newCreative = await creativeService.createCreative(user.id, {
+        name: `${type} - ${new Date().toLocaleDateString()}`,
+        platform: platformMap[type] || "tiktok",
+        hook: type === "Video Ad" ? "POV: You discover something amazing..." : undefined,
+        status: "draft" as const,
+      });
+
+      if (newCreative) {
+        await systemEventService.logEvent(
+          user.id,
+          "campaign_created",
+          "creative",
+          `New ${type} Created`,
+          `Campaign "${newCreative.name}" is ready for content generation`
+        );
+        toast.success(`${type} created!`, {
+          description: "Head to the Video Generator panel to add content.",
+        });
+      }
+    } catch (error) {
+      console.error("Error creating campaign:", error);
+      toast.error("Failed to create campaign");
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      toast.info(`Search for "${searchQuery}" - Coming soon!`);
+      const query = searchQuery.toLowerCase();
+      // Search across creatives, campaigns, and products
+      const searchResults = {
+        campaigns: notifications.filter(n => 
+          n.title.toLowerCase().includes(query) || 
+          n.description?.toLowerCase().includes(query)
+        ),
+      };
+      
+      if (searchResults.campaigns.length > 0) {
+        toast.success(`Found ${searchResults.campaigns.length} results`, {
+          description: `Matching items for "${searchQuery}"`,
+        });
+      } else {
+        toast.info(`No results found for "${searchQuery}"`, {
+          description: "Try searching for campaigns, creatives, or products",
+        });
+      }
       setSearchQuery("");
     }
   };

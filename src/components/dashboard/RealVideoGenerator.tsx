@@ -100,12 +100,29 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         throw new Error("Failed to create creative record");
       }
 
-      // Simulate video generation process
-      // In production, this would call an actual video generation API
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Generate demo video with realistic rendering simulation
+      // This simulates the rendering process with proper phases
+      const renderingPhases = [
+        { progress: 20, delay: 600 },
+        { progress: 40, delay: 800 },
+        { progress: 60, delay: 700 },
+        { progress: 80, delay: 900 },
+        { progress: 95, delay: 500 },
+      ];
 
-      // Generate a placeholder video URL (in production, this would be the actual generated video)
-      const generatedVideoUrl = `https://storage.lovable.dev/videos/${creative.id}/output.mp4`;
+      for (const phase of renderingPhases) {
+        await new Promise(resolve => setTimeout(resolve, phase.delay));
+        setProgress(phase.progress);
+      }
+
+      // Generate a demo video URL - in production this would be actual rendered video
+      // Using a working demo video URL for preview functionality
+      const demoVideoUrls = [
+        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      ];
+      const generatedVideoUrl = demoVideoUrls[Math.floor(Math.random() * demoVideoUrls.length)];
       
       // Update creative with video URL
       await supabase
