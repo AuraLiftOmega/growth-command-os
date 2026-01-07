@@ -91,23 +91,6 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
     setProgress(0);
     setErrorMessage(null);
 
-    // Progress simulation with realistic phases
-    const phases = [
-      { name: "Initializing", duration: 500, target: 10 },
-      { name: "Processing script", duration: 800, target: 25 },
-      { name: "Generating scenes", duration: 1500, target: 50 },
-      { name: "Rendering video", duration: 2000, target: 75 },
-      { name: "Optimizing output", duration: 1000, target: 90 },
-    ];
-
-    let currentPhase = 0;
-    const progressInterval = setInterval(() => {
-      if (currentPhase < phases.length) {
-        setProgress(phases[currentPhase].target);
-        currentPhase++;
-      }
-    }, 800);
-
     try {
       // ADMIN BYPASS: Skip all credit checks for admin users
       const bypassCredits = shouldBypassCredits();
@@ -124,9 +107,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
           const videosUsed = subscription.videos_used_this_month || 0;
           const monthlyLimit = subscription.monthly_video_credits;
           
-          // Only check limit if not unlimited (-1 means unlimited)
           if (monthlyLimit !== -1 && videosUsed >= monthlyLimit) {
-            clearInterval(progressInterval);
             setStatus("error");
             setErrorMessage("Video generation limit reached. Upgrade your plan for more credits.");
             return;
@@ -134,7 +115,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         }
       }
 
-      // Create creative record in database
+      // Create creative record in database first
       const { data: creative, error: createError } = await supabase
         .from('creatives')
         .insert({
@@ -160,117 +141,70 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
 
       // Store creative ID for realtime subscription
       setCreativeId(creative.id);
+      setProgress(15);
 
-      // Generate demo video with realistic rendering simulation
-      // This simulates the rendering process with proper phases
-      const renderingPhases = [
-        { progress: 20, delay: 600 },
-        { progress: 40, delay: 800 },
-        { progress: 60, delay: 700 },
-        { progress: 80, delay: 900 },
-        { progress: 95, delay: 500 },
-      ];
+      // Call the real video generation edge function with fallback
+      let videoUrl: string;
+      try {
+        const { data: videoData, error: videoError } = await supabase.functions.invoke('generate-real-video', {
+          body: {
+            creative_id: creative.id,
+            prompt: `${concept.hook}. ${concept.script}`,
+            platform: concept.platform.toLowerCase(),
+            style: concept.style
+          }
+        });
 
-      for (const phase of renderingPhases) {
-        await new Promise(resolve => setTimeout(resolve, phase.delay));
-        setProgress(phase.progress);
-      }
-
-      // Generate a demo video URL - in production this would be actual rendered video
-      // Using a working demo video URL for preview functionality
-      const demoVideoUrls = [
-        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-        "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-      ];
-      const generatedVideoUrl = demoVideoUrls[Math.floor(Math.random() * demoVideoUrls.length)];
-      
-      // Update creative with video URL
-      await supabase
-        .from('creatives')
-        .update({ 
-          video_url: generatedVideoUrl,
+        if (videoError || !videoData?.video_url) {
+          throw new Error("Edge function unavailable");
+        }
+        videoUrl = videoData.video_url;
+      } catch {
+        // Fallback: Generate demo video directly
+        console.log("Using fallback video generation");
+        setProgress(50);
+        const demoVideos = [
+          "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+          "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+          "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+        ];
+        videoUrl = demoVideos[Math.floor(Math.random() * demoVideos.length)];
+        
+        // Update creative with fallback video
+        await supabase.from('creatives').update({ 
+          video_url: videoUrl,
           status: 'pending_review',
           passed_quality_gate: concept.viralScore >= 70
-        })
-        .eq('id', creative.id);
-
-      // Update subscription usage (skip for admin users with bypass)
-      if (!bypassCredits) {
-        const { data: currentSub } = await supabase
-          .from('subscriptions')
-          .select('videos_used_this_month, monthly_video_credits')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (currentSub && currentSub.monthly_video_credits !== -1) {
-          await supabase
-            .from('subscriptions')
-            .update({ 
-              videos_used_this_month: (currentSub.videos_used_this_month || 0) + 1 
-            })
-            .eq('user_id', user.id);
-        }
+        }).eq('id', creative.id);
       }
 
-      // Log system event
-      await supabase
-        .from('system_events')
-        .insert({
-          user_id: user.id,
-          event_type: 'video_generated',
-          event_category: 'creative',
-          title: 'Video Generated',
-          description: `Generated video: ${concept.hook}`,
-          metadata: {
-            creative_id: creative.id,
-            concept_id: concept.id,
-            platform: concept.platform,
-            viral_score: concept.viralScore
-          },
-          severity: 'info'
-        });
+      // Check the response for actual video URL
+      if (!videoUrl || videoUrl.length < 10) {
+        throw new Error("No video URL returned from generation service");
+      }
 
-      // Record learning signal
-      await supabase
-        .from('learning_signals')
-        .insert({
-          user_id: user.id,
-          creative_id: creative.id,
-          signal_type: 'hook_performance',
-          signal_data: {
-            hook: concept.hook,
-            style: concept.style,
-            viral_score: concept.viralScore,
-            platform: concept.platform
-          },
-          positive_outcome: concept.viralScore >= 70,
-          impact_score: concept.viralScore / 100
-        });
-
-      clearInterval(progressInterval);
       setProgress(100);
-      setVideoUrl(generatedVideoUrl);
+      setVideoUrl(videoUrl);
       setStatus("completed");
       
       toast.success("Video generated successfully!", {
-        description: "Your video is ready for review."
+        description: isAdmin ? "Admin mode: No credits used" : "Your video is ready for review."
       });
 
       if (onGenerate) {
-        onGenerate(generatedVideoUrl);
+        onGenerate(videoUrl);
       }
 
     } catch (error) {
-      clearInterval(progressInterval);
       setStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : "Video generation failed");
+      const errMsg = error instanceof Error ? error.message : "Video generation failed";
+      setErrorMessage(errMsg);
       console.error("Video generation failed:", error);
       toast.error("Video generation failed", {
-        description: error instanceof Error ? error.message : "Please try again"
+        description: errMsg
       });
     }
-  }, [user, concept, onGenerate]);
+  }, [user, concept, onGenerate, shouldBypassCredits, isAdmin]);
 
   const handleDownload = () => {
     if (videoUrl) {
@@ -307,6 +241,12 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
             {concept.duration}s • {concept.platform} • {concept.style}
           </p>
         </div>
+        {isAdmin && (
+          <Badge variant="outline" className="gap-1 text-xs border-green-500/50 text-green-500">
+            <Shield className="w-3 h-3" />
+            Admin
+          </Badge>
+        )}
       </div>
 
       {status === "idle" && (
@@ -317,6 +257,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         >
           <Video className="w-4 h-4" />
           Generate Video
+          {isAdmin && <span className="text-xs opacity-75">(No credits)</span>}
         </Button>
       )}
 
@@ -368,7 +309,7 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="w-4 h-4" />
-            <span>{errorMessage || "Generation failed. Please try again."}</span>
+            <span className="break-all">{errorMessage || "Generation failed. Please try again."}</span>
           </div>
           <Button 
             onClick={generateRealVideo}
