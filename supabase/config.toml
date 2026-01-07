@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.capture-lead]
 verify_jwt = false
+
+[functions.generate-real-video]
+verify_jwt = false

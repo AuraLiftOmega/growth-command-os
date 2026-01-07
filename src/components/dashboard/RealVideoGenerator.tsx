@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Video, 
@@ -8,12 +8,15 @@ import {
   CheckCircle2,
   Film,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { VideoConcept } from "@/hooks/useVideoGenerator";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdminEntitlements } from "@/hooks/useAdminEntitlements";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -24,6 +27,7 @@ interface RealVideoGeneratorProps {
 
 export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorProps) => {
   const { user } = useAuth();
+  const { isAdmin, shouldBypassCredits } = useAdminEntitlements();
   const [status, setStatus] = useState<"idle" | "generating" | "completed" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -57,24 +61,28 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
     }, 800);
 
     try {
-      // Check subscription credits
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('videos_used_this_month, monthly_video_credits')
-        .eq('user_id', user.id)
-        .single();
+      // ADMIN BYPASS: Skip all credit checks for admin users
+      const bypassCredits = shouldBypassCredits();
+      
+      if (!bypassCredits) {
+        // Check subscription credits for non-admin users
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('videos_used_this_month, monthly_video_credits')
+          .eq('user_id', user.id)
+          .single();
 
-      // Check if user has credits - skip check if unlimited (-1)
-      if (subscription) {
-        const videosUsed = subscription.videos_used_this_month || 0;
-        const monthlyLimit = subscription.monthly_video_credits;
-        
-        // Only check limit if not unlimited (-1 means unlimited)
-        if (monthlyLimit !== -1 && videosUsed >= monthlyLimit) {
-          clearInterval(progressInterval);
-          setStatus("error");
-          setErrorMessage("Video generation limit reached. Upgrade your plan for more credits.");
-          return;
+        if (subscription) {
+          const videosUsed = subscription.videos_used_this_month || 0;
+          const monthlyLimit = subscription.monthly_video_credits;
+          
+          // Only check limit if not unlimited (-1 means unlimited)
+          if (monthlyLimit !== -1 && videosUsed >= monthlyLimit) {
+            clearInterval(progressInterval);
+            setStatus("error");
+            setErrorMessage("Video generation limit reached. Upgrade your plan for more credits.");
+            return;
+          }
         }
       }
 
