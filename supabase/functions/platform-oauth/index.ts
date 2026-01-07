@@ -125,16 +125,26 @@ serve(async (req: Request) => {
           });
         }
 
-        // Build OAuth URL
-        const params = new URLSearchParams({
-          client_id: clientId,
-          redirect_uri,
-          scope: config.scopes.join(' '),
-          response_type: 'code',
-          state: oauthState,
-        });
+        // Build OAuth URL - TikTok uses different param names!
+        const params = new URLSearchParams();
+        
+        if (platform === 'tiktok') {
+          // TikTok uses client_key instead of client_id
+          params.append('client_key', clientId);
+          params.append('redirect_uri', redirect_uri);
+          params.append('scope', config.scopes.join(','));  // TikTok uses comma-separated
+          params.append('response_type', 'code');
+          params.append('state', oauthState);
+        } else {
+          // Standard OAuth params for other platforms
+          params.append('client_id', clientId);
+          params.append('redirect_uri', redirect_uri);
+          params.append('scope', config.scopes.join(' '));
+          params.append('response_type', 'code');
+          params.append('state', oauthState);
+        }
 
-        // Platform-specific params
+        // Platform-specific extras
         if (platform === 'youtube') {
           params.append('access_type', 'offline');
           params.append('prompt', 'consent');
@@ -167,16 +177,27 @@ serve(async (req: Request) => {
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
 
+        // Build token request - TikTok uses client_key not client_id
+        const tokenParams = new URLSearchParams();
+        
+        if (platform === 'tiktok') {
+          tokenParams.append('client_key', clientId!);
+          tokenParams.append('client_secret', clientSecret!);
+          tokenParams.append('code', code);
+          tokenParams.append('redirect_uri', stateData.redirect_uri);
+          tokenParams.append('grant_type', 'authorization_code');
+        } else {
+          tokenParams.append('client_id', clientId!);
+          tokenParams.append('client_secret', clientSecret!);
+          tokenParams.append('code', code);
+          tokenParams.append('redirect_uri', stateData.redirect_uri);
+          tokenParams.append('grant_type', 'authorization_code');
+        }
+
         const tokenResponse = await fetch(config.tokenUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: clientId!,
-            client_secret: clientSecret!,
-            code,
-            redirect_uri: stateData.redirect_uri,
-            grant_type: 'authorization_code',
-          }),
+          body: tokenParams,
         });
 
         const tokens = await tokenResponse.json();
@@ -278,15 +299,25 @@ serve(async (req: Request) => {
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
 
+        // Build refresh request - TikTok uses client_key
+        const refreshParams = new URLSearchParams();
+        
+        if (platform === 'tiktok') {
+          refreshParams.append('client_key', clientId!);
+          refreshParams.append('client_secret', clientSecret!);
+          refreshParams.append('refresh_token', creds.refresh_token);
+          refreshParams.append('grant_type', 'refresh_token');
+        } else {
+          refreshParams.append('client_id', clientId!);
+          refreshParams.append('client_secret', clientSecret!);
+          refreshParams.append('refresh_token', creds.refresh_token);
+          refreshParams.append('grant_type', 'refresh_token');
+        }
+
         const refreshResponse = await fetch(config.tokenUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: clientId!,
-            client_secret: clientSecret!,
-            refresh_token: creds.refresh_token,
-            grant_type: 'refresh_token',
-          }),
+          body: refreshParams,
         });
 
         const newTokens = await refreshResponse.json();
