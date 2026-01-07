@@ -150,9 +150,32 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
     }
   }, []);
 
-  // Simulate publishing to channels
+  // REAL publishing to TikTok
   const publishVideo = useCallback(async (job: VideoJob): Promise<void> => {
-    if (job.status !== 'completed') return;
+    if (job.status !== 'completed' || !job.videoUrl) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Call TikTok publish endpoint
+      const { data, error } = await supabase.functions.invoke('tiktok-publish', {
+        body: {
+          user_id: user.id,
+          video_url: job.videoUrl,
+          caption: `${job.hook} | ${job.product}`,
+          hashtags: ['fyp', 'viral', 'musthave', 'trending', 'beauty'],
+          product_name: job.product,
+        }
+      });
+
+      if (error) throw error;
+
+      console.log('TikTok publish result:', data);
+      toast.success(`🎉 Published to TikTok: ${job.product}`);
+    } catch (err) {
+      console.error('TikTok publish error:', err);
+    }
 
     setVideoJobs(prev => prev.map(j => 
       j.id === job.id ? { ...j, status: 'published' } : j
