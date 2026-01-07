@@ -33,6 +33,7 @@ import { CEOChatWidget } from '@/components/ceo-engine/CEOChatWidget';
 import { CEOOnboarding } from '@/components/ceo-engine/CEOOnboarding';
 import { CEOInsightsPanel } from '@/components/ceo-engine/CEOInsightsPanel';
 import { CEOAutonomousActions } from '@/components/ceo-engine/CEOAutonomousActions';
+import { AutonomousLoopsPanel } from '@/components/ceo-engine/AutonomousLoopsPanel';
 import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -340,7 +341,7 @@ export default function CEOBrain() {
 
             {/* Right Column - Autonomous Control */}
             <div className="col-span-12 lg:col-span-3 space-y-6">
-              <CEOAutonomousActions />
+              <AutonomousLoopsPanel />
               
               {/* Quick Stats */}
               <Card>
