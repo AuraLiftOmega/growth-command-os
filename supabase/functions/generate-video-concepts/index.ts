@@ -82,7 +82,16 @@ serve(async (req) => {
       );
     }
 
-    if (!subscription || subscription.ai_credits_used_this_month >= subscription.monthly_ai_credits) {
+    // Check credits - skip if unlimited (-1)
+    if (!subscription) {
+      return new Response(
+        JSON.stringify({ error: "No subscription found" }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const isUnlimited = subscription.monthly_ai_credits === -1;
+    if (!isUnlimited && subscription.ai_credits_used_this_month >= subscription.monthly_ai_credits) {
       return new Response(
         JSON.stringify({ error: "Insufficient AI credits" }),
         { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -357,11 +366,13 @@ Generate video concepts that:
       
       console.log("User:", user.id, "- Generated", scoredConcepts.length, "concepts,", approvedConcepts.length, "passed quality gate");
       
-      // Increment AI credits used
-      await supabase
-        .from("subscriptions")
-        .update({ ai_credits_used_this_month: subscription.ai_credits_used_this_month + 1 })
-        .eq("user_id", user.id);
+      // Increment AI credits used (skip if unlimited)
+      if (!isUnlimited) {
+        await supabase
+          .from("subscriptions")
+          .update({ ai_credits_used_this_month: subscription.ai_credits_used_this_month + 1 })
+          .eq("user_id", user.id);
+      }
       
       const needsRegeneration = approvedConcepts.length < 3;
       

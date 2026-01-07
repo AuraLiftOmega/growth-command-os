@@ -64,11 +64,13 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         .eq('user_id', user.id)
         .single();
 
+      // Check if user has credits - skip check if unlimited (-1)
       if (subscription) {
         const videosUsed = subscription.videos_used_this_month || 0;
-        const monthlyLimit = subscription.monthly_video_credits || 10;
+        const monthlyLimit = subscription.monthly_video_credits;
         
-        if (videosUsed >= monthlyLimit) {
+        // Only check limit if not unlimited (-1 means unlimited)
+        if (monthlyLimit !== -1 && videosUsed >= monthlyLimit) {
           clearInterval(progressInterval);
           setStatus("error");
           setErrorMessage("Video generation limit reached. Upgrade your plan for more credits.");
@@ -134,8 +136,8 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         })
         .eq('id', creative.id);
 
-      // Update subscription usage
-      if (subscription) {
+      // Update subscription usage (skip if unlimited)
+      if (subscription && subscription.monthly_video_credits !== -1) {
         await supabase
           .from('subscriptions')
           .update({ 
