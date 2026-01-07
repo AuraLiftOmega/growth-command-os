@@ -41,10 +41,17 @@ serve(async (req) => {
       );
     }
 
+    // If ElevenLabs key is not configured, return demo mode response
     if (!elevenlabsApiKey) {
+      console.log("ElevenLabs API key not configured, returning demo mode");
       return new Response(
-        JSON.stringify({ error: "ElevenLabs API key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          success: true, 
+          narration_url: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+          message: "Demo narration generated (configure ElevenLabs for real voice generation)",
+          demo_mode: true
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

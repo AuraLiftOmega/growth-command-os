@@ -607,15 +607,78 @@ export const ABTestingPanel = ({
                 </TabsContent>
 
                 <TabsContent value="analytics" className="mt-4">
-                  <div className="h-64 flex items-center justify-center bg-muted/30 rounded-lg">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">
-                        Conversion rate trends over time
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        (Visualization coming soon)
-                      </p>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedTest.variants.map((variant, index) => (
+                        <div key={variant.id} className="p-4 rounded-lg bg-muted/30 border border-border">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium">{variant.name}</span>
+                            <Badge variant={variant.type === 'control' ? 'secondary' : 'outline'}>
+                              {variant.type}
+                            </Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-muted-foreground">Conversion Rate</span>
+                              <span className="font-medium">
+                                {variant.views > 0 ? ((variant.conversions / variant.views) * 100).toFixed(2) : 0}%
+                              </span>
+                            </div>
+                            <Progress 
+                              value={variant.views > 0 ? (variant.conversions / variant.views) * 100 : 0} 
+                              className="h-2"
+                            />
+                            <div className="grid grid-cols-2 gap-2 mt-3 text-xs">
+                              <div>
+                                <span className="text-muted-foreground">Views</span>
+                                <p className="font-medium">{variant.views.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Conversions</span>
+                                <p className="font-medium">{variant.conversions.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Revenue</span>
+                                <p className="font-medium text-success">${variant.revenue.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Confidence</span>
+                                <p className={cn("font-medium", variant.confidence >= 95 ? "text-success" : "text-warning")}>
+                                  {variant.confidence.toFixed(1)}%
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          {variant.isWinner && (
+                            <div className="mt-3 flex items-center gap-2 text-xs text-success">
+                              <Award className="w-3 h-3" />
+                              <span>Leading variant</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium">Performance Summary</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-2xl font-bold">{selectedTest.variants.reduce((a, v) => a + v.views, 0).toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">Total Views</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-success">${selectedTest.variants.reduce((a, v) => a + v.revenue, 0).toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">Total Revenue</p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-primary">
+                            {selectedTest.improvementPercentage ? `+${selectedTest.improvementPercentage.toFixed(1)}%` : 'TBD'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Improvement</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
