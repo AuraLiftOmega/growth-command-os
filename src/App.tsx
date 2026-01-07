@@ -24,6 +24,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Refund from "./pages/Refund";
 import Shipping from "./pages/Shipping";
+import StoreBuilder from "./pages/StoreBuilder";
 import {
   IntimidationToggle, 
   DemoPhaseController, 
@@ -171,7 +172,8 @@ const ProtectedRouteWithRedirect = ({ children }: { children: React.ReactNode })
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<StoreBuilder />} />
+      <Route path="/landing" element={<Landing />} />
       
       {/* Public Storefront Routes */}
       <Route path="/store" element={<Store />} />
