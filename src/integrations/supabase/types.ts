@@ -243,6 +243,60 @@ export type Database = {
           },
         ]
       }
+      automation_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          input_data: Json | null
+          job_type: string
+          max_retries: number | null
+          output_data: Json | null
+          priority: number | null
+          retry_count: number | null
+          scheduled_for: string | null
+          started_at: string | null
+          status: string
+          target_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          job_type: string
+          max_retries?: number | null
+          output_data?: Json | null
+          priority?: number | null
+          retry_count?: number | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          target_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          job_type?: string
+          max_retries?: number | null
+          output_data?: Json | null
+          priority?: number | null
+          retry_count?: number | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          target_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_settings: {
         Row: {
           aggressive_testing: boolean | null
@@ -1612,6 +1666,83 @@ export type Database = {
         }
         Relationships: []
       }
+      product_automations: {
+        Row: {
+          automation_mode: string
+          clicks: number
+          conversion_rate: number | null
+          conversions: number
+          created_at: string
+          ctr: number | null
+          id: string
+          impressions: number
+          last_action: string | null
+          last_action_at: string | null
+          next_action: string | null
+          product_id: string | null
+          quality_score: number | null
+          revenue: number
+          roas: number | null
+          shopify_product_id: string
+          spend: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          automation_mode?: string
+          clicks?: number
+          conversion_rate?: number | null
+          conversions?: number
+          created_at?: string
+          ctr?: number | null
+          id?: string
+          impressions?: number
+          last_action?: string | null
+          last_action_at?: string | null
+          next_action?: string | null
+          product_id?: string | null
+          quality_score?: number | null
+          revenue?: number
+          roas?: number | null
+          shopify_product_id: string
+          spend?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          automation_mode?: string
+          clicks?: number
+          conversion_rate?: number | null
+          conversions?: number
+          created_at?: string
+          ctr?: number | null
+          id?: string
+          impressions?: number
+          last_action?: string | null
+          last_action_at?: string | null
+          next_action?: string | null
+          product_id?: string | null
+          quality_score?: number | null
+          revenue?: number
+          roas?: number | null
+          shopify_product_id?: string
+          spend?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_automations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           brand_name: string | null
@@ -1686,6 +1817,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quality_gate_decisions: {
+        Row: {
+          applied_at: string | null
+          auto_applied: boolean | null
+          created_at: string
+          creative_id: string | null
+          decision: string
+          decision_reason: string | null
+          id: string
+          metrics_snapshot: Json | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          auto_applied?: boolean | null
+          created_at?: string
+          creative_id?: string | null
+          decision: string
+          decision_reason?: string | null
+          id?: string
+          metrics_snapshot?: Json | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          auto_applied?: boolean | null
+          created_at?: string
+          creative_id?: string | null
+          decision?: string
+          decision_reason?: string | null
+          id?: string
+          metrics_snapshot?: Json | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quality_gate_decisions_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       revenue_engine_config: {
         Row: {
@@ -1783,6 +1961,63 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_events: {
+        Row: {
+          amount: number | null
+          campaign_id: string | null
+          created_at: string
+          creative_id: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          platform: string | null
+          product_id: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          campaign_id?: string | null
+          created_at?: string
+          creative_id?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          product_id?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          campaign_id?: string | null
+          created_at?: string
+          creative_id?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          platform?: string | null
+          product_id?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_events_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rollout_status: {
         Row: {
           completed_at: string | null
@@ -1874,6 +2109,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shopify_products: {
+        Row: {
+          compare_at_price: number | null
+          created_at: string
+          currency_code: string | null
+          description: string | null
+          handle: string
+          id: string
+          image_url: string | null
+          inventory_quantity: number | null
+          price: number
+          product_type: string | null
+          shopify_id: string
+          status: string | null
+          synced_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          variant_id: string | null
+          vendor: string | null
+        }
+        Insert: {
+          compare_at_price?: number | null
+          created_at?: string
+          currency_code?: string | null
+          description?: string | null
+          handle: string
+          id?: string
+          image_url?: string | null
+          inventory_quantity?: number | null
+          price?: number
+          product_type?: string | null
+          shopify_id: string
+          status?: string | null
+          synced_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          variant_id?: string | null
+          vendor?: string | null
+        }
+        Update: {
+          compare_at_price?: number | null
+          created_at?: string
+          currency_code?: string | null
+          description?: string | null
+          handle?: string
+          id?: string
+          image_url?: string | null
+          inventory_quantity?: number | null
+          price?: number
+          product_type?: string | null
+          shopify_id?: string
+          status?: string | null
+          synced_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          variant_id?: string | null
+          vendor?: string | null
+        }
+        Relationships: []
       }
       store_setups: {
         Row: {

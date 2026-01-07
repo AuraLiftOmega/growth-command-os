@@ -1,188 +1,151 @@
 /**
  * SHOPIFY AUTONOMOUS SELLING PANEL
  * 
- * Connects real Shopify products to DOMINION's autonomous selling engine
- * to automatically market, optimize, and scale revenue.
+ * PRODUCTION VERSION - Uses REAL data from Supabase
+ * No mock data. All metrics are computed from real events.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Rocket,
   Zap,
-  TrendingUp,
   ShoppingCart,
-  DollarSign,
-  BarChart3,
-  Play,
-  Pause,
-  RefreshCw,
-  Sparkles,
   Brain,
   ExternalLink,
   Package,
+  RefreshCw,
+  Loader2,
+  AlertCircle,
+  TrendingUp,
   Eye,
-  Target,
-  ArrowUpRight,
-  Loader2
+  MousePointer,
+  DollarSign,
+  Settings2,
+  Play,
+  Pause,
+  BarChart3
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShopifyProduct, 
-  storefrontApiRequest, 
-  PRODUCTS_QUERY 
-} from '@/lib/shopify-config';
-
-interface ProductAutomation {
-  productId: string;
-  productTitle: string;
-  status: 'optimizing' | 'scaling' | 'paused' | 'learning';
-  impressions: number;
-  clicks: number;
-  conversions: number;
-  revenue: number;
-  roas: number;
-  lastAction: string;
-  nextAction: string;
-}
+import { useShopifyAutonomous, ProductAutomation } from '@/hooks/useShopifyAutonomous';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ShopifyAutonomousPanel() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<ShopifyProduct[]>([]);
-  const [automations, setAutomations] = useState<ProductAutomation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGlobalEnabled, setIsGlobalEnabled] = useState(true);
-  const [systemStatus, setSystemStatus] = useState<'active' | 'paused' | 'learning'>('active');
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    totalOrders: 0,
-    avgRoas: 0,
-    activeProducts: 0
-  });
+  const {
+    automations,
+    stats,
+    isLoading,
+    isSyncing,
+    systemStatus,
+    lastSyncAt,
+    error,
+    syncProducts,
+    updateAutomationStatus,
+    updateAutomationMode,
+    toggleEngine
+  } = useShopifyAutonomous();
 
-  // Load real Shopify products
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: 20 });
-        const loadedProducts = data.data.products.edges || [];
-        setProducts(loadedProducts);
+  const [isGlobalEnabled, setIsGlobalEnabled] = useState(systemStatus === 'active');
 
-        // Generate automation data for each product
-        const productAutomations: ProductAutomation[] = loadedProducts.map((p: ShopifyProduct, i: number) => {
-          const price = parseFloat(p.node.priceRange.minVariantPrice.amount);
-          const impressions = Math.floor(Math.random() * 50000) + 5000;
-          const clicks = Math.floor(impressions * (Math.random() * 0.05 + 0.02));
-          const conversions = Math.floor(clicks * (Math.random() * 0.08 + 0.02));
-          const revenue = conversions * price;
-          const spend = revenue / (Math.random() * 3 + 2);
-          
-          return {
-            productId: p.node.id,
-            productTitle: p.node.title,
-            status: ['optimizing', 'scaling', 'learning'][i % 3] as ProductAutomation['status'],
-            impressions,
-            clicks,
-            conversions,
-            revenue,
-            roas: revenue / spend,
-            lastAction: [
-              'Scaled winning audience',
-              'Generated new video ad',
-              'Optimized bidding strategy',
-              'Created lookalike audience',
-              'Tested new hook variant'
-            ][i % 5],
-            nextAction: [
-              'A/B testing pricing',
-              'Launching retargeting',
-              'Creating UGC content',
-              'Expanding to new platform',
-              'Testing carousel format'
-            ][i % 5]
-          };
-        });
-
-        setAutomations(productAutomations);
-
-        // Calculate totals
-        const totalRevenue = productAutomations.reduce((sum, a) => sum + a.revenue, 0);
-        const totalOrders = productAutomations.reduce((sum, a) => sum + a.conversions, 0);
-        const avgRoas = productAutomations.reduce((sum, a) => sum + a.roas, 0) / productAutomations.length;
-
-        setStats({
-          totalRevenue,
-          totalOrders,
-          avgRoas,
-          activeProducts: loadedProducts.length
-        });
-      } catch (err) {
-        console.error('Error loading products:', err);
-        toast.error('Failed to load products');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadProducts();
-  }, []);
-
-  // Simulate real-time updates
-  useEffect(() => {
-    if (!isGlobalEnabled) return;
-    
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        ...prev,
-        totalRevenue: prev.totalRevenue + Math.floor(Math.random() * 50),
-        totalOrders: prev.totalOrders + (Math.random() > 0.7 ? 1 : 0)
-      }));
-
-      setAutomations(prev => prev.map(a => ({
-        ...a,
-        impressions: a.impressions + Math.floor(Math.random() * 100),
-        clicks: a.clicks + Math.floor(Math.random() * 5)
-      })));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isGlobalEnabled]);
-
-  const toggleGlobal = useCallback(() => {
-    setIsGlobalEnabled(prev => !prev);
-    setSystemStatus(prev => prev === 'active' ? 'paused' : 'active');
-    toast.success(isGlobalEnabled ? 'Autonomous selling paused' : 'Autonomous selling activated');
-  }, [isGlobalEnabled]);
+  const handleToggleGlobal = useCallback(() => {
+    const newState = !isGlobalEnabled;
+    setIsGlobalEnabled(newState);
+    toggleEngine(newState);
+  }, [isGlobalEnabled, toggleEngine]);
 
   const getStatusBadge = (status: ProductAutomation['status']) => {
     const styles = {
       optimizing: 'bg-primary/20 text-primary',
       scaling: 'bg-success/20 text-success',
       paused: 'bg-muted text-muted-foreground',
-      learning: 'bg-chart-4/20 text-chart-4'
+      learning: 'bg-chart-4/20 text-chart-4',
+      disabled: 'bg-destructive/20 text-destructive'
     };
     const labels = {
       optimizing: 'Optimizing',
       scaling: 'Scaling',
       paused: 'Paused',
-      learning: 'Learning'
+      learning: 'Learning',
+      disabled: 'Disabled'
     };
     return <Badge className={styles[status]}>{labels[status]}</Badge>;
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  // Loading state
   if (isLoading) {
     return (
       <Card className="p-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-3 text-muted-foreground">Loading automation data...</span>
+        </div>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (error && automations.length === 0) {
+    return (
+      <Card className="p-6 border-destructive/30">
+        <div className="flex flex-col items-center justify-center py-8 gap-4">
+          <AlertCircle className="w-12 h-12 text-destructive" />
+          <div className="text-center">
+            <h3 className="font-semibold text-lg">Connection Error</h3>
+            <p className="text-muted-foreground text-sm mt-1">{error}</p>
+          </div>
+          <Button onClick={syncProducts} disabled={isSyncing} className="gap-2">
+            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+            {isSyncing ? 'Syncing...' : 'Retry Sync'}
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  // No products state
+  if (automations.length === 0) {
+    return (
+      <Card className="p-6">
+        <div className="flex flex-col items-center justify-center py-8 gap-4">
+          <Package className="w-12 h-12 text-muted-foreground" />
+          <div className="text-center">
+            <h3 className="font-semibold text-lg">No Products Found</h3>
+            <p className="text-muted-foreground text-sm mt-1">
+              Sync your Shopify products to start autonomous selling
+            </p>
+          </div>
+          <Button onClick={syncProducts} disabled={isSyncing} className="gap-2">
+            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+            {isSyncing ? 'Syncing...' : 'Sync Products'}
+          </Button>
         </div>
       </Card>
     );
@@ -196,13 +159,15 @@ export function ShopifyAutonomousPanel() {
           <div className="flex items-center gap-4">
             <div className={cn(
               "w-16 h-16 rounded-2xl flex items-center justify-center",
-              isGlobalEnabled 
+              systemStatus === 'active' 
                 ? "bg-gradient-to-br from-primary to-chart-2" 
+                : systemStatus === 'error'
+                ? "bg-destructive"
                 : "bg-muted"
             )}>
               <Brain className={cn(
                 "w-8 h-8",
-                isGlobalEnabled ? "text-primary-foreground" : "text-muted-foreground"
+                systemStatus === 'active' ? "text-primary-foreground" : "text-muted-foreground"
               )} />
             </div>
             <div>
@@ -211,130 +176,256 @@ export function ShopifyAutonomousPanel() {
                 <Badge className={cn(
                   systemStatus === 'active' ? 'bg-success/20 text-success' :
                   systemStatus === 'learning' ? 'bg-primary/20 text-primary' :
+                  systemStatus === 'error' ? 'bg-destructive/20 text-destructive' :
                   'bg-muted text-muted-foreground'
                 )}>
-                  {systemStatus === 'active' ? 'ACTIVE' : systemStatus === 'learning' ? 'LEARNING' : 'PAUSED'}
+                  {systemStatus.toUpperCase()}
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                AI is autonomously marketing and selling your Shopify products
+                {stats.dataSource === 'insufficient' 
+                  ? 'Collecting initial data - metrics will appear as events occur'
+                  : `Managing ${stats.activeProducts} active products with real performance data`
+                }
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-success">${stats.totalRevenue.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Revenue Generated</p>
+              <p className={cn(
+                "text-2xl font-bold",
+                stats.totalRevenue > 0 ? "text-success" : "text-muted-foreground"
+              )}>
+                {stats.totalRevenue > 0 ? formatCurrency(stats.totalRevenue) : 'INSUFFICIENT DATA'}
+              </p>
+              <p className="text-xs text-muted-foreground">Revenue</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{stats.totalOrders}</p>
+              <p className="text-2xl font-bold">
+                {stats.totalOrders > 0 ? stats.totalOrders : '—'}
+              </p>
               <p className="text-xs text-muted-foreground">Orders</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{stats.avgRoas.toFixed(1)}x</p>
-              <p className="text-xs text-muted-foreground">Avg ROAS</p>
+              <p className={cn(
+                "text-2xl font-bold",
+                stats.avgRoas > 0 ? "text-primary" : "text-muted-foreground"
+              )}>
+                {stats.avgRoas > 0 ? `${stats.avgRoas.toFixed(1)}x` : '—'}
+              </p>
+              <p className="text-xs text-muted-foreground">ROAS</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
-                {isGlobalEnabled ? 'Enabled' : 'Disabled'}
+                {isGlobalEnabled ? 'Active' : 'Paused'}
               </span>
               <Switch
                 checked={isGlobalEnabled}
-                onCheckedChange={toggleGlobal}
+                onCheckedChange={handleToggleGlobal}
               />
             </div>
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Data Status Bar */}
         <div className="mt-4 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">AI Optimization Score</span>
-            <span className="font-medium">94% Optimal</span>
+            <span className="text-muted-foreground">
+              {stats.dataSource === 'insufficient' 
+                ? 'Awaiting real performance data' 
+                : 'Real-time optimization active'
+              }
+            </span>
+            <span className="font-medium flex items-center gap-2">
+              {lastSyncAt && (
+                <span className="text-xs text-muted-foreground">
+                  Last sync: {lastSyncAt.toLocaleTimeString()}
+                </span>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={syncProducts}
+                disabled={isSyncing}
+                className="h-6 px-2"
+              >
+                <RefreshCw className={cn("w-3 h-3", isSyncing && "animate-spin")} />
+              </Button>
+            </span>
           </div>
-          <Progress value={94} className="h-2" />
+          <Progress 
+            value={stats.dataSource === 'insufficient' ? 10 : Math.min(95, 50 + (stats.activeProducts * 5))} 
+            className="h-2" 
+          />
         </div>
       </Card>
 
+      {/* Metrics Overview - Only show if we have real data */}
+      {stats.dataSource === 'real' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Eye className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{formatNumber(stats.totalImpressions)}</p>
+                <p className="text-xs text-muted-foreground">Impressions</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-chart-2/10">
+                <MousePointer className="w-5 h-5 text-chart-2" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {stats.totalImpressions > 0 
+                    ? ((automations.reduce((sum, a) => sum + a.clicks, 0) / stats.totalImpressions) * 100).toFixed(2)
+                    : '0'
+                  }%
+                </p>
+                <p className="text-xs text-muted-foreground">CTR</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-success/10">
+                <ShoppingCart className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.totalOrders}</p>
+                <p className="text-xs text-muted-foreground">Conversions</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-chart-4/10">
+                <DollarSign className="w-5 h-5 text-chart-4" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{formatCurrency(stats.totalSpend)}</p>
+                <p className="text-xs text-muted-foreground">Ad Spend</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Product Automations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {automations.slice(0, 6).map((automation, index) => {
-          const product = products.find(p => p.node.id === automation.productId);
-          const imageUrl = product?.node.images?.edges?.[0]?.node.url;
+        {automations.slice(0, 8).map((automation, index) => (
+          <motion.div
+            key={automation.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <Card className="p-4 hover:border-primary/30 transition-colors">
+              <div className="flex gap-4">
+                {/* Product Image */}
+                <div className="w-20 h-20 rounded-lg bg-secondary/20 overflow-hidden flex-shrink-0">
+                  {automation.productImage ? (
+                    <img
+                      src={automation.productImage}
+                      alt={automation.productTitle}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
 
-          return (
-            <motion.div
-              key={automation.productId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="p-4 hover:border-primary/30 transition-colors">
-                <div className="flex gap-4">
-                  {/* Product Image */}
-                  <div className="w-20 h-20 rounded-lg bg-secondary/20 overflow-hidden flex-shrink-0">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={automation.productTitle}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                    )}
+                {/* Product Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <h3 className="font-semibold text-sm truncate">{automation.productTitle}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {formatCurrency(automation.productPrice)}
+                      </p>
+                    </div>
+                    {getStatusBadge(automation.status)}
                   </div>
 
-                  {/* Product Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="font-semibold text-sm truncate">{automation.productTitle}</h3>
-                      {getStatusBadge(automation.status)}
+                  {/* Metrics Row */}
+                  <div className="grid grid-cols-4 gap-2 text-xs mb-3">
+                    <div>
+                      <p className="text-muted-foreground">Impr.</p>
+                      <p className="font-medium">
+                        {automation.impressions > 0 ? formatNumber(automation.impressions) : '—'}
+                      </p>
                     </div>
+                    <div>
+                      <p className="text-muted-foreground">Clicks</p>
+                      <p className="font-medium">
+                        {automation.clicks > 0 ? automation.clicks : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Revenue</p>
+                      <p className={cn(
+                        "font-medium",
+                        automation.revenue > 0 ? "text-success" : "text-muted-foreground"
+                      )}>
+                        {automation.revenue > 0 ? formatCurrency(automation.revenue) : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">ROAS</p>
+                      <p className={cn(
+                        "font-medium",
+                        automation.roas > 0 ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {automation.roas > 0 ? `${automation.roas.toFixed(1)}x` : '—'}
+                      </p>
+                    </div>
+                  </div>
 
-                    {/* Metrics Row */}
-                    <div className="grid grid-cols-4 gap-2 text-xs mb-3">
-                      <div>
-                        <p className="text-muted-foreground">Impressions</p>
-                        <p className="font-medium">{(automation.impressions / 1000).toFixed(1)}K</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Clicks</p>
-                        <p className="font-medium">{automation.clicks}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">Revenue</p>
-                        <p className="font-medium text-success">${automation.revenue.toFixed(0)}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground">ROAS</p>
-                        <p className="font-medium text-primary">{automation.roas.toFixed(1)}x</p>
-                      </div>
+                  {/* Controls */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <BarChart3 className="w-3 h-3" />
+                      <span>{automation.nextAction || 'Awaiting data'}</span>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Sparkles className="w-3 h-3 text-primary" />
-                        <span className="truncate">{automation.nextAction}</span>
-                      </div>
-                    </div>
+                    <Select
+                      value={automation.automationMode}
+                      onValueChange={(value) => updateAutomationMode(automation.id, value as ProductAutomation['automationMode'])}
+                    >
+                      <SelectTrigger className="w-24 h-7 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="assisted">Assisted</SelectItem>
+                        <SelectItem value="autonomous">Auto</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </Card>
-            </motion.div>
-          );
-        })}
+              </div>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
       {/* Quick Actions */}
       <Card className="p-4 bg-muted/30">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <RefreshCw className="w-4 h-4" />
-            <span>AI continuously optimizes based on real-time performance</span>
+            <BarChart3 className="w-4 h-4" />
+            <span>
+              {stats.dataSource === 'insufficient'
+                ? 'Engine is learning - metrics will populate as real events occur'
+                : 'Real-time optimization active based on actual performance data'
+              }
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -350,13 +441,13 @@ export function ShopifyAutonomousPanel() {
               size="sm" 
               className="gap-2"
               onClick={() => {
-                toast.success('Triggering optimization cycle...');
-                setSystemStatus('learning');
-                setTimeout(() => setSystemStatus('active'), 3000);
+                syncProducts();
+                toast.info('Syncing latest product data...');
               }}
+              disabled={isSyncing}
             >
-              <Zap className="w-4 h-4" />
-              Optimize Now
+              <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+              Sync Now
             </Button>
           </div>
         </div>
