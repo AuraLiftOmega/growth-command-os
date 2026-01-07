@@ -11,12 +11,17 @@ import {
   Users,
   Zap,
   Swords,
-  Crown
+  Crown,
+  FlaskConical,
+  CheckCircle
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, PLAN_FEATURES } from "@/hooks/useSubscription";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { isTestMode, enableTestMode, disableTestMode } from "@/lib/demo-mode";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   icon: React.ReactNode;
@@ -36,6 +41,7 @@ const navItems: NavItem[] = [
   { icon: <Calendar className="w-5 h-5" />, label: "Scheduler", path: "/dashboard" },
   { icon: <Users className="w-5 h-5" />, label: "Audiences", path: "/dashboard" },
   { icon: <Zap className="w-5 h-5" />, label: "Automations", path: "/dashboard" },
+  { icon: <CheckCircle className="w-5 h-5" />, label: "System Check", path: "/system-check", badge: "TEST" },
 ];
 
 export const Sidebar = () => {
@@ -43,11 +49,28 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { subscription, isTrialing, trialDaysLeft } = useSubscription();
+  const [testMode, setTestMode] = useState(isTestMode());
+
+  useEffect(() => {
+    setTestMode(isTestMode());
+  }, []);
+
+  const handleTestModeToggle = (enabled: boolean) => {
+    if (enabled) {
+      enableTestMode();
+    } else {
+      disableTestMode();
+    }
+    setTestMode(enabled);
+    // Reload to apply changes
+    window.location.reload();
+  };
 
   const isActive = (path: string, label: string) => {
     if (path === "/settings") return location.pathname === "/settings";
     if (path === "/war-room") return location.pathname === "/war-room";
     if (path === "/command-center") return location.pathname === "/command-center";
+    if (path === "/system-check") return location.pathname === "/system-check";
     return location.pathname === "/dashboard" && path === "/dashboard" && label === "Dashboard";
   };
 
@@ -112,7 +135,25 @@ export const Sidebar = () => {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        {/* Test Mode Toggle */}
+        <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-sidebar-accent/30">
+          <div className="flex items-center gap-2">
+            <FlaskConical className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-muted-foreground'}`} />
+            <span className="text-sm font-medium">Test Mode</span>
+          </div>
+          <Switch
+            checked={testMode}
+            onCheckedChange={handleTestModeToggle}
+            className="data-[state=checked]:bg-amber-500"
+          />
+        </div>
+        {testMode && (
+          <p className="text-[10px] text-amber-500/80 px-4">
+            Unlimited features with demo data
+          </p>
+        )}
+
         <motion.button 
           onClick={() => navigate("/settings")}
           whileHover={{ x: 4 }}

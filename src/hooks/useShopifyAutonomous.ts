@@ -3,6 +3,8 @@
  * 
  * This hook provides REAL data from Supabase - no mock data.
  * It syncs Shopify products, tracks real metrics, and manages automation state.
+ * 
+ * When Test Mode is enabled, it provides demo data for testing all features.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -10,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { storefrontApiRequest, PRODUCTS_QUERY, ShopifyProduct } from '@/lib/shopify-config';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { isTestMode } from '@/lib/demo-mode';
 
 export interface ProductAutomation {
   id: string;
@@ -46,6 +49,31 @@ export interface EngineStats {
   dataSource: 'real' | 'insufficient';
 }
 
+// Demo data for test mode
+const TEST_MODE_PRODUCTS: ShopifyProduct[] = [
+  { node: { id: 'demo-1', title: 'Aura Lift Serum', handle: 'aura-lift-serum', description: 'Anti-aging serum', priceRange: { minVariantPrice: { amount: '89.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400', altText: 'Aura Lift Serum' } }] }, variants: { edges: [{ node: { id: 'v1', title: 'Default', price: { amount: '89.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
+  { node: { id: 'demo-2', title: 'Radiance Moisturizer', handle: 'radiance-moisturizer', description: 'Daily hydration', priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400', altText: 'Radiance Moisturizer' } }] }, variants: { edges: [{ node: { id: 'v2', title: 'Default', price: { amount: '65.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
+  { node: { id: 'demo-3', title: 'Youth Renewal Eye Cream', handle: 'youth-renewal', description: 'Eye treatment', priceRange: { minVariantPrice: { amount: '78.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', altText: 'Youth Renewal Eye Cream' } }] }, variants: { edges: [{ node: { id: 'v3', title: 'Default', price: { amount: '78.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
+];
+
+const TEST_MODE_AUTOMATIONS: ProductAutomation[] = [
+  { id: 'auto-1', productId: 'demo-1', shopifyProductId: 'demo-1', productTitle: 'Aura Lift Serum', productImage: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400', productPrice: 89, status: 'scaling', automationMode: 'autonomous', impressions: 487291, clicks: 19421, conversions: 1847, revenue: 164383, spend: 34212, roas: 4.8, ctr: 3.98, conversionRate: 9.5, qualityScore: 92, lastAction: 'Scaled budget +15%', nextAction: 'Test new hook variant', lastActionAt: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'auto-2', productId: 'demo-2', shopifyProductId: 'demo-2', productTitle: 'Radiance Moisturizer', productImage: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400', productPrice: 65, status: 'optimizing', automationMode: 'autonomous', impressions: 324891, clicks: 12891, conversions: 987, revenue: 64155, spend: 18234, roas: 3.5, ctr: 3.97, conversionRate: 7.6, qualityScore: 78, lastAction: 'A/B test started', nextAction: 'Evaluate variant B', lastActionAt: new Date(Date.now() - 7200000).toISOString() },
+  { id: 'auto-3', productId: 'demo-3', shopifyProductId: 'demo-3', productTitle: 'Youth Renewal Eye Cream', productImage: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', productPrice: 78, status: 'learning', automationMode: 'assisted', impressions: 89234, clicks: 3421, conversions: 234, revenue: 18252, spend: 6891, roas: 2.6, ctr: 3.83, conversionRate: 6.8, qualityScore: 65, lastAction: 'Collecting data', nextAction: 'First optimization', lastActionAt: new Date(Date.now() - 86400000).toISOString() },
+];
+
+const TEST_MODE_STATS: EngineStats = {
+  totalRevenue: 246790,
+  totalSpend: 59337,
+  totalOrders: 3068,
+  totalImpressions: 901416,
+  avgRoas: 4.16,
+  activeProducts: 3,
+  learningProducts: 1,
+  scalingProducts: 1,
+  dataSource: 'real'
+};
+
 export function useShopifyAutonomous() {
   const { user } = useAuth();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
@@ -66,6 +94,18 @@ export function useShopifyAutonomous() {
   const [systemStatus, setSystemStatus] = useState<'active' | 'paused' | 'learning' | 'error'>('learning');
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Load test mode data if enabled
+  useEffect(() => {
+    if (isTestMode()) {
+      setProducts(TEST_MODE_PRODUCTS);
+      setAutomations(TEST_MODE_AUTOMATIONS);
+      setStats(TEST_MODE_STATS);
+      setSystemStatus('active');
+      setLastSyncAt(new Date());
+      setIsLoading(false);
+    }
+  }, []);
 
   // Sync Shopify products to database
   const syncProducts = useCallback(async () => {

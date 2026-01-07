@@ -208,12 +208,32 @@ export const DEMO_PLAYBACK_SCENES = [
   },
 ];
 
+// Test mode state (in-memory toggle for unlimited testing)
+let testModeEnabled = false;
+
+export function enableTestMode(): void {
+  testModeEnabled = true;
+  localStorage.setItem('dominion_test_mode', 'true');
+}
+
+export function disableTestMode(): void {
+  testModeEnabled = false;
+  localStorage.removeItem('dominion_test_mode');
+}
+
+export function isTestMode(): boolean {
+  if (testModeEnabled) return true;
+  return localStorage.getItem('dominion_test_mode') === 'true';
+}
+
 // Check if app is in demo mode
 export function isDemoMode(): boolean {
   // Demo mode when:
+  // - Test mode is enabled (for unlimited testing)
   // - No user is authenticated (handled by calling code)
   // - Specific query param is set
   // - No real data exists
+  if (isTestMode()) return true;
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.has('demo') || urlParams.has('preview');
 }
