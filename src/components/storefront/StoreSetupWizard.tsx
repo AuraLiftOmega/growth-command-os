@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronRight, 
@@ -9,27 +10,22 @@ import {
   Eye, 
   CheckCircle2,
   Loader2,
-  Sparkles
+  Sparkles,
+  Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useStoreSetup, StoreSetupData } from "@/hooks/useStoreSetup";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SetupWizardProps {
-  onComplete: (data: StoreSetupData) => void;
+  onComplete?: (data: StoreSetupData) => void;
   onSkip?: () => void;
-}
-
-interface StoreSetupData {
-  storeName: string;
-  industry: string;
-  description: string;
-  targetAudience: string;
-  products: string[];
+  initialStoreName?: string;
 }
 
 const industries = [
@@ -50,18 +46,22 @@ const steps = [
   { id: 4, title: 'Preview', icon: Eye },
 ];
 
-export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
+export function StoreSetupWizard({ onComplete, onSkip, initialStoreName = '' }: SetupWizardProps) {
+  const navigate = useNavigate();
+  const { isLoading, saveSetup, generateStoreConfig, updateSetupWithConfig } = useStoreSetup();
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [data, setData] = useState<StoreSetupData>({
-    storeName: '',
+    storeName: initialStoreName,
     industry: '',
     description: '',
     targetAudience: '',
+    email: '',
     products: []
   });
 
-  const updateData = (field: keyof StoreSetupData, value: string | string[]) => {
+  const updateData = (field: keyof StoreSetupData, value: string | string[] | Array<{ name: string; price: string; description: string }>) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -69,7 +69,7 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
     switch (currentStep) {
       case 1: return data.storeName.trim().length > 0;
       case 2: return data.industry.length > 0;
-      case 3: return true; // Optional step
+      case 3: return data.email.trim().length > 0 && data.email.includes('@');
       case 4: return true;
       default: return false;
     }
@@ -92,12 +92,41 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
   const handleComplete = async () => {
     setIsGenerating(true);
     
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsGenerating(false);
-    toast.success("Your store is ready! Review and approve to go live.");
-    onComplete(data);
+    try {
+      // Capture lead first
+      await supabase.functions.invoke('capture-lead', {
+        body: {
+          email: data.email,
+          source: 'store_setup_wizard',
+          storeName: data.storeName,
+          industry: data.industry,
+          metadata: { targetAudience: data.targetAudience },
+        },
+      });
+
+      // Save setup to database
+      const setupId = await saveSetup(data);
+      
+      if (setupId) {
+        // Generate store configuration
+        const config = await generateStoreConfig(data);
+        await updateSetupWithConfig(setupId, config);
+        
+        toast.success("Your store is ready! Review and approve to go live.");
+        
+        if (onComplete) {
+          onComplete(data);
+        } else {
+          // Navigate to the store preview
+          navigate('/store');
+        }
+      }
+    } catch (error) {
+      console.error('Error completing setup:', error);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -200,14 +229,26 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
               <StepWrapper key="step3">
                 <div className="text-center mb-8">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Palette className="w-8 h-8 text-primary" />
+                    <Mail className="w-8 h-8 text-primary" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Tell us more (optional)</h2>
-                  <p className="text-muted-foreground">Help our AI create better content for you</p>
+                  <h2 className="text-2xl font-bold mb-2">Almost there!</h2>
+                  <p className="text-muted-foreground">Enter your email to receive your store setup</p>
                 </div>
                 <div className="space-y-4 max-w-lg mx-auto">
                   <div>
-                    <Label htmlFor="description">Store Description</Label>
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@yourstore.com"
+                      value={data.email}
+                      onChange={(e) => updateData('email', e.target.value)}
+                      className="mt-1.5 h-12"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Store Description (optional)</Label>
                     <Textarea
                       id="description"
                       placeholder="What makes your store unique? What's your brand story?"
@@ -217,7 +258,7 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="targetAudience">Target Audience</Label>
+                    <Label htmlFor="targetAudience">Target Audience (optional)</Label>
                     <Input
                       id="targetAudience"
                       placeholder="e.g., Young professionals, fitness enthusiasts"
@@ -248,7 +289,13 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-border">
                       <span className="text-muted-foreground">Industry</span>
-                      <span className="font-medium capitalize">{data.industry || 'Not selected'}</span>
+                      <span className="font-medium capitalize">
+                        {industries.find(i => i.id === data.industry)?.label || 'Not selected'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-border">
+                      <span className="text-muted-foreground">Email</span>
+                      <span className="font-medium">{data.email}</span>
                     </div>
                     {data.description && (
                       <div className="py-2 border-b border-border">
@@ -287,7 +334,7 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
             <Button
               variant="ghost"
               onClick={handleBack}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isGenerating}
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               Back
@@ -301,10 +348,10 @@ export function StoreSetupWizard({ onComplete, onSkip }: SetupWizardProps) {
               )}
               <Button
                 onClick={handleNext}
-                disabled={!canProceed() || isGenerating}
+                disabled={!canProceed() || isGenerating || isLoading}
                 className="min-w-[140px]"
               >
-                {isGenerating ? (
+                {isGenerating || isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Generating...

@@ -25,6 +25,7 @@ import Privacy from "./pages/Privacy";
 import Refund from "./pages/Refund";
 import Shipping from "./pages/Shipping";
 import StoreBuilder from "./pages/StoreBuilder";
+import { StoreSetupWizard } from "./components/storefront/StoreSetupWizard";
 import {
   IntimidationToggle, 
   DemoPhaseController, 
@@ -173,6 +174,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<StoreBuilder />} />
+      <Route path="/setup" element={<StoreSetupWizard />} />
       <Route path="/landing" element={<Landing />} />
       
       {/* Public Storefront Routes */}

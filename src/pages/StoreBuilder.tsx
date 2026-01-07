@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExitIntentPopup } from "@/components/storefront/ExitIntentPopup";
+import { TimedMobilePopup } from "@/components/storefront/TimedMobilePopup";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -559,8 +560,11 @@ const StoreBuilder = () => {
         </div>
       </footer>
 
-      {/* Exit Intent Popup */}
+      {/* Exit Intent Popup (Desktop) */}
       <ExitIntentPopup />
+      
+      {/* Timed Mobile Popup */}
+      <TimedMobilePopup delaySeconds={20} />
     </div>
   );
 };
