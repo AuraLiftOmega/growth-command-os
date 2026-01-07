@@ -61,7 +61,47 @@ export function useStoreSetup() {
     }
   };
 
-  const generateStoreConfig = async (data: StoreSetupData): Promise<StoreConfig> => {
+  const generateStoreConfig = async (data: StoreSetupData, setupId: string): Promise<StoreConfig | null> => {
+    try {
+      // Call the AI-powered store generation edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-store`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
+            setupId,
+            storeName: data.storeName,
+            industry: data.industry,
+            description: data.description,
+            targetAudience: data.targetAudience,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Store generation failed");
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.store) {
+        return result.store;
+      }
+      
+      // Fallback to local generation
+      return generateLocalConfig(data);
+    } catch (error) {
+      console.error("Error generating store config:", error);
+      // Fallback to local generation on any error
+      return generateLocalConfig(data);
+    }
+  };
+
+  const generateLocalConfig = (data: StoreSetupData): StoreConfig => {
     // Generate store configuration based on industry and preferences
     const industryStyles: Record<string, { primaryColor: string; style: string }> = {
       fashion: { primaryColor: "#ec4899", style: "elegant" },

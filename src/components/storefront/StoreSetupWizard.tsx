@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronRight, 
@@ -48,18 +48,30 @@ const steps = [
 
 export function StoreSetupWizard({ onComplete, onSkip, initialStoreName = '' }: SetupWizardProps) {
   const navigate = useNavigate();
-  const { isLoading, saveSetup, generateStoreConfig, updateSetupWithConfig } = useStoreSetup();
+  const [searchParams] = useSearchParams();
+  const { isLoading, saveSetup, generateStoreConfig } = useStoreSetup();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Get initial store name from URL or props
+  const nameFromUrl = searchParams.get('name') || '';
+  
   const [data, setData] = useState<StoreSetupData>({
-    storeName: initialStoreName,
+    storeName: initialStoreName || nameFromUrl,
     industry: '',
     description: '',
     targetAudience: '',
     email: '',
     products: []
   });
+  
+  // Update store name from URL when component mounts
+  useEffect(() => {
+    if (nameFromUrl && !data.storeName) {
+      setData(prev => ({ ...prev, storeName: nameFromUrl }));
+    }
+  }, [nameFromUrl]);
 
   const updateData = (field: keyof StoreSetupData, value: string | string[] | Array<{ name: string; price: string; description: string }>) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -108,9 +120,8 @@ export function StoreSetupWizard({ onComplete, onSkip, initialStoreName = '' }: 
       const setupId = await saveSetup(data);
       
       if (setupId) {
-        // Generate store configuration
-        const config = await generateStoreConfig(data);
-        await updateSetupWithConfig(setupId, config);
+        // Generate store configuration with AI (edge function handles the update)
+        await generateStoreConfig(data, setupId);
         
         toast.success("Your store is ready! Review and approve to go live.");
         
