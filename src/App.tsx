@@ -18,6 +18,12 @@ import CommandCenter from "./pages/CommandCenter";
 import Pricing from "./pages/Pricing";
 import DemoEmbed from "./pages/DemoEmbed";
 import SharedDemo from "./pages/SharedDemo";
+import Store from "./pages/Store";
+import Product from "./pages/Product";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Refund from "./pages/Refund";
+import Shipping from "./pages/Shipping";
 import {
   IntimidationToggle, 
   DemoPhaseController, 
@@ -166,6 +172,15 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      
+      {/* Public Storefront Routes */}
+      <Route path="/store" element={<Store />} />
+      <Route path="/product/:handle" element={<Product />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/refund" element={<Refund />} />
+      <Route path="/shipping" element={<Shipping />} />
+      
       <Route 
         path="/auth" 
         element={
