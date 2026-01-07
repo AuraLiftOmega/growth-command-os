@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Link2, 
@@ -16,10 +16,11 @@ import {
   Zap,
   ArrowRight,
   Shield,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react';
 import { SlackIntegrationConfig } from '@/components/integrations/SlackIntegrationConfig';
-import { useDominionStore } from '@/stores/dominion-core-store';
+import { useRevenueEngine } from '@/hooks/useRevenueEngine';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils';
  * - Never requires full replacement unless chosen
  * - Orchestrates existing systems
  * - Replaces humans first, tools last
+ * - All state persists to database
  */
 
 interface Integration {
@@ -42,33 +44,36 @@ interface Integration {
   orchestrated: boolean;
 }
 
-const AVAILABLE_INTEGRATIONS: Integration[] = [
+const INTEGRATION_DEFINITIONS: Omit<Integration, 'status' | 'orchestrated'>[] = [
   // Commerce
-  { id: 'shopify', name: 'Shopify', category: 'commerce', icon: ShoppingBag, description: 'E-commerce platform', status: 'connected', orchestrated: true },
-  { id: 'woocommerce', name: 'WooCommerce', category: 'commerce', icon: ShoppingBag, description: 'WordPress commerce', status: 'available', orchestrated: false },
+  { id: 'shopify', name: 'Shopify', category: 'commerce', icon: ShoppingBag, description: 'E-commerce platform' },
+  { id: 'woocommerce', name: 'WooCommerce', category: 'commerce', icon: ShoppingBag, description: 'WordPress commerce' },
   
   // Ads
-  { id: 'meta_ads', name: 'Meta Ads', category: 'ads', icon: BarChart3, description: 'Facebook & Instagram ads', status: 'available', orchestrated: false },
-  { id: 'google_ads', name: 'Google Ads', category: 'ads', icon: BarChart3, description: 'Search & display ads', status: 'available', orchestrated: false },
-  { id: 'tiktok_ads', name: 'TikTok Ads', category: 'ads', icon: BarChart3, description: 'TikTok advertising', status: 'available', orchestrated: false },
+  { id: 'meta_ads', name: 'Meta Ads', category: 'ads', icon: BarChart3, description: 'Facebook & Instagram ads' },
+  { id: 'google_ads', name: 'Google Ads', category: 'ads', icon: BarChart3, description: 'Search & display ads' },
+  { id: 'tiktok_ads', name: 'TikTok Ads', category: 'ads', icon: BarChart3, description: 'TikTok advertising' },
   
   // Email
-  { id: 'klaviyo', name: 'Klaviyo', category: 'email', icon: Mail, description: 'E-commerce email', status: 'available', orchestrated: false },
-  { id: 'convertkit', name: 'ConvertKit', category: 'email', icon: Mail, description: 'Creator email', status: 'available', orchestrated: false },
+  { id: 'klaviyo', name: 'Klaviyo', category: 'email', icon: Mail, description: 'E-commerce email' },
+  { id: 'convertkit', name: 'ConvertKit', category: 'email', icon: Mail, description: 'Creator email' },
   
   // CRM
-  { id: 'hubspot', name: 'HubSpot', category: 'crm', icon: Users, description: 'CRM & marketing', status: 'available', orchestrated: false },
-  { id: 'salesforce', name: 'Salesforce', category: 'crm', icon: Users, description: 'Enterprise CRM', status: 'coming_soon', orchestrated: false },
+  { id: 'hubspot', name: 'HubSpot', category: 'crm', icon: Users, description: 'CRM & marketing' },
+  { id: 'salesforce', name: 'Salesforce', category: 'crm', icon: Users, description: 'Enterprise CRM' },
   
   // Payments
-  { id: 'stripe', name: 'Stripe', category: 'payments', icon: CreditCard, description: 'Payment processing', status: 'available', orchestrated: false },
+  { id: 'stripe', name: 'Stripe', category: 'payments', icon: CreditCard, description: 'Payment processing' },
   
   // Calendar
-  { id: 'calendly', name: 'Calendly', category: 'calendar', icon: Calendar, description: 'Scheduling', status: 'available', orchestrated: false },
+  { id: 'calendly', name: 'Calendly', category: 'calendar', icon: Calendar, description: 'Scheduling' },
   
   // Communication
-  { id: 'slack', name: 'Slack', category: 'communication', icon: MessageSquare, description: 'Team communication', status: 'available', orchestrated: false },
+  { id: 'slack', name: 'Slack', category: 'communication', icon: MessageSquare, description: 'Team communication' },
 ];
+
+// Define which integrations are coming soon (not yet available)
+const COMING_SOON = ['salesforce'];
 
 const categories = [
   { id: 'all', name: 'All' },
@@ -80,32 +85,50 @@ const categories = [
 ];
 
 export const IntegrationSovereignty = () => {
-  const { connectedIntegrations, addIntegration, removeIntegration } = useDominionStore();
+  const { 
+    connectedIntegrations, 
+    connectIntegration, 
+    disconnectIntegration,
+    isLoading 
+  } = useRevenueEngine();
+  
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [integrations, setIntegrations] = useState(AVAILABLE_INTEGRATIONS);
   const [showSlackConfig, setShowSlackConfig] = useState(false);
+  const [pendingIntegration, setPendingIntegration] = useState<string | null>(null);
+
+  // Build integrations list from definitions + connection state
+  const integrations = useMemo<Integration[]>(() => {
+    return INTEGRATION_DEFINITIONS.map(def => ({
+      ...def,
+      status: COMING_SOON.includes(def.id) 
+        ? 'coming_soon' as const
+        : connectedIntegrations.includes(def.id) 
+          ? 'connected' as const 
+          : 'available' as const,
+      orchestrated: connectedIntegrations.includes(def.id),
+    }));
+  }, [connectedIntegrations]);
 
   const filteredIntegrations = selectedCategory === 'all' 
     ? integrations 
     : integrations.filter(i => i.category === selectedCategory);
 
-  const handleConnect = (integrationId: string) => {
+  const handleConnect = async (integrationId: string) => {
     // Special handling for Slack to show config modal
     if (integrationId === 'slack') {
       setShowSlackConfig(true);
       return;
     }
-    addIntegration(integrationId);
-    setIntegrations(prev => prev.map(i => 
-      i.id === integrationId ? { ...i, status: 'connected' as const, orchestrated: true } : i
-    ));
+    
+    setPendingIntegration(integrationId);
+    await connectIntegration(integrationId);
+    setPendingIntegration(null);
   };
 
-  const handleDisconnect = (integrationId: string) => {
-    removeIntegration(integrationId);
-    setIntegrations(prev => prev.map(i => 
-      i.id === integrationId ? { ...i, status: 'available' as const, orchestrated: false } : i
-    ));
+  const handleDisconnect = async (integrationId: string) => {
+    setPendingIntegration(integrationId);
+    await disconnectIntegration(integrationId);
+    setPendingIntegration(null);
   };
 
   const connectedCount = integrations.filter(i => i.status === 'connected').length;
@@ -218,9 +241,14 @@ export const IntegrationSovereignty = () => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDisconnect(integration.id)}
+                    disabled={pendingIntegration === integration.id}
                     className="text-xs text-muted-foreground hover:text-destructive"
                   >
-                    Disconnect
+                    {pendingIntegration === integration.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      'Disconnect'
+                    )}
                   </Button>
                 </>
               ) : integration.status === 'coming_soon' ? (
@@ -230,10 +258,17 @@ export const IntegrationSovereignty = () => {
                   size="sm"
                   variant="outline"
                   onClick={() => handleConnect(integration.id)}
+                  disabled={pendingIntegration === integration.id}
                   className="w-full gap-2"
                 >
-                  <Plus className="w-4 h-4" />
-                  Connect
+                  {pendingIntegration === integration.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Connect
+                    </>
+                  )}
                 </Button>
               )}
             </div>

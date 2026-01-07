@@ -8,7 +8,8 @@ import {
   Target,
   AlertCircle,
   Settings,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -33,7 +34,7 @@ import { SalesAgentChat, BookingsDashboard } from "@/components/sales-agent";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
-import { useDominionStore, INDUSTRY_TEMPLATES } from "@/stores/dominion-core-store";
+import { useRevenueEngine } from "@/hooks/useRevenueEngine";
 import { useConfigNotifications } from "@/hooks/useConfigNotifications";
 
 const Index = () => {
@@ -47,9 +48,9 @@ const Index = () => {
     isActive, 
     dealSize,
     buyingCycle,
-    offerType,
-    salesMotion 
-  } = useDominionStore();
+    isLoading,
+    isAuthenticated,
+  } = useRevenueEngine();
 
   // Enable config change notifications
   useConfigNotifications();
@@ -59,6 +60,18 @@ const Index = () => {
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
     return num.toString();
   };
+
+  // Show loading state while engine config loads
+  if (isLoading && isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading DOMINION...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

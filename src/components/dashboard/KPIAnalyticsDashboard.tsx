@@ -11,7 +11,7 @@ import {
   Info,
   AlertCircle
 } from 'lucide-react';
-import { useDominionStore, INDUSTRY_TEMPLATES } from '@/stores/dominion-core-store';
+import { useRevenueEngine } from '@/hooks/useRevenueEngine';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -45,8 +45,9 @@ export const KPIAnalyticsDashboard = () => {
     industry, 
     isConfigured,
     isActive,
-    dealSize
-  } = useDominionStore();
+    dealSize,
+    getKPIs,
+  } = useRevenueEngine();
   
   const [kpiMetrics, setKpiMetrics] = useState<KPIMetric[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
