@@ -26,6 +26,7 @@ import Refund from "./pages/Refund";
 import Shipping from "./pages/Shipping";
 import StoreBuilder from "./pages/StoreBuilder";
 import StoreGenerated from "./pages/StoreGenerated";
+import SystemCheck from "./pages/SystemCheck";
 import { StoreSetupWizard } from "./components/storefront/StoreSetupWizard";
 import {
   IntimidationToggle, 
@@ -239,6 +240,14 @@ const AppRoutes = () => {
       <Route path="/embed/demo/:demoId" element={<DemoEmbed />} />
       <Route path="/demo/preview" element={<SharedDemo />} />
       <Route path="/demo/:shareCode" element={<SharedDemo />} />
+      <Route 
+        path="/system-check" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <SystemCheck />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
