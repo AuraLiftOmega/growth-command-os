@@ -2,14 +2,19 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import heroBanner from "@/assets/hero-banner.jpg";
 
 export function StoreHero() {
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
-      {/* Background gradient effects */}
+      {/* Background Image */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+        <img 
+          src={heroBanner} 
+          alt="Premium electronics, fitness gear and footwear"
+          className="w-full h-full object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
       </div>
 
       <div className="container mx-auto px-4">
@@ -19,7 +24,7 @@ export function StoreHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Premium Collection</span>
             </div>
