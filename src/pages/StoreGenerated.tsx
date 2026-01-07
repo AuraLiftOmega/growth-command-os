@@ -16,19 +16,37 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+interface GeneratedConfig {
+  theme?: { 
+    primaryColor?: string; 
+    secondaryColor?: string;
+    style?: string;
+    fontPrimary?: string;
+  };
+  layout?: string;
+  features?: string[];
+  hero?: {
+    headline?: string;
+    subheadline?: string;
+    ctaText?: string;
+  };
+  seo?: { 
+    title?: string; 
+    description?: string;
+    keywords?: string[];
+  };
+  collections?: Array<{ name: string; description: string; handle: string }>;
+  sampleProducts?: Array<{ title: string; description: string; price: string; category: string }>;
+}
+
 interface StoreSetup {
   id: string;
   store_name: string;
   industry: string;
   email: string;
-  description: string;
-  target_audience: string;
-  generated_config: {
-    theme: { primaryColor: string; style: string };
-    layout: string;
-    features: string[];
-    seo: { title: string; description: string };
-  } | null;
+  description: string | null;
+  target_audience: string | null;
+  generated_config: GeneratedConfig | null;
   status: string;
 }
 
@@ -219,38 +237,81 @@ export default function StoreGenerated() {
                       <div className="flex items-center gap-2 mt-1">
                         <div 
                           className="w-6 h-6 rounded-full border"
-                          style={{ backgroundColor: config.theme.primaryColor }}
+                          style={{ backgroundColor: config.theme?.primaryColor || '#6366f1' }}
                         />
-                        <span className="font-medium capitalize">{config.theme.style}</span>
+                        <span className="font-medium capitalize">{config.theme?.style || 'modern'}</span>
                       </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Layout</p>
-                      <p className="font-medium capitalize">{config.layout.replace("-", " ")}</p>
+                      <p className="font-medium capitalize">{(config.layout || 'modern-grid').replace("-", " ")}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Features Enabled</p>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {config.features.map((feature) => (
-                          <span 
-                            key={feature}
-                            className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full capitalize"
-                          >
-                            {feature.replace("-", " ")}
-                          </span>
-                        ))}
+                    {config.features && config.features.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Features Enabled</p>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {config.features.map((feature) => (
+                            <span 
+                              key={feature}
+                              className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full capitalize"
+                            >
+                              {feature.replace("-", " ")}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">SEO Title</p>
-                      <p className="text-sm">{config.seo.title}</p>
-                    </div>
+                    )}
+                    {config.seo?.title && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">SEO Title</p>
+                        <p className="text-sm">{config.seo.title}</p>
+                      </div>
+                    )}
+                    {config.hero?.headline && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Hero Headline</p>
+                        <p className="text-sm font-medium">{config.hero.headline}</p>
+                      </div>
+                    )}
                   </>
+                )}
+                {!config && (
+                  <p className="text-sm text-muted-foreground">Configuration pending...</p>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </div>
+
+        {/* Sample Products Preview */}
+        {config?.sampleProducts && config.sampleProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="max-w-4xl mx-auto mt-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-primary" />
+                  AI-Generated Product Ideas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-3 gap-4">
+                  {config.sampleProducts.map((product, index) => (
+                    <div key={index} className="p-4 bg-muted/50 rounded-lg">
+                      <p className="font-medium">{product.title}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                      <p className="text-sm font-semibold text-primary mt-2">{product.price}</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Next Steps */}
         <motion.div

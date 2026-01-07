@@ -50,7 +50,8 @@ const StoreBuilder = () => {
       toast.error("Enter your store name to continue");
       return;
     }
-    navigate('/onboarding');
+    // Navigate to setup wizard with store name
+    navigate(`/setup?name=${encodeURIComponent(quickStartData.storeName)}`);
   };
 
   const plans = [
