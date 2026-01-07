@@ -33,7 +33,10 @@ import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
 import { SalesAgentChat, BookingsDashboard } from "@/components/sales-agent";
 import { StoreOnboardingBanner } from "@/components/dashboard/StoreOnboardingBanner";
+import { LiveProfitEngine } from "@/components/autonomous/LiveProfitEngine";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useRevenueEngine } from "@/hooks/useRevenueEngine";
@@ -241,6 +244,25 @@ const Index = () => {
           {/* Vertical Intelligence */}
           <div className="mb-6">
             <VerticalIntelligence />
+          </div>
+
+          {/* LIVE AUTONOMOUS PROFIT ENGINE */}
+          <div className="mb-6">
+            <Card className="p-4 bg-gradient-to-r from-success/10 to-primary/10 border-success/30 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-success/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Autonomous Selling ACTIVE</p>
+                    <p className="text-xs text-muted-foreground">15 products • 6 channels • Profits compounding 24/7</p>
+                  </div>
+                </div>
+                <Badge className="bg-success/20 text-success animate-pulse">LIVE</Badge>
+              </div>
+            </Card>
+            <LiveProfitEngine />
           </div>
 
           {/* Shopify Autonomous Engine */}
