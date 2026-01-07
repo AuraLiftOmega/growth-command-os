@@ -277,10 +277,10 @@ const Index = () => {
                   </div>
                   <div>
                     <p className="font-semibold">Real Video Generation Mode</p>
-                    <p className="text-xs text-muted-foreground">Replicate API connected • 12 AuraLift products ready</p>
+                    <p className="text-xs text-muted-foreground">Replicate API • ALL 15 Shopify products ready for viral videos</p>
                   </div>
                 </div>
-                <Badge className="bg-primary/20 text-primary">REPLICATE AI</Badge>
+                <Badge className="bg-primary/20 text-primary">GOD MODE</Badge>
               </div>
             </Card>
             <RealVideoSwarm />
