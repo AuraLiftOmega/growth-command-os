@@ -2,77 +2,140 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, 
-  Building2, 
   CheckCircle2, 
   Loader2,
   ArrowLeft,
   Zap,
   Shield,
   Crown,
-  Receipt
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { TierLevel, TIER_CONFIGS, usePricingStore } from '@/stores/pricing-store';
 import { TierComparison } from './TierComparison';
 import { WhiteLabelConfig } from './WhiteLabelConfig';
 import { ActivationReadyState } from './EnterpriseCloseVariant';
+import { useStripeCheckout, StripePlan } from '@/hooks/useStripeCheckout';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 /**
- * AUTONOMOUS CHECKOUT & ONBOARDING
+ * AUTONOMOUS CHECKOUT WITH STRIPE
  * 
- * - Display tier comparison clearly
- * - Recommend tier based on customer inputs
- * - Allow instant payment
- * - Auto-provision access
- * - Trigger onboarding flows automatically
- * 
- * No human involvement required.
+ * - Real Stripe Checkout integration
+ * - Tier comparison with replacement cost anchoring
+ * - God-mode bypass for admin
+ * - 14-day trial for all paid plans
  */
 
+// Map our tier names to Stripe plan keys
+const TIER_TO_STRIPE: Record<TierLevel, StripePlan | null> = {
+  core: 'starter',
+  scale: 'growth', 
+  dominion: 'enterprise',
+};
+
 export const AutonomousCheckout = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { subscription, isAdmin, isLoading: subLoading } = useSubscription();
+  const { createCheckoutSession, isLoading: checkoutLoading } = useStripeCheckout();
+  
   const { 
     selectedTier, 
     selectTier,
     billingCycle,
+    setBillingCycle,
     checkoutStep,
     setCheckoutStep,
-    isProcessing,
-    setProcessing,
     whiteLabelConfig,
     setWhiteLabelConfig,
-    reset
   } = usePricingStore();
 
-  const handleTierSelect = (tier: TierLevel) => {
+  // Handle success/cancel from Stripe
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    const plan = searchParams.get('plan');
+
+    if (success === 'true') {
+      toast.success('Subscription activated!', {
+        description: `Your ${plan || 'new'} plan is now active. Welcome aboard!`,
+      });
+      setCheckoutStep('complete');
+      // Clear URL params
+      navigate('/pricing', { replace: true });
+    } else if (canceled === 'true') {
+      toast.info('Checkout canceled', {
+        description: 'No worries! Your subscription wasn\'t changed.',
+      });
+      navigate('/pricing', { replace: true });
+    }
+  }, [searchParams, navigate, setCheckoutStep]);
+
+  const handleTierSelect = async (tier: TierLevel) => {
     selectTier(tier);
     
-    // DOMINION tier goes through enterprise close flow
+    // If not logged in, redirect to auth
+    if (!user) {
+      toast.info('Please sign in to subscribe');
+      navigate('/auth?redirect=/pricing');
+      return;
+    }
+
+    // DOMINION tier goes through enterprise close flow first
     if (tier === 'dominion') {
       setCheckoutStep('configure');
     } else {
-      setCheckoutStep('payment');
+      // For other tiers, go straight to Stripe
+      await handleStripeCheckout(tier);
     }
   };
 
-  const handlePaymentComplete = async () => {
-    setProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setProcessing(false);
-    setCheckoutStep('onboarding');
+  const handleStripeCheckout = async (tier: TierLevel) => {
+    const stripePlan = TIER_TO_STRIPE[tier];
+    if (!stripePlan) {
+      toast.error('Invalid plan selected');
+      return;
+    }
+
+    const result = await createCheckoutSession(stripePlan, billingCycle);
+    if (!result.success) {
+      toast.error('Checkout failed', { description: result.error });
+    }
+    // If successful, user is redirected to Stripe
   };
 
-  const handleOnboardingComplete = () => {
-    setCheckoutStep('complete');
+  const handleConfigComplete = async () => {
+    if (selectedTier) {
+      await handleStripeCheckout(selectedTier);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {/* God Mode Banner */}
+      {isAdmin && (
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-gradient-to-r from-amber-500/20 via-primary/20 to-amber-500/20 border-b border-amber-500/30 py-2 text-center"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Crown className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-mono text-amber-500">
+              GOD MODE ACTIVE — Unlimited Everything
+            </span>
+            <Sparkles className="w-4 h-4 text-amber-500" />
+          </div>
+        </motion.div>
+      )}
+
       <AnimatePresence mode="wait">
         {checkoutStep === 'select' && (
           <CheckoutStepWrapper key="select">
@@ -101,9 +164,65 @@ export const AutonomousCheckout = () => {
                 This is infrastructure, not software. 
                 Each tier replaces labor costs, not adds them.
               </motion.p>
+
+              {/* Current Plan Indicator */}
+              {subscription && subscription.plan !== 'free' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  <span className="text-sm text-success">
+                    Current plan: {subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)}
+                  </span>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Billing Cycle Toggle */}
+            <div className="flex justify-center mb-8">
+              <div className="flex items-center gap-2 p-1 rounded-lg bg-card border border-border">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={cn(
+                    "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                    billingCycle === 'monthly' 
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-secondary"
+                  )}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingCycle('annual')}
+                  className={cn(
+                    "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                    billingCycle === 'annual' 
+                      ? "bg-primary text-primary-foreground" 
+                      : "hover:bg-secondary"
+                  )}
+                >
+                  Annual
+                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-success/20 text-success">
+                    Save 17%
+                  </span>
+                </button>
+              </div>
             </div>
             
             <TierComparison onSelectTier={handleTierSelect} />
+
+            {/* Test Mode Notice */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 text-center text-xs text-muted-foreground"
+            >
+              <p>Test mode: Use card 4242 4242 4242 4242, any future expiry, any CVC</p>
+            </motion.div>
           </CheckoutStepWrapper>
         )}
 
@@ -117,47 +236,25 @@ export const AutonomousCheckout = () => {
                   accessLevel={TIER_CONFIGS[selectedTier].capabilities.whiteLabelLevel}
                   onSave={(config) => {
                     setWhiteLabelConfig(config);
-                    setCheckoutStep('payment');
+                    handleConfigComplete();
                   }}
                   onCancel={() => setCheckoutStep('select')}
                 />
               ) : (
-                <PaymentForm 
+                <StripeCheckoutButton 
                   tier={selectedTier}
-                  onComplete={handlePaymentComplete}
-                  onBack={() => setCheckoutStep('select')}
+                  billingCycle={billingCycle}
+                  onCheckout={handleConfigComplete}
+                  isLoading={checkoutLoading}
                 />
               )}
             </div>
           </CheckoutStepWrapper>
         )}
 
-        {checkoutStep === 'payment' && selectedTier && (
-          <CheckoutStepWrapper key="payment">
-            <div className="max-w-xl mx-auto">
-              <BackButton onClick={() => setCheckoutStep('select')} />
-              
-              <PaymentForm 
-                tier={selectedTier}
-                onComplete={handlePaymentComplete}
-                onBack={() => setCheckoutStep('select')}
-              />
-            </div>
-          </CheckoutStepWrapper>
-        )}
-
-        {checkoutStep === 'onboarding' && selectedTier && (
-          <ActivationReadyState 
-            isActive={true}
-            tierName={TIER_CONFIGS[selectedTier].name}
-            onConfirm={handleOnboardingComplete}
-            onBack={() => setCheckoutStep('payment')}
-          />
-        )}
-
-        {checkoutStep === 'complete' && selectedTier && (
+        {checkoutStep === 'complete' && (
           <CheckoutStepWrapper key="complete">
-            <ActivationComplete tier={selectedTier} />
+            <ActivationComplete />
           </CheckoutStepWrapper>
         )}
       </AnimatePresence>
@@ -190,157 +287,67 @@ const BackButton = ({ onClick }: { onClick: () => void }) => (
 );
 
 /**
- * Payment Form Component
+ * Stripe Checkout Button for configured tiers
  */
-const PaymentForm = ({ 
+const StripeCheckoutButton = ({ 
   tier, 
-  onComplete,
-  onBack
+  billingCycle,
+  onCheckout,
+  isLoading,
 }: { 
   tier: TierLevel;
-  onComplete: () => void;
-  onBack: () => void;
+  billingCycle: 'monthly' | 'annual';
+  onCheckout: () => void;
+  isLoading: boolean;
 }) => {
-  const { billingCycle, isProcessing, setProcessing } = usePricingStore();
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'invoice'>('card');
   const config = TIER_CONFIGS[tier];
-  
-  const price = billingCycle === 'monthly' 
-    ? config.price.monthly 
-    : config.price.annual;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setProcessing(true);
-    
-    // Simulate payment
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setProcessing(false);
-    onComplete();
-  };
+  const price = billingCycle === 'monthly' ? config.price.monthly : config.price.annual;
 
   return (
-    <div>
-      <div className="text-center mb-8">
-        <div className={cn(
-          "inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3",
-          tier === 'dominion' ? "bg-primary/20" : "bg-secondary"
-        )}>
-          {tier === 'core' && <Zap className="w-6 h-6 text-primary" />}
-          {tier === 'scale' && <Shield className="w-6 h-6 text-primary" />}
-          {tier === 'dominion' && <Crown className="w-6 h-6 text-primary" />}
-        </div>
-        <h2 className="text-2xl font-bold">{config.name} Activation</h2>
-        <p className="text-muted-foreground">{config.tagline}</p>
+    <div className="text-center">
+      <div className={cn(
+        "inline-flex items-center justify-center w-16 h-16 rounded-xl mb-4",
+        tier === 'dominion' ? "bg-primary/20" : "bg-secondary"
+      )}>
+        {tier === 'core' && <Zap className="w-8 h-8 text-primary" />}
+        {tier === 'scale' && <Shield className="w-8 h-8 text-primary" />}
+        {tier === 'dominion' && <Crown className="w-8 h-8 text-primary" />}
+      </div>
+      
+      <h2 className="text-2xl font-bold mb-2">{config.name}</h2>
+      <p className="text-muted-foreground mb-4">{config.tagline}</p>
+      
+      <div className="text-3xl font-bold mb-2">
+        ${price.toLocaleString()}
+        <span className="text-base text-muted-foreground font-normal">
+          /{billingCycle === 'monthly' ? 'mo' : 'yr'}
+        </span>
       </div>
 
-      {/* Order summary */}
-      <div className="p-4 rounded-lg bg-card border border-border mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm">{config.name} ({billingCycle})</span>
-          <span className="font-semibold">${price.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between items-center text-sm text-muted-foreground">
-          <span>Billed {billingCycle}</span>
-          {billingCycle === 'annual' && (
-            <span className="text-success">Save ${(config.price.monthly * 12 - config.price.annual).toLocaleString()}</span>
-          )}
-        </div>
-      </div>
+      <p className="text-xs text-success mb-6">{config.replacementValue}</p>
 
-      {/* Replacement value reminder */}
-      <div className="p-3 rounded-lg bg-success/10 border border-success/20 mb-6">
-        <p className="text-xs text-success text-center">
-          {config.replacementValue}
-        </p>
-      </div>
-
-      {/* Payment method toggle */}
-      <div className="flex gap-2 mb-6">
-        <button
-          type="button"
-          onClick={() => setPaymentMethod('card')}
-          className={cn(
-            "flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition-colors",
-            paymentMethod === 'card' 
-              ? "bg-primary/10 border-primary/30" 
-              : "border-border hover:border-border/80"
-          )}
-        >
-          <CreditCard className="w-4 h-4" />
-          <span className="text-sm font-medium">Card</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setPaymentMethod('invoice')}
-          className={cn(
-            "flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition-colors",
-            paymentMethod === 'invoice' 
-              ? "bg-primary/10 border-primary/30" 
-              : "border-border hover:border-border/80"
-          )}
-        >
-          <Receipt className="w-4 h-4" />
-          <span className="text-sm font-medium">Invoice</span>
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {paymentMethod === 'card' ? (
+      <Button 
+        size="lg" 
+        onClick={onCheckout}
+        disabled={isLoading}
+        className="gap-2"
+      >
+        {isLoading ? (
           <>
-            <div className="space-y-2">
-              <Label htmlFor="cardNumber">Card Number</Label>
-              <Input
-                id="cardNumber"
-                placeholder="4242 4242 4242 4242"
-                className="bg-card"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expiry">Expiry</Label>
-                <Input id="expiry" placeholder="MM/YY" className="bg-card" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cvc">CVC</Label>
-                <Input id="cvc" placeholder="123" className="bg-card" />
-              </div>
-            </div>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Preparing checkout...
           </>
         ) : (
           <>
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input id="companyName" placeholder="Acme Inc." className="bg-card" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="billingEmail">Billing Email</Label>
-              <Input id="billingEmail" type="email" placeholder="billing@company.com" className="bg-card" />
-            </div>
+            <CreditCard className="w-4 h-4" />
+            Proceed to Checkout
+            <ExternalLink className="w-3 h-3" />
           </>
         )}
+      </Button>
 
-        <Button 
-          type="submit" 
-          className="w-full mt-6"
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              Activate {config.name}
-            </>
-          )}
-        </Button>
-      </form>
-
-      <p className="text-xs text-center text-muted-foreground mt-4">
-        14-day activation guarantee. Cancel anytime.
+      <p className="text-xs text-muted-foreground mt-4">
+        14-day trial included. Cancel anytime.
       </p>
     </div>
   );
@@ -349,8 +356,9 @@ const PaymentForm = ({
 /**
  * Activation Complete State
  */
-const ActivationComplete = ({ tier }: { tier: TierLevel }) => {
-  const config = TIER_CONFIGS[tier];
+const ActivationComplete = () => {
+  const { subscription } = useSubscription();
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-lg mx-auto text-center">
@@ -372,7 +380,7 @@ const ActivationComplete = ({ tier }: { tier: TierLevel }) => {
           Infrastructure Active
         </p>
         <h2 className="text-2xl font-bold mb-4">
-          {config.name} Activated
+          {subscription?.plan ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) : 'Plan'} Activated
         </h2>
         <p className="text-muted-foreground mb-8">
           Your revenue infrastructure is now operational. 
@@ -387,9 +395,9 @@ const ActivationComplete = ({ tier }: { tier: TierLevel }) => {
         className="space-y-3 mb-8"
       >
         <StatusLine status="complete" text="Payment processed" />
-        <StatusLine status="complete" text="Access provisioned" />
-        <StatusLine status="active" text="Industry configuration initializing..." />
-        <StatusLine status="pending" text="First automation deployment" />
+        <StatusLine status="complete" text="Subscription activated" />
+        <StatusLine status="complete" text="Credits allocated" />
+        <StatusLine status="active" text="Configuring your dashboard..." />
       </motion.div>
 
       <motion.div
@@ -397,7 +405,7 @@ const ActivationComplete = ({ tier }: { tier: TierLevel }) => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <Button size="lg" onClick={() => window.location.href = '/dashboard'}>
+        <Button size="lg" onClick={() => navigate('/')}>
           Enter Command Center
         </Button>
       </motion.div>
@@ -412,7 +420,7 @@ const StatusLine = ({
   status: 'complete' | 'active' | 'pending';
   text: string;
 }) => (
-  <div className="flex items-center gap-3 text-sm">
+  <div className="flex items-center gap-3 text-sm justify-center">
     {status === 'complete' && <CheckCircle2 className="w-4 h-4 text-success" />}
     {status === 'active' && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
     {status === 'pending' && <div className="w-4 h-4 rounded-full border-2 border-border" />}
