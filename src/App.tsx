@@ -28,6 +28,7 @@ import StoreBuilder from "./pages/StoreBuilder";
 import StoreGenerated from "./pages/StoreGenerated";
 import SystemCheck from "./pages/SystemCheck";
 import SystemDiagnostics from "./pages/SystemDiagnostics";
+import CEOBrain from "./pages/CEOBrain";
 import { StoreSetupWizard } from "./components/storefront/StoreSetupWizard";
 import {
   IntimidationToggle, 
@@ -246,6 +247,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRouteWithRedirect>
             <SystemCheck />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
+      <Route 
+        path="/ceo-brain" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <CEOBrain />
           </ProtectedRouteWithRedirect>
         } 
       />
