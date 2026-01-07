@@ -95,20 +95,37 @@ export function useShopifyAutonomous() {
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load test mode data if enabled
+  // Check test mode immediately and set data
+  const testModeActive = isTestMode();
+
+  // Load test mode data if enabled - this runs synchronously on mount
   useEffect(() => {
-    if (isTestMode()) {
+    if (testModeActive) {
       setProducts(TEST_MODE_PRODUCTS);
       setAutomations(TEST_MODE_AUTOMATIONS);
       setStats(TEST_MODE_STATS);
       setSystemStatus('active');
       setLastSyncAt(new Date());
       setIsLoading(false);
+      setError(null);
     }
-  }, []);
+  }, [testModeActive]);
 
   // Sync Shopify products to database
   const syncProducts = useCallback(async () => {
+    // In test mode, just simulate a successful sync
+    if (testModeActive) {
+      setIsSyncing(true);
+      await new Promise(r => setTimeout(r, 500));
+      setProducts(TEST_MODE_PRODUCTS);
+      setAutomations(TEST_MODE_AUTOMATIONS);
+      setStats(TEST_MODE_STATS);
+      setLastSyncAt(new Date());
+      setIsSyncing(false);
+      toast.success('Synced 3 products (Test Mode)');
+      return;
+    }
+
     if (!user) return;
     
     setIsSyncing(true);
@@ -194,10 +211,16 @@ export function useShopifyAutonomous() {
     } finally {
       setIsSyncing(false);
     }
-  }, [user]);
+  }, [user, testModeActive]);
 
   // Load automations from database
   const loadAutomations = useCallback(async () => {
+    // Skip if in test mode - data is already set
+    if (testModeActive) {
+      setIsLoading(false);
+      return;
+    }
+
     if (!user) return;
     
     try {
@@ -289,13 +312,24 @@ export function useShopifyAutonomous() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, syncProducts]);
+  }, [user, syncProducts, testModeActive]);
 
   // Update automation status
   const updateAutomationStatus = useCallback(async (
     automationId: string, 
     newStatus: ProductAutomation['status']
   ) => {
+    // In test mode, just update local state
+    if (testModeActive) {
+      setAutomations(prev => prev.map(a => 
+        a.id === automationId 
+          ? { ...a, status: newStatus, lastAction: `Status changed to ${newStatus}` }
+          : a
+      ));
+      toast.success(`Automation status updated to ${newStatus}`);
+      return;
+    }
+
     if (!user) return;
 
     try {
@@ -323,13 +357,24 @@ export function useShopifyAutonomous() {
       console.error('Error updating automation:', err);
       toast.error('Failed to update automation');
     }
-  }, [user]);
+  }, [user, testModeActive]);
 
   // Update automation mode (manual/assisted/autonomous)
   const updateAutomationMode = useCallback(async (
     automationId: string,
     newMode: ProductAutomation['automationMode']
   ) => {
+    // In test mode, just update local state
+    if (testModeActive) {
+      setAutomations(prev => prev.map(a => 
+        a.id === automationId 
+          ? { ...a, automationMode: newMode }
+          : a
+      ));
+      toast.success(`Automation mode set to ${newMode}`);
+      return;
+    }
+
     if (!user) return;
 
     try {
@@ -356,10 +401,22 @@ export function useShopifyAutonomous() {
       console.error('Error updating mode:', err);
       toast.error('Failed to update automation mode');
     }
-  }, [user]);
+  }, [user, testModeActive]);
 
   // Toggle global engine state
   const toggleEngine = useCallback(async (enabled: boolean) => {
+    // In test mode, just update local state
+    if (testModeActive) {
+      setSystemStatus(enabled ? 'active' : 'paused');
+      setAutomations(prev => prev.map(a => 
+        a.status !== 'disabled' 
+          ? { ...a, status: enabled ? 'optimizing' : 'paused' as ProductAutomation['status'] }
+          : a
+      ));
+      toast.success(enabled ? 'Autonomous engine activated' : 'Autonomous engine paused');
+      return;
+    }
+
     if (!user) return;
 
     try {
@@ -389,7 +446,7 @@ export function useShopifyAutonomous() {
       console.error('Error toggling engine:', err);
       toast.error('Failed to toggle engine');
     }
-  }, [user]);
+  }, [user, testModeActive]);
 
   // Record a revenue event
   const recordEvent = useCallback(async (
@@ -447,9 +504,9 @@ export function useShopifyAutonomous() {
     }
   }, [user, automations]);
 
-  // Subscribe to realtime updates
+  // Subscribe to realtime updates (skip in test mode)
   useEffect(() => {
-    if (!user) return;
+    if (!user || testModeActive) return;
 
     const channel = supabase
       .channel('autonomous-engine')
@@ -483,14 +540,14 @@ export function useShopifyAutonomous() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, loadAutomations]);
+  }, [user, loadAutomations, testModeActive]);
 
-  // Initial load
+  // Initial load (skip in test mode - already handled)
   useEffect(() => {
-    if (user) {
+    if (user && !testModeActive) {
       loadAutomations();
     }
-  }, [user, loadAutomations]);
+  }, [user, loadAutomations, testModeActive]);
 
   return {
     products,
