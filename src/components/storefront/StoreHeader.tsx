@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { ShoppingCart, Menu, X, Search } from "lucide-react";
+import { ShoppingCart, Menu, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCartStore } from "@/stores/cart-store";
 import { useState } from "react";
 import { StoreCartDrawer } from "./StoreCartDrawer";
+import { ProductSearch } from "./ProductSearch";
 
 export function StoreHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -23,14 +24,14 @@ export function StoreHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/store" className="flex items-center space-x-2">
+          <Link to="/store" className="flex items-center space-x-2 flex-shrink-0">
             <span className="text-2xl font-bold gradient-text">DOMINION</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -42,11 +43,26 @@ export function StoreHeader() {
             ))}
           </nav>
 
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:block flex-1 max-w-md mx-4">
+            <ProductSearch />
+          </div>
+
           {/* Right Actions */}
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <Search className="h-5 w-5" />
-            </Button>
+          <div className="flex items-center space-x-2">
+            {/* Mobile Search */}
+            <Sheet>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="icon">
+                  <Search className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top" className="h-auto">
+                <div className="py-4">
+                  <ProductSearch isMobile onClose={() => {}} />
+                </div>
+              </SheetContent>
+            </Sheet>
             
             {/* Cart Button */}
             <Button
@@ -65,7 +81,7 @@ export function StoreHeader() {
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild className="md:hidden">
+              <SheetTrigger asChild className="lg:hidden">
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
                 </Button>
