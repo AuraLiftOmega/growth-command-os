@@ -1,81 +1,38 @@
 import { motion } from "framer-motion";
 import { 
   LayoutDashboard, 
-  Video, 
-  MessageSquare, 
-  BarChart3, 
   Settings,
-  Sparkles,
-  Store,
-  Calendar,
+  TrendingUp,
   Users,
-  Zap,
-  Swords,
-  Crown,
-  FlaskConical,
-  CheckCircle
+  DollarSign,
+  LogOut
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useSubscription, PLAN_FEATURES } from "@/hooks/useSubscription";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { isTestMode, enableTestMode, disableTestMode } from "@/lib/demo-mode";
-import { useState, useEffect } from "react";
 
 interface NavItem {
   icon: React.ReactNode;
   label: string;
   path: string;
-  badge?: string;
 }
 
 const navItems: NavItem[] = [
   { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/dashboard" },
-  { icon: <Crown className="w-5 h-5" />, label: "Command Center", path: "/command-center", badge: "CEO" },
-  { icon: <Swords className="w-5 h-5" />, label: "Revenue War Room", path: "/war-room", badge: "SALES" },
-  { icon: <Video className="w-5 h-5" />, label: "Video Generator", path: "/dashboard", badge: "AI" },
-  { icon: <MessageSquare className="w-5 h-5" />, label: "Inbox", path: "/dashboard" },
-  { icon: <BarChart3 className="w-5 h-5" />, label: "Analytics", path: "/dashboard" },
-  { icon: <Store className="w-5 h-5" />, label: "Products", path: "/dashboard" },
-  { icon: <Calendar className="w-5 h-5" />, label: "Scheduler", path: "/dashboard" },
-  { icon: <Users className="w-5 h-5" />, label: "Audiences", path: "/dashboard" },
-  { icon: <Zap className="w-5 h-5" />, label: "Automations", path: "/dashboard" },
-  { icon: <CheckCircle className="w-5 h-5" />, label: "System Check", path: "/system-check", badge: "TEST" },
 ];
 
 export const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { subscription, isTrialing, trialDaysLeft } = useSubscription();
-  const [testMode, setTestMode] = useState(isTestMode());
+  const { user, signOut } = useAuth();
 
-  useEffect(() => {
-    setTestMode(isTestMode());
-  }, []);
+  const isActive = (path: string) => location.pathname === path;
 
-  const handleTestModeToggle = (enabled: boolean) => {
-    if (enabled) {
-      enableTestMode();
-    } else {
-      disableTestMode();
-    }
-    setTestMode(enabled);
-    // Reload to apply changes
-    window.location.reload();
-  };
-
-  const isActive = (path: string, label: string) => {
-    if (path === "/settings") return location.pathname === "/settings";
-    if (path === "/war-room") return location.pathname === "/war-room";
-    if (path === "/command-center") return location.pathname === "/command-center";
-    if (path === "/system-check") return location.pathname === "/system-check";
-    return location.pathname === "/dashboard" && path === "/dashboard" && label === "Dashboard";
-  };
-
-  const planName = subscription ? PLAN_FEATURES[subscription.plan].name : "Free";
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <motion.aside
@@ -87,20 +44,20 @@ export const Sidebar = () => {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg">Omega</h1>
-            <p className="text-xs text-muted-foreground">AI Commerce Platform</p>
+            <h1 className="font-bold text-lg">DOMINION</h1>
+            <p className="text-xs text-muted-foreground">Revenue OS</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const active = isActive(item.path, item.label);
+          const active = isActive(item.path);
           return (
             <motion.button
               key={item.label}
@@ -117,11 +74,6 @@ export const Sidebar = () => {
                 {item.icon}
               </span>
               <span className="flex-1 text-left">{item.label}</span>
-              {item.badge && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary">
-                  {item.badge}
-                </span>
-              )}
               {active && (
                 <motion.div
                   layoutId="activeIndicator"
@@ -136,24 +88,6 @@ export const Sidebar = () => {
 
       {/* Bottom Section */}
       <div className="p-4 border-t border-sidebar-border space-y-3">
-        {/* Test Mode Toggle */}
-        <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-sidebar-accent/30">
-          <div className="flex items-center gap-2">
-            <FlaskConical className={`w-4 h-4 ${testMode ? 'text-amber-500' : 'text-muted-foreground'}`} />
-            <span className="text-sm font-medium">Test Mode</span>
-          </div>
-          <Switch
-            checked={testMode}
-            onCheckedChange={handleTestModeToggle}
-            className="data-[state=checked]:bg-amber-500"
-          />
-        </div>
-        {testMode && (
-          <p className="text-[10px] text-amber-500/80 px-4">
-            Unlimited features with demo data
-          </p>
-        )}
-
         <motion.button 
           onClick={() => navigate("/settings")}
           whileHover={{ x: 4 }}
@@ -166,33 +100,26 @@ export const Sidebar = () => {
         >
           <Settings className="w-5 h-5" />
           <span>Settings</span>
-          {location.pathname === "/settings" && (
-            <motion.div
-              layoutId="activeIndicator"
-              className="w-1 h-6 bg-primary rounded-full ml-auto"
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            />
-          )}
         </motion.button>
 
         {/* User Card */}
-        <div className="mt-4 p-4 rounded-xl bg-sidebar-accent/50">
+        <div className="p-4 rounded-xl bg-sidebar-accent/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-primary-foreground font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center text-primary-foreground font-bold text-sm">
               {userInitials}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.email || "User"}</p>
-              <div className="flex items-center gap-1">
-                <p className="text-xs text-muted-foreground">{planName}</p>
-                {isTrialing && (
-                  <Badge variant="outline" className="text-[9px] px-1 py-0">
-                    {trialDaysLeft}d left
-                  </Badge>
-                )}
-              </div>
+              <p className="text-xs text-muted-foreground">Active</p>
             </div>
           </div>
+          <button
+            onClick={handleSignOut}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="w-3 h-3" />
+            Sign Out
+          </button>
         </div>
       </div>
     </motion.aside>

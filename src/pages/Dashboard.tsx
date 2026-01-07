@@ -5,7 +5,9 @@ import {
   TrendingUp, 
   Target,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Wallet,
+  ArrowUpRight
 } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -36,13 +38,14 @@ const Dashboard = () => {
           {/* Header with refresh */}
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold">Revenue Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Real-time metrics and pipeline</p>
+              <h1 className="text-2xl font-bold">Revenue Command Center</h1>
+              <p className="text-sm text-muted-foreground">Real-time metrics, pipeline, and leads</p>
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={refresh}
+              disabled={isLoading}
               className="gap-2"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -61,7 +64,7 @@ const Dashboard = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
             </span>
             <span className="text-sm font-medium text-success">Live</span>
-            <span className="text-sm text-muted-foreground">• Real-time updates enabled</span>
+            <span className="text-sm text-muted-foreground">• Real-time updates enabled • Changes sync instantly</span>
           </motion.div>
 
           {/* Top Metrics Grid */}
@@ -105,7 +108,7 @@ const Dashboard = () => {
             <LiveMetricCard
               title="Won Deals"
               value={`${metrics.wonDeals}/${metrics.totalDeals}`}
-              icon={DollarSign}
+              icon={Wallet}
               delay={0.25}
             />
           </div>

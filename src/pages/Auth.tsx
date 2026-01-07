@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { TrendingUp, Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -60,14 +61,14 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-        toast.success("Access granted.");
-        navigate("/onboarding");
+        toast.success("Welcome back!");
+        navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/onboarding`,
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           },
         });
         if (error) {
@@ -77,8 +78,8 @@ const Auth = () => {
             throw error;
           }
         } else {
-          toast.success("Account created. Welcome to DOMINION.");
-          navigate("/onboarding");
+          toast.success("Account created! Welcome to DOMINION.");
+          navigate("/dashboard");
         }
       }
     } catch (error: any) {
@@ -89,289 +90,138 @@ const Auth = () => {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      backgroundColor: "#0a0a0c",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "24px"
-    }}>
-      <div style={{
-        width: "100%",
-        maxWidth: "400px"
-      }}>
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h1 style={{
-            fontSize: "36px",
-            fontWeight: "bold",
-            color: "#fff",
-            marginBottom: "8px"
-          }}>
-            DOMINION
-          </h1>
-          <p style={{ color: "#888", fontSize: "14px", textTransform: "uppercase" }}>
-            {isForgotPassword ? "Reset Password" : isLogin ? "Access Your System" : "Create Account"}
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-primary-foreground" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold mb-2">DOMINION</h1>
+          <p className="text-muted-foreground">
+            {isForgotPassword ? "Reset Your Password" : isLogin ? "Sign in to your dashboard" : "Create your account"}
           </p>
         </div>
 
         {/* Form Card */}
-        <div style={{
-          backgroundColor: "#111114",
-          border: "1px solid #222",
-          borderRadius: "12px",
-          padding: "32px"
-        }}>
+        <div className="bg-card border border-border rounded-xl p-8">
           {isForgotPassword ? (
-            <form onSubmit={handleForgotPassword}>
-              {/* Email Field */}
-              <div style={{ marginBottom: "20px" }}>
-                <label 
-                  htmlFor="reset-email"
-                  style={{
-                    display: "block",
-                    color: "#fff",
-                    fontSize: "14px",
-                    marginBottom: "8px"
-                  }}
-                >
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="reset-email" className="text-sm font-medium">
                   Email
                 </label>
                 <input
                   id="reset-email"
-                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="you@company.com"
                   autoComplete="email"
                   autoFocus
-                  style={{
-                    width: "100%",
-                    height: "48px",
-                    padding: "0 16px",
-                    fontSize: "16px",
-                    backgroundColor: "#1a1a1e",
-                    border: "1px solid #333",
-                    borderRadius: "8px",
-                    color: "#fff",
-                    outline: "none",
-                    boxSizing: "border-box"
-                  }}
+                  className="w-full h-12 px-4 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
                 />
               </div>
 
-              <p style={{ color: "#888", fontSize: "13px", marginBottom: "20px" }}>
+              <p className="text-sm text-muted-foreground">
                 We'll send a password reset link to your email.
               </p>
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  backgroundColor: "#dc2626",
-                  color: "#fff",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  opacity: loading ? 0.7 : 1
-                }}
+                className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {loading ? "Sending..." : "Send Reset Link"}
               </button>
 
-              {/* Back to login */}
-              <div style={{
-                marginTop: "24px",
-                paddingTop: "24px",
-                borderTop: "1px solid #222",
-                textAlign: "center"
-              }}>
+              <div className="text-center pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsForgotPassword(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#888",
-                    fontSize: "14px",
-                    cursor: "pointer"
-                  }}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Back to{" "}
-                  <span style={{ color: "#dc2626", textDecoration: "underline" }}>
-                    Sign in
-                  </span>
+                  Back to <span className="text-primary">Sign in</span>
                 </button>
               </div>
             </form>
           ) : (
-          <form onSubmit={handleSubmit}>
-            {/* Email Field */}
-            <div style={{ marginBottom: "20px" }}>
-              <label 
-                htmlFor="auth-email"
-                style={{
-                  display: "block",
-                  color: "#fff",
-                  fontSize: "14px",
-                  marginBottom: "8px"
-                }}
-              >
-                Email
-              </label>
-              <input
-                id="auth-email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-                autoFocus
-                style={{
-                  width: "100%",
-                  height: "48px",
-                  padding: "0 16px",
-                  fontSize: "16px",
-                  backgroundColor: "#1a1a1e",
-                  border: "1px solid #333",
-                  borderRadius: "8px",
-                  color: "#fff",
-                  outline: "none",
-                  boxSizing: "border-box"
-                }}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div style={{ marginBottom: "24px" }}>
-              <label 
-                htmlFor="auth-password"
-                style={{
-                  display: "block",
-                  color: "#fff",
-                  fontSize: "14px",
-                  marginBottom: "8px"
-                }}
-              >
-                Password
-              </label>
-              <div style={{ position: "relative" }}>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="auth-email" className="text-sm font-medium">
+                  Email
+                </label>
                 <input
-                  id="auth-password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete={isLogin ? "current-password" : "new-password"}
-                  style={{
-                    width: "100%",
-                    height: "48px",
-                    padding: "0 48px 0 16px",
-                    fontSize: "16px",
-                    backgroundColor: "#1a1a1e",
-                    border: "1px solid #333",
-                    borderRadius: "8px",
-                    color: "#fff",
-                    outline: "none",
-                    boxSizing: "border-box"
-                  }}
+                  id="auth-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  autoComplete="email"
+                  autoFocus
+                  className="w-full h-12 px-4 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="auth-password" className="text-sm font-medium">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="auth-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    className="w-full h-12 px-4 pr-12 rounded-lg bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {loading ? "Loading..." : (isLogin ? "Sign In" : "Create Account")}
+              </button>
+
+              {isLogin && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
+
+              <div className="text-center pt-4 border-t border-border">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    color: "#888",
-                    cursor: "pointer",
-                    padding: "4px"
-                  }}
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {isLogin ? "Need an account? " : "Already have an account? "}
+                  <span className="text-primary">{isLogin ? "Sign up" : "Sign in"}</span>
                 </button>
               </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                height: "48px",
-                backgroundColor: "#dc2626",
-                color: "#fff",
-                fontSize: "16px",
-                fontWeight: "600",
-                border: "none",
-                borderRadius: "8px",
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.7 : 1
-              }}
-            >
-              {loading ? "Loading..." : (isLogin ? "Sign In" : "Create Account")}
-            </button>
-
-            {/* Forgot Password Link */}
-            {isLogin && (
-              <div style={{ textAlign: "center", marginTop: "16px" }}>
-                <button
-                  type="button"
-                  onClick={() => setIsForgotPassword(true)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#888",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    textDecoration: "underline"
-                  }}
-                >
-                  Forgot password?
-                </button>
-              </div>
-            )}
-          </form>
-          )}
-
-          {/* Toggle - only show when not in forgot password mode */}
-          {!isForgotPassword && (
-          <div style={{
-            marginTop: "24px",
-            paddingTop: "24px",
-            borderTop: "1px solid #222",
-            textAlign: "center"
-          }}>
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#888",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              {isLogin ? "Need an account? " : "Have an account? "}
-              <span style={{ color: "#dc2626", textDecoration: "underline" }}>
-                {isLogin ? "Sign up" : "Sign in"}
-              </span>
-            </button>
-          </div>
+            </form>
           )}
         </div>
       </div>
