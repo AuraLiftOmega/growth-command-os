@@ -32,6 +32,7 @@ import { GeekbotWidget } from "@/components/dashboard/GeekbotWidget";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
 import { SalesAgentChat, BookingsDashboard } from "@/components/sales-agent";
+import { StoreOnboardingBanner } from "@/components/dashboard/StoreOnboardingBanner";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useOnboardingStore } from "@/stores/onboarding-store";
@@ -82,6 +83,9 @@ const Index = () => {
         <Header />
         
         <div className="p-6">
+          {/* Store Onboarding Banner - Shows for new customers */}
+          <StoreOnboardingBanner />
+
           {/* Demo Mode Banner */}
           {isDemoMode && (
             <motion.div
