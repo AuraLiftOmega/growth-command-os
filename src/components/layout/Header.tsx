@@ -9,10 +9,13 @@ import {
   Video,
   MessageSquare,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Store
 } from "lucide-react";
 import { CartDrawer } from "@/components/shopify/CartDrawer";
+import { ConnectShopifyModal } from "@/components/settings/ConnectShopifyModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserStore } from "@/hooks/useUserStore";
 import { systemEventService } from "@/services/creative-service";
 import { toast } from "sonner";
 import {
@@ -40,11 +43,13 @@ interface Notification {
 
 export const Header = () => {
   const { user } = useAuth();
+  const { stores } = useUserStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [newCampaignOpen, setNewCampaignOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [connectStoreOpen, setConnectStoreOpen] = useState(false);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -134,6 +139,15 @@ export const Header = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* Connect Store Button */}
+          <button
+            onClick={() => setConnectStoreOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-success/10 border border-success/30 text-success text-sm font-medium hover:bg-success/20 transition-colors"
+          >
+            <Store className="w-4 h-4" />
+            {stores.length > 0 ? `${stores.length} Store${stores.length > 1 ? 's' : ''}` : 'Connect Store'}
+          </button>
+
           <CartDrawer />
           
           {/* Notifications Dropdown */}
@@ -212,6 +226,12 @@ export const Header = () => {
           </DropdownMenu>
         </div>
       </motion.header>
+
+      {/* Connect Store Modal */}
+      <ConnectShopifyModal 
+        open={connectStoreOpen} 
+        onOpenChange={setConnectStoreOpen} 
+      />
     </>
   );
 };
