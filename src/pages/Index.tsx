@@ -27,6 +27,7 @@ import { QualityGatePanel } from "@/components/dashboard/QualityGatePanel";
 import { PlatformConnectionsPanel } from "@/components/dashboard/PlatformConnectionsPanel";
 import { SystemActivityFeed } from "@/components/dashboard/SystemActivityFeed";
 import { ShopifyProductsPanel } from "@/components/dashboard/ShopifyProductsPanel";
+import { ShopifyAutonomousPanel } from "@/components/dashboard/ShopifyAutonomousPanel";
 import { GeekbotWidget } from "@/components/dashboard/GeekbotWidget";
 import { UnifiedInbox } from "@/components/dashboard/UnifiedInbox";
 import { KPIAnalyticsDashboard } from "@/components/dashboard/KPIAnalyticsDashboard";
@@ -236,6 +237,11 @@ const Index = () => {
           {/* Vertical Intelligence */}
           <div className="mb-6">
             <VerticalIntelligence />
+          </div>
+
+          {/* Shopify Autonomous Engine */}
+          <div className="mb-6">
+            <ShopifyAutonomousPanel />
           </div>
 
           {/* Shopify Products */}
