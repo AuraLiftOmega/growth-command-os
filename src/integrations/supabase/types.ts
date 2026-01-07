@@ -130,6 +130,48 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_entitlements: {
+        Row: {
+          bypass_all_credit_checks: boolean
+          bypass_all_feature_gates: boolean
+          bypass_all_paywalls: boolean
+          created_at: string
+          features: Json
+          id: string
+          role: string
+          unlimited_generation: boolean
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          bypass_all_credit_checks?: boolean
+          bypass_all_feature_gates?: boolean
+          bypass_all_paywalls?: boolean
+          created_at?: string
+          features?: Json
+          id?: string
+          role?: string
+          unlimited_generation?: boolean
+          updated_at?: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          bypass_all_credit_checks?: boolean
+          bypass_all_feature_gates?: boolean
+          bypass_all_paywalls?: boolean
+          created_at?: string
+          features?: Json
+          id?: string
+          role?: string
+          unlimited_generation?: boolean
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_learnings: {
         Row: {
           applied_to_generation: boolean | null
@@ -535,6 +577,7 @@ export type Database = {
       }
       creatives: {
         Row: {
+          adherence_score: number | null
           auto_regenerated: boolean | null
           avg_watch_percentage: number | null
           captions: Json | null
@@ -547,6 +590,7 @@ export type Database = {
           emotional_trigger: string | null
           engagement_score: number | null
           error: string | null
+          generation_provider: string | null
           hook: string | null
           hook_score: number | null
           id: string
@@ -556,6 +600,7 @@ export type Database = {
           name: string
           passed_quality_gate: boolean | null
           platform: string
+          prompt_spec: Json | null
           published_at: string | null
           quality_score: number | null
           regeneration_count: number | null
@@ -565,6 +610,7 @@ export type Database = {
           roas: number | null
           script: string | null
           shopify_product_id: string | null
+          shot_list: Json | null
           spend: number | null
           status: string | null
           style: string | null
@@ -576,6 +622,7 @@ export type Database = {
           watch_time_seconds: number | null
         }
         Insert: {
+          adherence_score?: number | null
           auto_regenerated?: boolean | null
           avg_watch_percentage?: number | null
           captions?: Json | null
@@ -588,6 +635,7 @@ export type Database = {
           emotional_trigger?: string | null
           engagement_score?: number | null
           error?: string | null
+          generation_provider?: string | null
           hook?: string | null
           hook_score?: number | null
           id?: string
@@ -597,6 +645,7 @@ export type Database = {
           name: string
           passed_quality_gate?: boolean | null
           platform?: string
+          prompt_spec?: Json | null
           published_at?: string | null
           quality_score?: number | null
           regeneration_count?: number | null
@@ -606,6 +655,7 @@ export type Database = {
           roas?: number | null
           script?: string | null
           shopify_product_id?: string | null
+          shot_list?: Json | null
           spend?: number | null
           status?: string | null
           style?: string | null
@@ -617,6 +667,7 @@ export type Database = {
           watch_time_seconds?: number | null
         }
         Update: {
+          adherence_score?: number | null
           auto_regenerated?: boolean | null
           avg_watch_percentage?: number | null
           captions?: Json | null
@@ -629,6 +680,7 @@ export type Database = {
           emotional_trigger?: string | null
           engagement_score?: number | null
           error?: string | null
+          generation_provider?: string | null
           hook?: string | null
           hook_score?: number | null
           id?: string
@@ -638,6 +690,7 @@ export type Database = {
           name?: string
           passed_quality_gate?: boolean | null
           platform?: string
+          prompt_spec?: Json | null
           published_at?: string | null
           quality_score?: number | null
           regeneration_count?: number | null
@@ -647,6 +700,7 @@ export type Database = {
           roas?: number | null
           script?: string | null
           shopify_product_id?: string | null
+          shot_list?: Json | null
           spend?: number | null
           status?: string | null
           style?: string | null
@@ -2485,6 +2539,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_diagnostics: {
+        Row: {
+          details: Json | null
+          diagnostic_type: string
+          id: string
+          message: string | null
+          run_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          details?: Json | null
+          diagnostic_type: string
+          id?: string
+          message?: string | null
+          run_at?: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          details?: Json | null
+          diagnostic_type?: string
+          id?: string
+          message?: string | null
+          run_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       system_events: {
         Row: {
           created_at: string
@@ -2602,6 +2686,124 @@ export type Database = {
         }
         Relationships: []
       }
+      video_generation_logs: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          job_id: string
+          level: string
+          message: string
+          step: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          job_id: string
+          level?: string
+          message: string
+          step?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          job_id?: string
+          level?: string
+          message?: string
+          step?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_generation_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "video_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_jobs: {
+        Row: {
+          adherence_score: number | null
+          completed_at: string | null
+          created_at: string
+          creative_id: string | null
+          current_step: string | null
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          progress: number
+          prompt_spec: Json | null
+          provider: string | null
+          provider_request: Json | null
+          provider_response: Json | null
+          shot_list: Json | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          video_size_bytes: number | null
+          video_url: string | null
+        }
+        Insert: {
+          adherence_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          creative_id?: string | null
+          current_step?: string | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          progress?: number
+          prompt_spec?: Json | null
+          provider?: string | null
+          provider_request?: Json | null
+          provider_response?: Json | null
+          shot_list?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          video_size_bytes?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          adherence_score?: number | null
+          completed_at?: string | null
+          created_at?: string
+          creative_id?: string | null
+          current_step?: string | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          progress?: number
+          prompt_spec?: Json | null
+          provider?: string | null
+          provider_request?: Json | null
+          provider_response?: Json | null
+          shot_list?: Json | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          video_size_bytes?: number | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_jobs_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2614,6 +2816,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_user: { Args: { check_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
