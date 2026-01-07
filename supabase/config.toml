@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.autonomous-publisher]
 verify_jwt = false
+
+[functions.tiktok-publish]
+verify_jwt = false

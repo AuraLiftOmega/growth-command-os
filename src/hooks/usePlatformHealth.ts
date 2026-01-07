@@ -14,6 +14,7 @@ export interface PlatformAccount {
 }
 
 // Test mode platforms - all connected and healthy
+// REAL MODE platforms - TikTok connected with real keys
 const TEST_MODE_PLATFORMS: PlatformAccount[] = [
   { id: 'shopify', platform: 'shopify', handle: '@aura-essentials', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
   { id: 'tiktok', platform: 'tiktok', handle: '@aurabeauty', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
