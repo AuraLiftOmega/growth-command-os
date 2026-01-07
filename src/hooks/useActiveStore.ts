@@ -6,16 +6,18 @@ import {
   SHOPIFY_STOREFRONT_TOKEN 
 } from '@/lib/shopify-config';
 
+export type StoreRole = 'platform' | 'personal' | 'customer';
+
 export interface ActiveStoreConfig {
   storeDomain: string;
   storefrontToken: string;
   storeName: string;
-  isDefault: boolean;
+  role: StoreRole;
   storeId?: string;
 }
 
 interface ActiveStoreState {
-  activeStoreId: string | null; // null = use default Lovable store
+  activeStoreId: string | null; // null = use platform store
   setActiveStoreId: (id: string | null) => void;
 }
 
@@ -33,52 +35,54 @@ export function useActiveStore() {
   const { stores, primaryStore } = useUserStore();
   const { activeStoreId, setActiveStoreId } = useActiveStoreState();
 
-  // Default Lovable store config
-  const defaultStore: ActiveStoreConfig = {
+  // Platform store config (for selling DOMINION software)
+  const platformStore: ActiveStoreConfig = {
     storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
     storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
-    storeName: 'Lovable Store (Default)',
-    isDefault: true,
+    storeName: 'DOMINION Platform',
+    role: 'platform',
   };
 
   // Get active store config
   const getActiveStore = (): ActiveStoreConfig => {
     if (!activeStoreId) {
-      return defaultStore;
+      return platformStore;
     }
 
     const selectedStore = stores.find(s => s.id === activeStoreId);
     if (!selectedStore) {
-      return defaultStore;
+      return platformStore;
     }
 
     return {
       storeDomain: selectedStore.store_domain,
       storefrontToken: selectedStore.storefront_access_token,
       storeName: selectedStore.store_name,
-      isDefault: false,
+      role: selectedStore.is_primary ? 'personal' : 'customer',
       storeId: selectedStore.id,
     };
   };
 
-  // All available stores (default + user stores)
-  const allStores: ActiveStoreConfig[] = [
-    defaultStore,
-    ...stores.map(s => ({
-      storeDomain: s.store_domain,
-      storefrontToken: s.storefront_access_token,
-      storeName: s.store_name,
-      isDefault: false,
-      storeId: s.id,
-    })),
-  ];
+  // Separate stores by role
+  const userStores = stores.map(s => ({
+    storeDomain: s.store_domain,
+    storefrontToken: s.storefront_access_token,
+    storeName: s.store_name,
+    role: (s.is_primary ? 'personal' : 'customer') as StoreRole,
+    storeId: s.id,
+  }));
+
+  // All available stores
+  const allStores: ActiveStoreConfig[] = [platformStore, ...userStores];
 
   return {
     activeStore: getActiveStore(),
+    platformStore,
+    userStores,
     allStores,
     setActiveStoreId,
     activeStoreId,
-    hasMultipleStores: stores.length > 0,
+    hasConnectedStores: stores.length > 0,
   };
 }
 
