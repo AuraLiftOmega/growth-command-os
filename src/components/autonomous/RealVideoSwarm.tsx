@@ -40,20 +40,27 @@ interface VideoJob {
   hook?: string;
 }
 
-// AuraLift products to generate videos for
-const AURALIFT_PRODUCTS = [
-  { id: 'vitamin-c-serum', name: 'Vitamin C Brightening Serum', hook: 'Glow like never before 🌟' },
-  { id: 'retinol-cream', name: 'Advanced Retinol Night Cream', hook: 'Wake up younger ⏰' },
-  { id: 'hyaluronic-serum', name: 'Hyaluronic Acid Hydrating Serum', hook: 'Hydration that lasts 💧' },
-  { id: 'peptide-complex', name: 'Peptide Complex Eye Cream', hook: 'Bye bye dark circles 👁️' },
-  { id: 'niacinamide', name: 'Niacinamide Pore Minimizer', hook: 'Poreless perfection 🔬' },
-  { id: 'aha-bha', name: 'AHA/BHA Exfoliating Toner', hook: 'Smooth like glass ✨' },
-  { id: 'squalane-oil', name: 'Pure Squalane Face Oil', hook: 'Luxury in a bottle 💎' },
-  { id: 'collagen-mask', name: 'Collagen Boost Sheet Mask', hook: 'Spa day at home 🧖' },
-  { id: 'spf50', name: 'Daily Defense SPF 50', hook: 'Protection meets beauty ☀️' },
-  { id: 'overnight-serum', name: 'Overnight Repair Serum', hook: 'Beauty sleep activated 😴' },
-  { id: 'rose-mist', name: 'Rose Hydrating Mist', hook: 'Refresh in seconds 🌹' },
-  { id: 'brightening-set', name: 'Complete Brightening Set', hook: 'The full glow-up 💫' },
+// ALL 15 Shopify products for real video generation
+const ALL_PRODUCTS = [
+  // AuraLift Beauty Products
+  { id: '10511372452145', name: 'Radiance Vitamin C Serum', hook: 'Glow like a goddess ✨' },
+  { id: '10511372484913', name: 'Hydra-Glow Retinol Night Cream', hook: 'Wake up 10 years younger 🌙' },
+  { id: '10511372550449', name: 'Ultra Hydration Hyaluronic Serum', hook: 'Hydration that transforms 💧' },
+  { id: '10511372812593', name: 'Omega Glow Collagen Peptide Moisturizer', hook: 'Collagen boost for flawless skin 💎' },
+  { id: '10511372747057', name: 'Luxe Rose Quartz Face Roller Set', hook: 'Spa luxury at home 🌹' },
+  // Tech Products
+  { id: '10509990986033', name: '4K AI-Powered Webcam', hook: 'Look pro on every call 📹' },
+  { id: '10509015154993', name: 'AirMax Pro Wireless Headphones', hook: 'Sound that moves you 🎧' },
+  { id: '10509989675313', name: 'Elite Noise-Cancelling Earbuds', hook: 'Silence the world 🔇' },
+  { id: '10509015220529', name: 'Smart Fitness Watch Pro', hook: 'Your health, tracked 24/7 ⌚' },
+  // Fitness Products
+  { id: '10509990920497', name: 'Deep Tissue Massage Gun Pro', hook: 'Recovery like never before 💪' },
+  { id: '10509015253297', name: 'Premium Yoga Mat', hook: 'Elevate your practice 🧘' },
+  { id: '10509989708081', name: 'Pro Training Resistance Bands Set', hook: 'Gym-quality workout anywhere 🏋️' },
+  { id: '10509990035761', name: 'Smart Water Bottle Pro', hook: 'Stay hydrated, stay smart 💧' },
+  // Footwear
+  { id: '10509989937457', name: 'Carbon Fiber Training Sneakers', hook: 'Speed engineered 🚀' },
+  { id: '10509015187761', name: 'Ultra Performance Running Shoes', hook: 'Run like the wind 👟' },
 ];
 
 const PLATFORMS = ['tiktok', 'instagram', 'youtube', 'facebook'];
@@ -160,8 +167,8 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
     setTotalGenerated(0);
     setTotalPublished(0);
 
-    // Create jobs for 12 products (10+ videos)
-    const jobs: VideoJob[] = AURALIFT_PRODUCTS.map((product, index) => ({
+    // Create jobs for ALL 15 products
+    const jobs: VideoJob[] = ALL_PRODUCTS.map((product, index) => ({
       id: `job-${index}`,
       product: product.name,
       platform: PLATFORMS[index % PLATFORMS.length],
@@ -384,15 +391,15 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
       {videoJobs.length === 0 && swarmMode === 'idle' && (
         <Card className="p-12 text-center bg-muted/20">
           <Video className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Ready to Generate Viral Videos</h3>
+          <h3 className="text-xl font-semibold mb-2">Ready to Generate 15 Viral Videos</h3>
           <p className="text-muted-foreground mb-6">
-            Click "Launch Swarm" to generate 12+ viral videos for AuraLift products using real AI
+            Click "Launch Swarm" to generate videos for ALL products using real AI (Replicate)
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {AURALIFT_PRODUCTS.slice(0, 6).map((product, i) => (
+            {ALL_PRODUCTS.slice(0, 6).map((product, i) => (
               <Badge key={i} variant="outline">{product.name}</Badge>
             ))}
-            <Badge variant="secondary">+6 more</Badge>
+            <Badge variant="secondary">+9 more</Badge>
           </div>
         </Card>
       )}
