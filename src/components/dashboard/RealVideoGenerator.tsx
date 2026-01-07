@@ -144,14 +144,22 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         })
         .eq('id', creative.id);
 
-      // Update subscription usage (skip if unlimited)
-      if (subscription && subscription.monthly_video_credits !== -1) {
-        await supabase
+      // Update subscription usage (skip for admin users with bypass)
+      if (!bypassCredits) {
+        const { data: currentSub } = await supabase
           .from('subscriptions')
-          .update({ 
-            videos_used_this_month: (subscription.videos_used_this_month || 0) + 1 
-          })
-          .eq('user_id', user.id);
+          .select('videos_used_this_month, monthly_video_credits')
+          .eq('user_id', user.id)
+          .single();
+          
+        if (currentSub && currentSub.monthly_video_credits !== -1) {
+          await supabase
+            .from('subscriptions')
+            .update({ 
+              videos_used_this_month: (currentSub.videos_used_this_month || 0) + 1 
+            })
+            .eq('user_id', user.id);
+        }
       }
 
       // Log system event

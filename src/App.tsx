@@ -27,6 +27,7 @@ import Shipping from "./pages/Shipping";
 import StoreBuilder from "./pages/StoreBuilder";
 import StoreGenerated from "./pages/StoreGenerated";
 import SystemCheck from "./pages/SystemCheck";
+import SystemDiagnostics from "./pages/SystemDiagnostics";
 import { StoreSetupWizard } from "./components/storefront/StoreSetupWizard";
 import {
   IntimidationToggle, 
@@ -245,6 +246,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRouteWithRedirect>
             <SystemCheck />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
+      <Route 
+        path="/system-diagnostics" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <SystemDiagnostics />
           </ProtectedRouteWithRedirect>
         } 
       />
