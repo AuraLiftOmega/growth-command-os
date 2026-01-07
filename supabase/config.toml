@@ -80,3 +80,12 @@ verify_jwt = false
 
 [functions.deduct-credits]
 verify_jwt = false
+
+[functions.ai-prediction-engine]
+verify_jwt = false
+
+[functions.multi-agent-swarm]
+verify_jwt = false
+
+[functions.crm-outreach]
+verify_jwt = false
