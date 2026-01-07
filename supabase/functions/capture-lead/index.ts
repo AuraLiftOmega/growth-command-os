@@ -57,6 +57,16 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Database error:", dbError);
     }
 
+    // Determine email content based on source
+    const isExitIntent = source === 'exit_intent_popup' || source === 'mobile_popup';
+    const isStoreSetup = source === 'store_setup';
+
+    const emailSubject = isExitIntent 
+      ? "🎁 Your Free Store Launch Guide is Here!"
+      : storeName 
+        ? `Welcome ${storeName} – Let's Build Something Amazing!`
+        : "Welcome to DOMINION – Your Store Awaits! 🚀";
+
     // Send welcome email via Resend API
     const emailHtml = `
       <!DOCTYPE html>
@@ -64,40 +74,111 @@ const handler = async (req: Request): Promise<Response> => {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${emailSubject}</title>
       </head>
-      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0a0a0a; color: #fafafa; padding: 40px 20px; margin: 0;">
-        <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(145deg, #1a1a1a, #0d0d0d); border-radius: 16px; padding: 40px; border: 1px solid #262626;">
-          <div style="text-align: center; margin-bottom: 32px;">
-            <h1 style="font-size: 28px; margin: 0; background: linear-gradient(135deg, #a855f7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-              Welcome to DOMINION
-            </h1>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background-color: #09090b; color: #fafafa; padding: 0; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+          <!-- Header -->
+          <div style="text-align: center; margin-bottom: 40px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #3b82f6); padding: 16px 32px; border-radius: 12px; margin-bottom: 24px;">
+              <span style="font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">DOMINION</span>
+            </div>
           </div>
-          
-          <p style="font-size: 16px; line-height: 1.6; color: #a1a1aa;">
-            You're one step closer to launching a professional online store in 30 minutes or less.
-          </p>
-          
-          ${storeName ? `<p style="font-size: 16px; line-height: 1.6; color: #fafafa;"><strong>Your store:</strong> ${storeName}</p>` : ''}
-          
-          <div style="margin: 32px 0; padding: 24px; background: rgba(168, 85, 247, 0.1); border-radius: 12px; border-left: 4px solid #a855f7;">
-            <p style="margin: 0; font-size: 14px; color: #d4d4d8;">
-              <strong style="color: #fafafa;">Here's what happens next:</strong><br><br>
-              ✓ Complete your quick store setup<br>
-              ✓ AI generates your products & content<br>
-              ✓ Preview everything before going live<br>
-              ✓ Launch and start selling!
+
+          <!-- Main Card -->
+          <div style="background: linear-gradient(180deg, #18181b 0%, #0f0f11 100%); border-radius: 20px; padding: 40px; border: 1px solid #27272a; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            ${isExitIntent ? `
+              <!-- Exit Intent Content -->
+              <div style="text-align: center; margin-bottom: 32px;">
+                <span style="font-size: 48px;">🎁</span>
+              </div>
+              <h1 style="font-size: 28px; font-weight: 700; text-align: center; margin: 0 0 16px 0; color: #ffffff;">
+                Your Free Guide is Ready!
+              </h1>
+              <p style="font-size: 16px; line-height: 1.7; color: #a1a1aa; text-align: center; margin: 0 0 32px 0;">
+                Thanks for joining 1,200+ merchants who are building profitable online stores. Here's what you'll learn:
+              </p>
+
+              <div style="background: rgba(139, 92, 246, 0.1); border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                <div style="margin-bottom: 16px; display: flex; align-items: flex-start;">
+                  <span style="color: #8b5cf6; margin-right: 12px; font-size: 18px;">✓</span>
+                  <span style="color: #e4e4e7; font-size: 15px;">How to pick winning products that sell</span>
+                </div>
+                <div style="margin-bottom: 16px; display: flex; align-items: flex-start;">
+                  <span style="color: #8b5cf6; margin-right: 12px; font-size: 18px;">✓</span>
+                  <span style="color: #e4e4e7; font-size: 15px;">Setting up payments in under 10 minutes</span>
+                </div>
+                <div style="margin-bottom: 16px; display: flex; align-items: flex-start;">
+                  <span style="color: #8b5cf6; margin-right: 12px; font-size: 18px;">✓</span>
+                  <span style="color: #e4e4e7; font-size: 15px;">Launch checklist used by top stores</span>
+                </div>
+                <div style="display: flex; align-items: flex-start;">
+                  <span style="color: #8b5cf6; margin-right: 12px; font-size: 18px;">✓</span>
+                  <span style="color: #e4e4e7; font-size: 15px;">First 30 days marketing playbook</span>
+                </div>
+              </div>
+            ` : `
+              <!-- Store Setup Welcome Content -->
+              <h1 style="font-size: 28px; font-weight: 700; text-align: center; margin: 0 0 16px 0; color: #ffffff;">
+                Welcome to DOMINION! 🚀
+              </h1>
+              ${storeName ? `<p style="font-size: 18px; text-align: center; color: #8b5cf6; margin: 0 0 24px 0; font-weight: 600;">${storeName}</p>` : ''}
+              <p style="font-size: 16px; line-height: 1.7; color: #a1a1aa; text-align: center; margin: 0 0 32px 0;">
+                You're one step closer to launching a professional online store in 30 minutes or less. Here's your roadmap:
+              </p>
+
+              <div style="background: #27272a; border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+                <div style="display: flex; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #3f3f46;">
+                  <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 700;">1</span>
+                  </div>
+                  <div>
+                    <div style="color: #ffffff; font-weight: 600; margin-bottom: 4px;">Complete Your Setup</div>
+                    <div style="color: #71717a; font-size: 14px;">Add your products and customize your brand</div>
+                  </div>
+                </div>
+                <div style="display: flex; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #3f3f46;">
+                  <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 700;">2</span>
+                  </div>
+                  <div>
+                    <div style="color: #ffffff; font-weight: 600; margin-bottom: 4px;">AI Generates Everything</div>
+                    <div style="color: #71717a; font-size: 14px;">Product descriptions, images, and content</div>
+                  </div>
+                </div>
+                <div style="display: flex;">
+                  <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
+                    <span style="color: white; font-weight: 700;">3</span>
+                  </div>
+                  <div>
+                    <div style="color: #ffffff; font-weight: 600; margin-bottom: 4px;">Launch & Start Selling</div>
+                    <div style="color: #71717a; font-size: 14px;">Go live with one click</div>
+                  </div>
+                </div>
+              </div>
+            `}
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin-bottom: 24px;">
+              <a href="https://dominion.app/setup" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.4);">
+                ${isExitIntent ? 'Start Building Your Store →' : 'Continue Setup →'}
+              </a>
+            </div>
+
+            <p style="font-size: 13px; color: #52525b; text-align: center; margin: 0;">
+              Questions? Just reply to this email – we read every message.
             </p>
           </div>
-          
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="https://dominion.app/onboarding" style="display: inline-block; background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fafafa; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
-              Continue Building Your Store →
-            </a>
+
+          <!-- Footer -->
+          <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #27272a;">
+            <p style="font-size: 12px; color: #52525b; margin: 0 0 8px 0;">
+              © 2026 DOMINION. All rights reserved.
+            </p>
+            <p style="font-size: 11px; color: #3f3f46; margin: 0;">
+              You're receiving this because you signed up at dominion.app
+            </p>
           </div>
-          
-          <p style="font-size: 14px; color: #71717a; text-align: center; margin-top: 32px;">
-            Questions? Just reply to this email – we're here to help.
-          </p>
         </div>
       </body>
       </html>
@@ -113,7 +194,7 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify({
           from: "DOMINION <onboarding@resend.dev>",
           to: [email],
-          subject: "Welcome to DOMINION – Your Store Awaits! 🚀",
+          subject: emailSubject,
           html: emailHtml,
         }),
       });
