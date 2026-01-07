@@ -32,6 +32,54 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [creativeId, setCreativeId] = useState<string | null>(null);
+
+  // Realtime subscription for creative updates with false-positive guard
+  useEffect(() => {
+    if (!creativeId) return;
+
+    const channel = supabase
+      .channel(`realtime:creatives:${creativeId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "creatives",
+          filter: `id=eq.${creativeId}`,
+        },
+        (payload) => {
+          const row = payload.new as Record<string, unknown>;
+
+          // Update video URL if present
+          if (row?.video_url && typeof row.video_url === "string") {
+            setVideoUrl(row.video_url);
+          }
+          if (row?.error && typeof row.error === "string") {
+            setErrorMessage(row.error);
+          }
+
+          // FALSE-POSITIVE GUARD: Prevent claiming success without a valid video
+          const isRenderable = !!row?.video_url && typeof row.video_url === "string" && (row.video_url as string).length > 10;
+
+          if (row?.status === "rendered" && !isRenderable) {
+            setStatus("error");
+            setErrorMessage("Render reported success but no video_url was produced. Blocking false-positive completion.");
+          } else if (row?.status === "rendered" && isRenderable) {
+            setStatus("completed");
+          } else if (row?.status === "failed" || row?.status === "error") {
+            setStatus("error");
+          } else if (row?.status === "generating" || row?.status === "rendering") {
+            setStatus("generating");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [creativeId]);
 
   const generateRealVideo = useCallback(async () => {
     if (!user) {
@@ -106,9 +154,12 @@ export const RealVideoGenerator = ({ concept, onGenerate }: RealVideoGeneratorPr
         .select()
         .single();
 
-      if (createError) {
+      if (createError || !creative) {
         throw new Error("Failed to create creative record");
       }
+
+      // Store creative ID for realtime subscription
+      setCreativeId(creative.id);
 
       // Generate demo video with realistic rendering simulation
       // This simulates the rendering process with proper phases
