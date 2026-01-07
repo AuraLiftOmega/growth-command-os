@@ -172,6 +172,57 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_decision_log: {
+        Row: {
+          action_taken: string
+          confidence: number | null
+          created_at: string
+          decision_type: string
+          entity_id: string | null
+          entity_type: string | null
+          error_message: string | null
+          execution_status: string | null
+          id: string
+          impact_metrics: Json | null
+          override_reason: string | null
+          reasoning: string | null
+          user_id: string
+          was_overridden: boolean | null
+        }
+        Insert: {
+          action_taken: string
+          confidence?: number | null
+          created_at?: string
+          decision_type: string
+          entity_id?: string | null
+          entity_type?: string | null
+          error_message?: string | null
+          execution_status?: string | null
+          id?: string
+          impact_metrics?: Json | null
+          override_reason?: string | null
+          reasoning?: string | null
+          user_id: string
+          was_overridden?: boolean | null
+        }
+        Update: {
+          action_taken?: string
+          confidence?: number | null
+          created_at?: string
+          decision_type?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          error_message?: string | null
+          execution_status?: string | null
+          id?: string
+          impact_metrics?: Json | null
+          override_reason?: string | null
+          reasoning?: string | null
+          user_id?: string
+          was_overridden?: boolean | null
+        }
+        Relationships: []
+      }
       ai_learnings: {
         Row: {
           applied_to_generation: boolean | null
@@ -713,6 +764,185 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_contacts: {
+        Row: {
+          avatar_url: string | null
+          churn_risk: number | null
+          company: string | null
+          created_at: string
+          custom_fields: Json | null
+          email: string | null
+          first_name: string | null
+          id: string
+          is_active: boolean | null
+          last_interaction_at: string | null
+          last_name: string | null
+          last_order_at: string | null
+          lead_score: number | null
+          lifecycle_stage: string | null
+          ltv: number | null
+          notes: string | null
+          phone: string | null
+          shopify_customer_id: string | null
+          social_profiles: Json | null
+          source: string | null
+          source_details: Json | null
+          tags: string[] | null
+          title: string | null
+          total_orders: number | null
+          total_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          churn_risk?: number | null
+          company?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_interaction_at?: string | null
+          last_name?: string | null
+          last_order_at?: string | null
+          lead_score?: number | null
+          lifecycle_stage?: string | null
+          ltv?: number | null
+          notes?: string | null
+          phone?: string | null
+          shopify_customer_id?: string | null
+          social_profiles?: Json | null
+          source?: string | null
+          source_details?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          churn_risk?: number | null
+          company?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_interaction_at?: string | null
+          last_name?: string | null
+          last_order_at?: string | null
+          lead_score?: number | null
+          lifecycle_stage?: string | null
+          ltv?: number | null
+          notes?: string | null
+          phone?: string | null
+          shopify_customer_id?: string | null
+          social_profiles?: Json | null
+          source?: string | null
+          source_details?: Json | null
+          tags?: string[] | null
+          title?: string | null
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crm_deals: {
+        Row: {
+          activities: Json | null
+          actual_close_date: string | null
+          amount: number | null
+          assigned_to: string | null
+          competitor: string | null
+          contact_id: string | null
+          created_at: string
+          custom_fields: Json | null
+          description: string | null
+          expected_close_date: string | null
+          id: string
+          is_active: boolean | null
+          lost_reason: string | null
+          next_action: string | null
+          next_action_date: string | null
+          priority: string | null
+          probability: number | null
+          source: string | null
+          stage: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          won_reason: string | null
+        }
+        Insert: {
+          activities?: Json | null
+          actual_close_date?: string | null
+          amount?: number | null
+          assigned_to?: string | null
+          competitor?: string | null
+          contact_id?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          description?: string | null
+          expected_close_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          lost_reason?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          priority?: string | null
+          probability?: number | null
+          source?: string | null
+          stage?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          won_reason?: string | null
+        }
+        Update: {
+          activities?: Json | null
+          actual_close_date?: string | null
+          amount?: number | null
+          assigned_to?: string | null
+          competitor?: string | null
+          contact_id?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          description?: string | null
+          expected_close_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          lost_reason?: string | null
+          next_action?: string | null
+          next_action_date?: string | null
+          priority?: string | null
+          probability?: number | null
+          source?: string | null
+          stage?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          won_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_demo_triggers: {
         Row: {
           auto_send: boolean | null
@@ -777,6 +1007,147 @@ export type Database = {
             columns: ["demo_id"]
             isOneToOne: false
             referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_interactions: {
+        Row: {
+          ai_next_action: string | null
+          ai_summary: string | null
+          channel: string | null
+          contact_id: string | null
+          content: string | null
+          created_at: string
+          deal_id: string | null
+          direction: string | null
+          id: string
+          is_automated: boolean | null
+          metadata: Json | null
+          response_time_seconds: number | null
+          sentiment: string | null
+          subject: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          ai_next_action?: string | null
+          ai_summary?: string | null
+          channel?: string | null
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id?: string | null
+          direction?: string | null
+          id?: string
+          is_automated?: boolean | null
+          metadata?: Json | null
+          response_time_seconds?: number | null
+          sentiment?: string | null
+          subject?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          ai_next_action?: string | null
+          ai_summary?: string | null
+          channel?: string | null
+          contact_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id?: string | null
+          direction?: string | null
+          id?: string
+          is_automated?: boolean | null
+          metadata?: Json | null
+          response_time_seconds?: number | null
+          sentiment?: string | null
+          subject?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_interactions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "crm_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_tasks: {
+        Row: {
+          automation_trigger: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          deal_id: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          is_automated: boolean | null
+          priority: string | null
+          status: string | null
+          title: string
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          automation_trigger?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_automated?: boolean | null
+          priority?: string | null
+          status?: string | null
+          title: string
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          automation_trigger?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          deal_id?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          is_automated?: boolean | null
+          priority?: string | null
+          status?: string | null
+          title?: string
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "crm_deals"
             referencedColumns: ["id"]
           },
         ]
@@ -2803,6 +3174,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      war_room_alerts: {
+        Row: {
+          action_url: string | null
+          alert_type: string
+          created_at: string
+          data: Json | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          message: string | null
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          alert_type: string
+          created_at?: string
+          data?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          alert_type?: string
+          created_at?: string
+          data?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          message?: string | null
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import RevenueWarRoom from "./pages/RevenueWarRoom";
+import WarRoom from "./pages/WarRoom";
 import CommandCenter from "./pages/CommandCenter";
 import Pricing from "./pages/Pricing";
 import DemoEmbed from "./pages/DemoEmbed";
@@ -227,6 +228,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRouteWithRedirect>
             <RevenueWarRoom />
+          </ProtectedRouteWithRedirect>
+        } 
+      />
+      <Route 
+        path="/lethal-war-room" 
+        element={
+          <ProtectedRouteWithRedirect>
+            <WarRoom />
           </ProtectedRouteWithRedirect>
         } 
       />
