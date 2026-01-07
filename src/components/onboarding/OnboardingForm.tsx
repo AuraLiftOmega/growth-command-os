@@ -21,7 +21,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { OnboardingModeSelector, OnboardingMode, MODE_PRESETS } from "./OnboardingModeSelector";
 
 // Import steps
 import { BusinessDNAStep } from "./steps/BusinessDNAStep";
@@ -58,8 +59,37 @@ export const OnboardingForm = () => {
   } = useOnboardingStore();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [selectedMode, setSelectedMode] = useState<OnboardingMode | null>(null);
+  const [showModeSelector, setShowModeSelector] = useState(true);
   const CurrentStepComponent = steps[currentStep].component;
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Handle mode selection
+  const handleModeSelect = async (mode: OnboardingMode) => {
+    setSelectedMode(mode);
+    const preset = MODE_PRESETS[mode];
+
+    if (mode === 'done_for_you') {
+      // Auto-fill everything and go to dashboard
+      applyIndustryDefaults();
+      await saveToDatabase();
+      toast.success("DOMINION configured with optimal defaults. Ready to generate revenue!");
+      navigate("/");
+      return;
+    }
+
+    if (mode === 'fastest_revenue') {
+      // Apply defaults but let them customize key items
+      applyIndustryDefaults();
+      setShowModeSelector(false);
+      setStep(5); // Go to Automation step
+      toast.success("Fast track mode! Focus on what matters for revenue.");
+      return;
+    }
+
+    // Custom control - show full onboarding
+    setShowModeSelector(false);
+  };
 
   // Auto-save with debounce
   const debouncedSave = useCallback(() => {
@@ -136,6 +166,60 @@ export const OnboardingForm = () => {
   };
 
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  // Show mode selector first
+  if (showModeSelector) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-chart-4 flex items-center justify-center">
+                  <Rocket className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="font-display font-bold text-lg">DOMINION Setup</h1>
+                  <p className="text-xs text-muted-foreground">Choose your path</p>
+                </div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="pt-28 pb-16 px-6">
+          <div className="max-w-5xl mx-auto">
+            <OnboardingModeSelector
+              onSelect={handleModeSelect}
+              selectedMode={selectedMode || undefined}
+            />
+            
+            {/* Demo Mode Option */}
+            <div className="mt-8 text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Just want to explore? Try demo mode with sample data.
+              </p>
+              <Button
+                variant="ghost"
+                onClick={handleDemoMode}
+                className="gap-2"
+              >
+                <Play className="w-4 h-4" />
+                Enter Demo Mode
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

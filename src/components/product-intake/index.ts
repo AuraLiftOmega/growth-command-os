@@ -1,0 +1,1 @@
+export { ProductIntakePanel } from './ProductIntakePanel';

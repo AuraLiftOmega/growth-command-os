@@ -9,6 +9,8 @@ import { Crown, Clock } from "lucide-react";
 import { SlackIntegrationConfig } from "@/components/integrations/SlackIntegrationConfig";
 import { SlackChannelConfig } from "@/components/integrations/SlackChannelConfig";
 import { GeekbotConfig } from "@/components/integrations/GeekbotConfig";
+import { ProductIntakePanel } from "@/components/product-intake";
+import { ContentAssistantEngine } from "@/components/content-assist";
 
 export default function Settings() {
   const { subscription, isTrialing, trialDaysLeft } = useSubscription();
@@ -53,6 +55,20 @@ export default function Settings() {
 
             {/* Store Management */}
             <StoreManagementPanel />
+
+            {/* Product & Content Tools */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="space-y-4"
+            >
+              <h2 className="text-xl font-semibold">Product & Content Tools</h2>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <ProductIntakePanel showConnectOption={false} />
+                <ContentAssistantEngine />
+              </div>
+            </motion.div>
 
             {/* Integrations Section */}
             <motion.div
