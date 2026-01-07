@@ -117,8 +117,8 @@ export function StoreSetupWizard({ onComplete, onSkip, initialStoreName = '' }: 
         if (onComplete) {
           onComplete(data);
         } else {
-          // Navigate to the store preview
-          navigate('/store');
+          // Navigate to the success page with the setup ID
+          navigate(`/store-generated?id=${setupId}`);
         }
       }
     } catch (error) {
