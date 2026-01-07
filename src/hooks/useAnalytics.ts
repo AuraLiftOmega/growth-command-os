@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { isTestMode } from "@/lib/demo-mode";
 
 export interface PerformanceDataPoint {
   hour: string;
@@ -43,6 +44,31 @@ const INSUFFICIENT_DATA_METRICS: DashboardMetrics = {
   hasRealData: false,
 };
 
+const TEST_MODE_METRICS: DashboardMetrics = {
+  todayRevenue: 847291,
+  todayRevenueChange: 24,
+  blendedRoas: 4.8,
+  roasChange: 18,
+  orders: 3421,
+  ordersChange: 31,
+  newCustomers: 2847,
+  customersChange: 15,
+  impressions: 1247892,
+  impressionsChange: 42,
+  conversionRate: 7.0,
+  conversionRateChange: 12,
+  hasRealData: true,
+};
+
+const TEST_MODE_PERFORMANCE: PerformanceDataPoint[] = Array.from({ length: 24 }, (_, i) => ({
+  hour: `${String(i).padStart(2, '0')}:00`,
+  revenue: 25000 + Math.random() * 15000,
+  spend: 5000 + Math.random() * 3000,
+  roas: 3.5 + Math.random() * 2,
+  impressions: 40000 + Math.random() * 20000,
+  conversions: 100 + Math.random() * 80,
+}));
+
 export const useAnalytics = () => {
   const { user } = useAuth();
   const [performanceData, setPerformanceData] = useState<PerformanceDataPoint[]>([]);
@@ -50,6 +76,14 @@ export const useAnalytics = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchAnalytics = useCallback(async () => {
+    // If test mode is enabled, use demo data
+    if (isTestMode()) {
+      setMetrics(TEST_MODE_METRICS);
+      setPerformanceData(TEST_MODE_PERFORMANCE);
+      setIsLoading(false);
+      return;
+    }
+
     if (!user) {
       setMetrics(INSUFFICIENT_DATA_METRICS);
       setPerformanceData([]);
