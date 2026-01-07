@@ -72,7 +72,7 @@ export const ImmersiveWarRoom = () => {
     { name: 'Global Agent', status: 'idle', lastAction: 'Translation sync', decisions24h: 3, avgConfidence: 0.88, color: '#06b6d4', icon: '🌍' },
   ]);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Initialize speech recognition
   useEffect(() => {
