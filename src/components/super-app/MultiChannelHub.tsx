@@ -43,7 +43,7 @@ interface Channel {
   apiType: 'oauth' | 'api_key' | 'webhook';
 }
 
-// Pinterest FIRST - Primary revenue channel for DOMINION
+// Pinterest FIRST, YouTube SECOND - Primary revenue channels for DOMINION
 const CHANNELS: Channel[] = [
   { 
     id: 'pinterest', 
@@ -58,12 +58,24 @@ const CHANNELS: Channel[] = [
     apiType: 'oauth',
     lastSync: new Date().toISOString()
   },
+  { 
+    id: 'youtube', 
+    name: '📺 YouTube', 
+    icon: '📺', 
+    color: 'from-red-600/30 to-red-700/30', 
+    status: 'connected', 
+    handle: '@AuraLiftEssentials',
+    revenue: 18420, // #2 revenue channel - Shorts + full videos
+    orders: 234, 
+    syncEnabled: true, 
+    apiType: 'oauth',
+    lastSync: new Date().toISOString()
+  },
   { id: 'shopify', name: 'Shopify', icon: '🛍️', color: 'from-green-500/20 to-green-600/20', status: 'connected', handle: 'lovable-project-7fb70', revenue: 12847, orders: 156, syncEnabled: true, apiType: 'oauth' },
   { id: 'tiktok', name: 'TikTok', icon: '🎵', color: 'from-pink-500/20 to-cyan-500/20', status: 'connected', handle: '@auraliftessentials', revenue: 8450, orders: 89, syncEnabled: true, apiType: 'oauth' },
   { id: 'tiktok_shop', name: 'TikTok Shop', icon: '🛒', color: 'from-pink-500/20 to-purple-500/20', status: 'connected', revenue: 6240, orders: 78, syncEnabled: true, apiType: 'oauth' },
   { id: 'instagram', name: 'Instagram', icon: '📸', color: 'from-purple-500/20 to-pink-500/20', status: 'connected', handle: '@auralift', revenue: 5670, orders: 67, syncEnabled: true, apiType: 'oauth' },
   { id: 'facebook', name: 'Facebook Shops', icon: '📘', color: 'from-blue-500/20 to-blue-600/20', status: 'connected', handle: 'AuraLift Beauty', revenue: 4320, orders: 52, syncEnabled: true, apiType: 'oauth' },
-  { id: 'youtube', name: 'YouTube Shopping', icon: '📺', color: 'from-red-600/20 to-red-700/20', status: 'connected', revenue: 3210, orders: 28, syncEnabled: true, apiType: 'oauth' },
   { id: 'amazon', name: 'Amazon Seller', icon: '📦', color: 'from-orange-500/20 to-yellow-500/20', status: 'connected', revenue: 9870, orders: 124, syncEnabled: true, apiType: 'api_key' },
   { id: 'etsy', name: 'Etsy', icon: '🧶', color: 'from-orange-400/20 to-orange-500/20', status: 'pending', apiType: 'oauth' },
   { id: 'ebay', name: 'eBay', icon: '🏷️', color: 'from-yellow-500/20 to-yellow-600/20', status: 'pending', apiType: 'oauth' },
@@ -251,6 +263,30 @@ export function MultiChannelHub() {
                           <div className="p-1 rounded bg-background/50">
                             <p className="font-bold text-red-500">8.2%</p>
                             <p className="text-muted-foreground">Save Rate</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* YouTube-specific: Channel stats & quick post */}
+                    {channel.id === 'youtube' && (
+                      <div className="mb-3 p-2 rounded-lg bg-red-600/10 border border-red-600/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-red-600">📺 Channel Stats</span>
+                          <Badge className="bg-red-600/20 text-red-600 text-[10px]">Shorts + Videos</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-600">156K</p>
+                            <p className="text-muted-foreground">Views</p>
+                          </div>
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-600">4.2K</p>
+                            <p className="text-muted-foreground">Subscribers</p>
+                          </div>
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-600">6.8%</p>
+                            <p className="text-muted-foreground">CTR</p>
                           </div>
                         </div>
                       </div>
