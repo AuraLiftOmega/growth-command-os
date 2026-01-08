@@ -8,6 +8,9 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import OmegaCommand from "./pages/OmegaCommand";
+import CEOBrain from "./pages/CEOBrain";
+import WarRoom from "./pages/WarRoom";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +81,33 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/omega-command" 
+        element={
+          <ProtectedRoute>
+            <OmegaCommand />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/ceo-brain" 
+        element={
+          <ProtectedRoute>
+            <CEOBrain />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/war-room" 
+        element={
+          <ProtectedRoute>
+            <WarRoom />
           </ProtectedRoute>
         } 
       />
