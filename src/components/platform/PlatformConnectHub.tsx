@@ -40,6 +40,16 @@ interface PlatformConfig {
 
 const PLATFORMS: PlatformConfig[] = [
   {
+    id: 'pinterest',
+    name: 'Pinterest',
+    icon: '📌',
+    color: 'from-red-500 to-red-600',
+    gradient: 'from-red-500/20 to-red-600/20',
+    oauthEndpoint: 'pinterest-oauth',
+    features: ['Video Pins', 'Boards', 'Idea Pins', 'Shop'],
+    contentTypes: ['Video Pins', '2:3 Format', 'Rich Pins']
+  },
+  {
     id: 'tiktok',
     name: 'TikTok',
     icon: '🎵',
@@ -78,16 +88,6 @@ const PLATFORMS: PlatformConfig[] = [
     oauthEndpoint: 'youtube-oauth',
     features: ['Shorts', 'Videos', 'Community', 'Ads'],
     contentTypes: ['Shorts', 'Long-form', 'Ads']
-  },
-  {
-    id: 'pinterest',
-    name: 'Pinterest',
-    icon: '📌',
-    color: 'from-red-500 to-red-600',
-    gradient: 'from-red-500/20 to-red-600/20',
-    oauthEndpoint: 'pinterest-oauth',
-    features: ['Pins', 'Boards', 'Idea Pins'],
-    contentTypes: ['Pins', 'Video Pins', 'Idea Pins']
   },
   {
     id: 'amazon',
