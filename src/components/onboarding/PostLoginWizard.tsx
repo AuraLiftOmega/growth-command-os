@@ -14,6 +14,7 @@ import {
   Zap,
   Play,
   X,
+  Youtube,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,8 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [shopifyUrl, setShopifyUrl] = useState("");
-  const [pinterestConnected, setPinterestConnected] = useState(false);
+const [pinterestConnected, setPinterestConnected] = useState(false);
+  const [youtubeConnected, setYoutubeConnected] = useState(false);
   const [videoGenerated, setVideoGenerated] = useState(false);
   
   const [steps, setSteps] = useState<WizardStep[]>([
@@ -63,13 +65,20 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
     },
     {
       id: 2,
+      title: "Connect YouTube",
+      description: "Upload Shorts & videos automatically",
+      icon: Youtube,
+      status: "pending",
+    },
+    {
+      id: 3,
       title: "Generate First Pin",
       description: "Create your first viral video Pin",
       icon: Video,
       status: "pending",
     },
     {
-      id: 3,
+      id: 4,
       title: "Launch Swarm",
       description: "Activate autonomous publishing",
       icon: Sparkles,
@@ -118,13 +127,23 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
     goToNextStep();
   };
 
-  const handlePinterestConnect = async () => {
+const handlePinterestConnect = async () => {
     setIsLoading(true);
     // Simulate OAuth flow
     await new Promise(resolve => setTimeout(resolve, 2000));
     setPinterestConnected(true);
     setIsLoading(false);
     toast.success("Pinterest account connected!");
+    goToNextStep();
+  };
+
+  const handleYouTubeConnect = async () => {
+    setIsLoading(true);
+    // Simulate YouTube OAuth flow
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setYoutubeConnected(true);
+    setIsLoading(false);
+    toast.success("YouTube channel connected!");
     goToNextStep();
   };
 
@@ -269,7 +288,7 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
                 </StepContent>
               )}
 
-              {currentStep === 1 && (
+{currentStep === 1 && (
                 <StepContent
                   key="pinterest"
                   title="Connect Pinterest"
@@ -314,6 +333,50 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
               )}
 
               {currentStep === 2 && (
+                <StepContent
+                  key="youtube"
+                  title="Connect YouTube"
+                  description="Upload Shorts and full videos to YouTube automatically. Perfect for repurposing viral content."
+                >
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-[#FF0000]/10 to-[#FF0000]/5 border border-[#FF0000]/20">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#FF0000] flex items-center justify-center">
+                          <Youtube className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium">YouTube Channel</p>
+                          <p className="text-sm text-muted-foreground">Brand Accounts supported</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleYouTubeConnect}
+                        disabled={isLoading}
+                        className="flex-1 gap-2 bg-[#FF0000] hover:bg-[#FF0000]/90"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Connecting...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4" />
+                            Authorize YouTube
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="ghost" onClick={skipStep}>
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                </StepContent>
+              )}
+
+              {currentStep === 3 && (
                 <StepContent
                   key="video"
                   title="Generate Your First Video Pin"
@@ -383,11 +446,11 @@ export const PostLoginWizard = ({ open, onClose, onComplete }: PostLoginWizardPr
                 </StepContent>
               )}
 
-              {currentStep === 3 && (
+              {currentStep === 4 && (
                 <StepContent
                   key="swarm"
-                  title="Launch the Pinterest Swarm"
-                  description="Activate autonomous publishing. DOMINION will continuously create and post video Pins 24/7."
+                  title="Launch the Pinterest + YouTube Swarm"
+                  description="Activate autonomous publishing. DOMINION will continuously create and post to Pinterest & YouTube 24/7."
                 >
                   <div className="space-y-4">
                     <div className="grid grid-cols-3 gap-3">

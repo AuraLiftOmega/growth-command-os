@@ -24,6 +24,9 @@ import {
   Heart,
   MousePointerClick,
   Video,
+  Youtube,
+  Play,
+  Clock,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,8 +84,8 @@ export function AnalyticsPanel() {
               <BarChart3 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-display font-bold">Pinterest Analytics</h2>
-              <p className="text-muted-foreground">Real-time performance • Live metrics</p>
+<h2 className="text-2xl font-display font-bold">Pinterest + YouTube Analytics</h2>
+              <p className="text-muted-foreground">Real-time performance • Multi-channel metrics</p>
             </div>
           </div>
 
@@ -141,12 +144,13 @@ export function AnalyticsPanel() {
         />
       </div>
 
-      {/* Tabs for different views */}
+{/* Tabs for different views */}
       <Tabs defaultValue="heatmap" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full max-w-xl">
+        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
           <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
           <TabsTrigger value="funnel">Revenue Flow</TabsTrigger>
           <TabsTrigger value="pins">Live Pins</TabsTrigger>
+          <TabsTrigger value="youtube">YouTube</TabsTrigger>
           <TabsTrigger value="swarm">Swarm</TabsTrigger>
         </TabsList>
 
@@ -163,6 +167,124 @@ export function AnalyticsPanel() {
         <TabsContent value="pins" className="space-y-6">
           <LivePinCarousel />
           <PinLeaderboard />
+        </TabsContent>
+
+        <TabsContent value="youtube" className="space-y-6">
+          {/* YouTube Analytics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <AnimatedKPICard
+              title="YouTube Views"
+              value={12400}
+              previousValue={8200}
+              icon={Eye}
+              color="accent"
+              live
+            />
+            <AnimatedKPICard
+              title="Shorts Views"
+              value={8900}
+              previousValue={5400}
+              icon={Play}
+              color="primary"
+            />
+            <AnimatedKPICard
+              title="Watch Time (hrs)"
+              value={342}
+              previousValue={245}
+              icon={Clock}
+              color="success"
+            />
+            <AnimatedKPICard
+              title="CTR"
+              value={8.2}
+              previousValue={6.8}
+              icon={MousePointerClick}
+              color="success"
+            />
+          </div>
+
+          {/* YouTube Upload Log */}
+          <Card className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-[#FF0000]/10">
+                <Youtube className="w-5 h-5 text-[#FF0000]" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Recent YouTube Uploads</h3>
+                <p className="text-sm text-muted-foreground">Auto-published by Swarm</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-xl bg-gradient-to-r from-[#FF0000]/5 to-transparent border border-[#FF0000]/20"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Badge className="mb-2 bg-[#FF0000]/20 text-[#FF0000]">SHORTS</Badge>
+                    <h4 className="font-medium">Get the Glow: Radiance Vitamin C Serum Routine 2026 | AuraLift Essentials</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Tags: vitamin c serum, skincare routine, natural glow, auralift
+                    </p>
+                    <div className="flex items-center gap-4 mt-3 text-sm">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" /> 2,847 views
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" /> 234 likes
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 8.2% CTR
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-success border-success/30">
+                    ✓ LIVE
+                  </Badge>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Upload ID: yt_short_abc123</span>
+                  <span>Published 3 hours ago</span>
+                </div>
+              </motion.div>
+
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="p-4 rounded-xl bg-muted/30 border"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <Badge variant="secondary" className="mb-2">VIDEO</Badge>
+                    <h4 className="font-medium">Complete Morning Skincare Routine with AuraLift Vitamin C Serum</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Tags: skincare tutorial, vitamin c benefits, morning routine
+                    </p>
+                    <div className="flex items-center gap-4 mt-3 text-sm">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" /> 1,245 views
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" /> 89 likes
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 6.1% CTR
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-success border-success/30">
+                    ✓ LIVE
+                  </Badge>
+                </div>
+                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Upload ID: yt_vid_def456</span>
+                  <span>Published yesterday</span>
+                </div>
+              </motion.div>
+            </div>
+          </Card>
         </TabsContent>
 
         <TabsContent value="swarm" className="space-y-6">
