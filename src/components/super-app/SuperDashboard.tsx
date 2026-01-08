@@ -67,7 +67,7 @@ export function SuperDashboard({ className }: SuperDashboardProps) {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'store', label: 'Store Builder', icon: Store },
-    { id: 'channels', label: 'Channels', icon: Plug, badge: '12' },
+    { id: 'channels', label: '📌 Channels', icon: Plug, badge: 'PINTEREST', badgeColor: 'bg-red-500/20 text-red-500' },
     { id: 'video', label: 'Video Studio', icon: Video, badge: 'AI' },
     { id: 'ads', label: 'Ad Campaigns', icon: Megaphone },
     { id: 'ceo', label: 'CEO Agent', icon: Brain, badge: 'LIVE' },
@@ -135,7 +135,8 @@ export function SuperDashboard({ className }: SuperDashboardProps) {
                     className={`text-[10px] px-1 py-0 ${
                       tab.badge === 'LIVE' ? 'bg-success/20 text-success' :
                       tab.badge === 'AI' ? 'bg-primary/20 text-primary' :
-                      ''
+                      tab.badge === 'PINTEREST' ? 'bg-red-500/20 text-red-500 animate-pulse' :
+                      (tab as any).badgeColor || ''
                     }`}
                   >
                     {tab.badge}

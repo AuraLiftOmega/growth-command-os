@@ -73,20 +73,20 @@ export function ProductIntelligenceEngine() {
   }, []);
 
   const loadAnalyzedProducts = () => {
-    // Simulated analyzed products from multi-store sync
+  // Simulated analyzed products from multi-store sync
     setProducts([
       {
         id: '1',
-        name: 'Vitamin C Brightening Serum',
+        name: 'Radiance Vitamin C Serum',
         source: 'shopify',
         price: 38.99,
         inventory: 245,
-        hitScore: 94,
+        hitScore: 96,
         demandTrend: 'rising',
         sentimentScore: 92,
         visualScore: 88,
         conversionPrediction: 4.2,
-        recommendations: ['Increase ad spend 3x', 'Test bundle with Moisturizer'],
+        recommendations: ['📌 PINTEREST FIRST: 8.2% save rate', 'Post Rich Pin with Shopify link NOW'],
         bundleSuggestions: ['Hyaluronic Acid Serum', 'Daily Moisturizer'],
         competitorPrice: 45.99,
         reviewCount: 1247,
@@ -168,10 +168,24 @@ export function ProductIntelligenceEngine() {
     setSignals([
       {
         type: 'opportunity',
-        title: 'TikTok Skincare Surge',
-        description: 'Vitamin C products trending +340% on TikTok this week',
+        title: '📌 Pinterest Beauty Surge',
+        description: 'Vitamin C serum Pins getting 8.2% save rate — 3x higher than TikTok',
         urgency: 'high',
-        action: 'Launch TikTok ad campaign for Vitamin C Serum immediately'
+        action: 'Deploy Radiance Serum to Pinterest NOW with Rich Pin + Shopify link'
+      },
+      {
+        type: 'opportunity',
+        title: '📌 Pinterest Evergreen Traffic',
+        description: 'Skincare Pins drive traffic for 6+ months vs 24hrs on TikTok',
+        urgency: 'high',
+        action: 'Prioritize Pinterest video Pins for all AuraLift products'
+      },
+      {
+        type: 'trend',
+        title: '📌 Pinterest Shopping Growth',
+        description: 'Pinterest shopping clicks up +124% YoY in beauty vertical',
+        urgency: 'medium',
+        action: 'Enable Rich Pins for all Shopify products'
       },
       {
         type: 'threat',
@@ -179,13 +193,6 @@ export function ProductIntelligenceEngine() {
         description: 'Major competitor dropped Retinol prices by 15%',
         urgency: 'medium',
         action: 'Bundle offer or emphasize premium quality positioning'
-      },
-      {
-        type: 'trend',
-        title: 'Clean Beauty Movement',
-        description: 'Clean beauty searches up 89% YoY',
-        urgency: 'low',
-        action: 'Highlight natural ingredients in all marketing'
       }
     ]);
   };
