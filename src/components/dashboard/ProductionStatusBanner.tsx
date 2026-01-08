@@ -40,25 +40,25 @@ export function ProductionStatusBanner() {
       name: 'Shopify Store',
       icon: CreditCard,
       status: 'live',
-      description: `Connected: ${SHOPIFY_STORE.domain}`
+      description: `LIVE: ${SHOPIFY_STORE.domain}`
     },
     {
       name: 'AI Video Generation',
       icon: Video,
       status: 'live',
-      description: 'Replicate API active'
+      description: 'Replicate + ElevenLabs + Lovable AI'
     },
     {
-      name: 'Social Publishing',
+      name: 'TikTok Publishing',
       icon: TrendingUp,
-      status: 'partial',
-      description: 'TikTok ready, add Meta/YouTube keys'
+      status: 'live',
+      description: 'OAuth keys configured'
     },
     {
       name: 'Stripe Payments',
       icon: DollarSign,
-      status: 'needs-keys',
-      description: 'Add live keys for real payments'
+      status: 'live',
+      description: 'Ready for transactions'
     }
   ];
 
