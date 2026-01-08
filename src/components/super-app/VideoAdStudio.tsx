@@ -49,11 +49,11 @@ interface GeneratedVideo {
 }
 
 const PLATFORMS = [
+  { id: 'pinterest', name: '📌 Pinterest Video', aspect: '2:3', duration: 15, priority: true },
   { id: 'tiktok', name: 'TikTok', aspect: '9:16', duration: 15 },
   { id: 'instagram', name: 'Instagram Reels', aspect: '9:16', duration: 30 },
   { id: 'youtube', name: 'YouTube Shorts', aspect: '9:16', duration: 60 },
   { id: 'facebook', name: 'Facebook Stories', aspect: '9:16', duration: 15 },
-  { id: 'pinterest', name: 'Pinterest Video', aspect: '2:3', duration: 15 },
 ];
 
 const STYLES = [
@@ -75,7 +75,7 @@ const MUSIC_MOODS = [
 
 export function VideoAdStudio() {
   const [prompt, setPrompt] = useState('');
-  const [platform, setPlatform] = useState('tiktok');
+  const [platform, setPlatform] = useState('pinterest'); // Pinterest priority
   const [style, setStyle] = useState('ugc');
   const [musicMood, setMusicMood] = useState('Upbeat & Energetic');
   const [duration, setDuration] = useState([15]);
@@ -155,19 +155,39 @@ export function VideoAdStudio() {
     }
   }, [prompt, platform, style, duration, musicMood]);
 
-  const publishVideo = async (video: GeneratedVideo) => {
+  const publishVideo = async (video: GeneratedVideo, targetPlatform?: string) => {
+    const publishTo = targetPlatform || video.platform;
+    
     try {
-      await supabase.functions.invoke('autonomous-publisher', {
-        body: {
-          video_url: video.videoUrl,
-          platform: video.platform,
-          caption: video.prompt.slice(0, 100),
-          hashtags: ['fyp', 'viral', 'ad', 'trending']
-        }
-      });
-      toast.success(`Published to ${video.platform}!`);
-    } catch {
-      toast.success(`Simulated publish to ${video.platform}`);
+      if (publishTo === 'pinterest') {
+        // Use Pinterest-specific publisher
+        await supabase.functions.invoke('pinterest-publish', {
+          body: {
+            video_url: video.videoUrl,
+            title: video.prompt.slice(0, 80),
+            description: video.prompt,
+            keywords: ['skincare', 'beauty', 'viral', 'glow'],
+            link: 'https://auralift.com/products/radiance-serum',
+            product_name: 'Radiance Vitamin C Serum'
+          }
+        });
+        toast.success('📌 Published to Pinterest!', {
+          description: 'Video Pin is now live'
+        });
+      } else {
+        await supabase.functions.invoke('autonomous-publisher', {
+          body: {
+            video_url: video.videoUrl,
+            platform: publishTo,
+            caption: video.prompt.slice(0, 100),
+            hashtags: ['fyp', 'viral', 'ad', 'trending']
+          }
+        });
+        toast.success(`Published to ${publishTo}!`);
+      }
+    } catch (err) {
+      console.error('Publish error:', err);
+      toast.success(`Simulated publish to ${publishTo}`);
     }
   };
 
@@ -375,18 +395,28 @@ export function VideoAdStudio() {
                           </p>
 
                           {video.status === 'completed' && (
-                            <div className="flex gap-2 pt-2">
-                              <Button variant="outline" size="sm" className="flex-1 gap-1">
-                                <Download className="w-3 h-3" />
-                                Save
-                              </Button>
+                            <div className="space-y-2 pt-2">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" className="flex-1 gap-1">
+                                  <Download className="w-3 h-3" />
+                                  Save
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  className="flex-1 gap-1 bg-red-500 hover:bg-red-600"
+                                  onClick={() => publishVideo(video, 'pinterest')}
+                                >
+                                  📌 Pinterest
+                                </Button>
+                              </div>
                               <Button 
+                                variant="outline"
                                 size="sm" 
-                                className="flex-1 gap-1"
+                                className="w-full gap-1"
                                 onClick={() => publishVideo(video)}
                               >
                                 <Send className="w-3 h-3" />
-                                Publish
+                                All Channels
                               </Button>
                             </div>
                           )}

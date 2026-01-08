@@ -63,13 +63,24 @@ export function MarketingSwarmEngine() {
   const [isSwarmActive, setIsSwarmActive] = useState(true);
   const [agents, setAgents] = useState<SwarmAgent[]>([
     {
+      id: 'pinterest-swarm',
+      name: '📌 Pinterest Publisher',
+      type: 'posting',
+      status: 'active',
+      icon: Share2,
+      tasksCompleted: 89,
+      currentTask: 'Publishing Radiance Serum video Pin to beauty board',
+      efficiency: 97,
+      lastAction: '15 sec ago'
+    },
+    {
       id: 'avatar-gen',
       name: 'Avatar Generator',
       type: 'avatar',
       status: 'processing',
       icon: Users,
       tasksCompleted: 47,
-      currentTask: 'Creating female entrepreneur avatar for TikTok',
+      currentTask: 'Creating female entrepreneur avatar for Pinterest',
       efficiency: 94,
       lastAction: '2 min ago'
     },
@@ -80,7 +91,7 @@ export function MarketingSwarmEngine() {
       status: 'active',
       icon: Video,
       tasksCompleted: 156,
-      currentTask: 'Rendering 15-sec product ad with voiceover',
+      currentTask: 'Rendering 2:3 vertical video for Pinterest',
       efficiency: 91,
       lastAction: '1 min ago'
     },
@@ -97,12 +108,12 @@ export function MarketingSwarmEngine() {
     },
     {
       id: 'auto-poster',
-      name: 'Auto-Post Agent',
+      name: 'Multi-Channel Agent',
       type: 'posting',
       status: 'active',
-      icon: Share2,
+      icon: Megaphone,
       tasksCompleted: 234,
-      currentTask: 'Scheduling posts across TikTok, IG, FB',
+      currentTask: 'Cross-posting to TikTok, IG, FB after Pinterest',
       efficiency: 98,
       lastAction: '30 sec ago'
     },
@@ -113,30 +124,28 @@ export function MarketingSwarmEngine() {
       status: 'processing',
       icon: BarChart3,
       tasksCompleted: 67,
-      currentTask: 'Testing 4 hook variations for Retinol ad',
+      currentTask: 'Testing 4 Pin descriptions for engagement',
       efficiency: 89,
       lastAction: '3 min ago'
-    },
-    {
-      id: 'targeting-ai',
-      name: 'Targeting Agent',
-      type: 'targeting',
-      status: 'active',
-      icon: Target,
-      tasksCompleted: 112,
-      currentTask: 'Expanding to 1-3% lookalike audiences',
-      efficiency: 92,
-      lastAction: '1 min ago'
     }
   ]);
 
   const [actions, setActions] = useState<SwarmAction[]>([
     {
+      id: '0',
+      agent: '📌 Pinterest Publisher',
+      action: 'Published Radiance Serum video Pin to Beauty board',
+      result: 'Video Pin live with rich description & CTA',
+      impact: '5K+ impressions projected',
+      timestamp: new Date(Date.now() - 30 * 1000),
+      status: 'success'
+    },
+    {
       id: '1',
       agent: 'Video Swarm',
-      action: 'Generated viral TikTok ad with trending audio',
-      result: 'Video ready for publishing',
-      impact: 'Projected 50K+ views',
+      action: 'Generated 2:3 vertical video for Pinterest',
+      result: 'Optimized for Pinterest feed discovery',
+      impact: 'Projected 50K+ impressions',
       timestamp: new Date(Date.now() - 2 * 60 * 1000),
       status: 'success'
     },
@@ -151,19 +160,19 @@ export function MarketingSwarmEngine() {
     },
     {
       id: '3',
-      agent: 'Auto-Post Agent',
-      action: 'Posted to TikTok, Instagram Reels, Facebook',
-      result: 'Cross-platform sync complete',
-      impact: '3 platforms, peak hours',
+      agent: 'Multi-Channel Agent',
+      action: 'Cross-posted to TikTok, Instagram, Facebook',
+      result: 'Pinterest-first strategy executed',
+      impact: '4 platforms synced',
       timestamp: new Date(Date.now() - 8 * 60 * 1000),
       status: 'success'
     },
     {
       id: '4',
       agent: 'A/B Test Agent',
-      action: 'Declared winner: Hook B with urgency',
-      result: 'CTR 4.2% vs 2.8% baseline',
-      impact: '+50% click-through',
+      action: 'Declared winner: Pin description B with emojis',
+      result: 'Save rate 6.2% vs 3.1% baseline',
+      impact: '+100% saves',
       timestamp: new Date(Date.now() - 12 * 60 * 1000),
       status: 'success'
     }
@@ -193,10 +202,11 @@ export function MarketingSwarmEngine() {
       // Add new action occasionally
       if (Math.random() > 0.6) {
         const newActions = [
-          { agent: 'Video Swarm', action: 'Created new product showcase video', result: 'HD render complete', impact: '+$500 projected' },
-          { agent: 'Dynamic Pricing AI', action: 'Adjusted bundle pricing', result: 'Demand curve optimized', impact: '+12% margin' },
-          { agent: 'Auto-Post Agent', action: 'Scheduled 5 posts for peak engagement', result: 'Multi-platform queued', impact: '100K reach' },
-          { agent: 'Avatar Generator', action: 'Created professional spokesperson avatar', result: 'Ready for video overlay', impact: '2x engagement' },
+          { agent: '📌 Pinterest Publisher', action: 'Published new video Pin to Skincare board', result: 'Rich Pin with product link', impact: '+8K reach' },
+          { agent: 'Video Swarm', action: 'Created Pinterest-optimized 2:3 video', result: 'Vertical format ready', impact: '+$500 projected' },
+          { agent: 'Dynamic Pricing AI', action: 'Adjusted bundle pricing for Pinterest traffic', result: 'Conversion optimized', impact: '+12% margin' },
+          { agent: 'Multi-Channel Agent', action: 'Syndicated Pin to TikTok & IG', result: 'Multi-platform queued', impact: '100K reach' },
+          { agent: 'Avatar Generator', action: 'Created beauty influencer avatar', result: 'Ready for Pin video', impact: '2x engagement' },
         ];
         
         const randomAction = newActions[Math.floor(Math.random() * newActions.length)];
