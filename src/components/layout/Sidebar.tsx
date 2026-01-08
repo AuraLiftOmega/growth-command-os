@@ -3,8 +3,9 @@ import {
   LayoutDashboard, 
   Settings,
   TrendingUp,
-  Users,
-  DollarSign,
+  Brain,
+  Zap,
+  Target,
   LogOut
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +19,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", path: "/dashboard" },
+  { icon: <Zap className="w-5 h-5" />, label: "OMEGA Command", path: "/omega-command" },
+  { icon: <Brain className="w-5 h-5" />, label: "CEO Brain", path: "/ceo-brain" },
+  { icon: <Target className="w-5 h-5" />, label: "War Room", path: "/war-room" },
 ];
 
 export const Sidebar = () => {

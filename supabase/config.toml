@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.tiktok-publish]
 verify_jwt = false
+
+[functions.omega-swarm-2026]
+verify_jwt = false
