@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/layout/Sidebar";
+import { SmartSidebar } from "@/components/layout/SmartSidebar";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,9 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
+      <SmartSidebar />
       
-      <main className="ml-64">
+      <main className="ml-64 transition-all duration-300">
         <Header />
         
         <div className="p-6 max-w-4xl">

@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/layout/Sidebar";
+import { SmartSidebar } from "@/components/layout/SmartSidebar";
 import { Header } from "@/components/layout/Header";
 import { LethalWarRoom } from "@/components/war-room/LethalWarRoom";
 import { CRMDashboard } from "@/components/crm/CRMDashboard";
@@ -24,8 +24,8 @@ const WarRoom = () => {
 
   return (
     <div className="min-h-screen bg-background flex w-full">
-      <Sidebar />
-      <div className="flex-1 ml-64">
+      <SmartSidebar />
+      <div className="flex-1 ml-64 transition-all duration-300">
         <Header />
         <main className="p-6 pt-24">
           {/* War Room Hero */}

@@ -9,7 +9,7 @@ import {
   Wallet,
   ArrowUpRight
 } from "lucide-react";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { SmartSidebar } from "@/components/layout/SmartSidebar";
 import { Header } from "@/components/layout/Header";
 import { LiveMetricCard } from "@/components/dashboard/LiveMetricCard";
 import { PipelineTable } from "@/components/dashboard/PipelineTable";
@@ -30,9 +30,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar />
+      <SmartSidebar />
       
-      <main className="ml-64">
+      <main className="ml-64 transition-all duration-300">
         <Header />
         
         <div className="p-6">
