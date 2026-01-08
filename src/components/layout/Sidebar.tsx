@@ -6,15 +6,19 @@ import {
   Brain,
   Zap,
   Target,
-  LogOut
+  LogOut,
+  ShoppingCart,
+  CreditCard
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   icon: React.ReactNode;
   label: string;
   path: string;
+  badge?: string;
 }
 
 const navItems: NavItem[] = [
@@ -22,6 +26,8 @@ const navItems: NavItem[] = [
   { icon: <Zap className="w-5 h-5" />, label: "OMEGA Command", path: "/omega-command" },
   { icon: <Brain className="w-5 h-5" />, label: "CEO Brain", path: "/ceo-brain" },
   { icon: <Target className="w-5 h-5" />, label: "War Room", path: "/war-room" },
+  { icon: <ShoppingCart className="w-5 h-5" />, label: "Store", path: "/store", badge: "LIVE" },
+  { icon: <CreditCard className="w-5 h-5" />, label: "Pricing", path: "/pricing" },
 ];
 
 export const Sidebar = () => {
@@ -78,6 +84,11 @@ export const Sidebar = () => {
                 {item.icon}
               </span>
               <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <Badge className="bg-success/20 text-success text-[10px] px-1.5 py-0">
+                  {item.badge}
+                </Badge>
+              )}
               {active && (
                 <motion.div
                   layoutId="activeIndicator"

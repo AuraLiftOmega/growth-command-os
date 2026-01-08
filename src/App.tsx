@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
+import Pricing from "./pages/Pricing";
+import Store from "./pages/Store";
 import NotFound from "./pages/NotFound";
 import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
@@ -111,6 +113,10 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Public routes for store and pricing */}
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/store" element={<Store />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
