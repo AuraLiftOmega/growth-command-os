@@ -49,11 +49,11 @@ const CHANNELS: Channel[] = [
     id: 'pinterest', 
     name: '📌 Pinterest', 
     icon: '📌', 
-    color: 'from-red-500/20 to-red-600/20', 
+    color: 'from-red-500/30 to-red-600/30', 
     status: 'connected', 
     handle: '@auralift_essentials', 
-    revenue: 18750, // Top revenue channel
-    orders: 234, 
+    revenue: 28750, // TOP revenue channel - evergreen traffic
+    orders: 456, 
     syncEnabled: true, 
     apiType: 'oauth',
     lastSync: new Date().toISOString()
@@ -231,6 +231,30 @@ export function MultiChannelHub() {
                         <p className="text-[10px] text-muted-foreground">Orders</p>
                       </div>
                     </div>
+
+                    {/* Pinterest-specific: Board selector & quick post */}
+                    {channel.id === 'pinterest' && (
+                      <div className="mb-3 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-red-500">📌 Active Board</span>
+                          <Badge className="bg-red-500/20 text-red-500 text-[10px]">Beauty & Skincare</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-500">245K</p>
+                            <p className="text-muted-foreground">Impressions</p>
+                          </div>
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-500">12.3K</p>
+                            <p className="text-muted-foreground">Saves</p>
+                          </div>
+                          <div className="p-1 rounded bg-background/50">
+                            <p className="font-bold text-red-500">8.2%</p>
+                            <p className="text-muted-foreground">Save Rate</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs text-muted-foreground">Auto-sync products</span>
