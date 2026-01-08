@@ -57,6 +57,7 @@ const PLATFORMS = [
 ];
 
 const STYLES = [
+  { id: 'avatar', name: 'AI Avatar', desc: 'Talking spokesperson/avatar' },
   { id: 'ugc', name: 'UGC Style', desc: 'Authentic, relatable content' },
   { id: 'cinematic', name: 'Cinematic', desc: 'High-end, professional look' },
   { id: 'product', name: 'Product Focus', desc: 'Clean product showcase' },
@@ -199,7 +200,7 @@ export function VideoAdStudio() {
               <Textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Create a 15-sec viral TikTok ad for my vitamin C serum with upbeat music and a strong CTA..."
+                placeholder="Create a 20-second ad: Confident female entrepreneur avatar in a modern office, wearing a red blazer, smiling, pointing to the product on the desk, saying 'This changes everything—get yours now' with upbeat background music."
                 className="min-h-[120px]"
               />
             </div>
