@@ -1,14 +1,13 @@
 /**
- * PLATFORM CONNECTIONS HOOK
+ * PLATFORM CONNECTIONS HOOK - PRODUCTION ONLY
  * 
- * Manages platform OAuth connections, test mode, and health checks
- * Provides unified interface for all platform integrations
+ * Manages platform OAuth connections and health checks
+ * NO TEST MODE - Real connections only
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-import { isTestMode, enableTestMode as setGlobalTestMode } from "@/lib/demo-mode";
 
 export interface PlatformConnection {
   id: string;
@@ -27,76 +26,9 @@ export interface PlatformConnection {
   };
 }
 
-// Test mode simulation data
-const TEST_MODE_PLATFORMS: PlatformConnection[] = [
-  { 
-    id: 'test-tiktok', 
-    platform: 'tiktok', 
-    handle: '@aurabeauty', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 125400, engagement_rate: 8.7, posts_today: 3, revenue_attributed: 4520 }
-  },
-  { 
-    id: 'test-instagram', 
-    platform: 'instagram', 
-    handle: '@aura.essentials', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 89200, engagement_rate: 5.2, posts_today: 2, revenue_attributed: 3180 }
-  },
-  { 
-    id: 'test-facebook', 
-    platform: 'facebook', 
-    handle: 'Aura Lift Essentials', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 45600, engagement_rate: 3.1, posts_today: 1, revenue_attributed: 1890 }
-  },
-  { 
-    id: 'test-youtube', 
-    platform: 'youtube', 
-    handle: '@AuraBeautyOfficial', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 32100, engagement_rate: 4.8, posts_today: 1, revenue_attributed: 2340 }
-  },
-  { 
-    id: 'test-pinterest', 
-    platform: 'pinterest', 
-    handle: '@auraessentials', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 18900, engagement_rate: 6.3, posts_today: 4, revenue_attributed: 980 }
-  },
-  { 
-    id: 'test-amazon', 
-    platform: 'amazon', 
-    handle: 'Aura Seller', 
-    is_connected: true, 
-    health_status: 'healthy', 
-    is_test_mode: true,
-    last_health_check: new Date().toISOString(), 
-    created_at: new Date().toISOString(),
-    metrics: { followers: 0, engagement_rate: 0, posts_today: 0, revenue_attributed: 8450 }
-  },
-];
+// NO TEST MODE DATA - All simulated platforms removed
 
+// Default platforms - all disconnected until real OAuth
 const DEFAULT_PLATFORMS: PlatformConnection[] = [
   { id: 'default-tiktok', platform: 'tiktok', handle: null, is_connected: false, health_status: 'disconnected', is_test_mode: false, last_health_check: null, created_at: new Date().toISOString() },
   { id: 'default-instagram', platform: 'instagram', handle: null, is_connected: false, health_status: 'disconnected', is_test_mode: false, last_health_check: null, created_at: new Date().toISOString() },
@@ -112,15 +44,8 @@ export const usePlatformConnections = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
 
-  // Fetch platforms from database or use test mode
+  // Fetch platforms from database - NO TEST MODE
   const fetchPlatforms = useCallback(async () => {
-    // Use test mode data if enabled
-    if (isTestMode()) {
-      setPlatforms(TEST_MODE_PLATFORMS);
-      setIsLoading(false);
-      return;
-    }
-
     if (!user) {
       setPlatforms(DEFAULT_PLATFORMS);
       setIsLoading(false);
@@ -141,7 +66,7 @@ export const usePlatformConnections = () => {
         const merged = [
           ...data.map(p => ({
             ...p,
-            is_test_mode: false,
+            is_test_mode: false, // FORCE NO TEST MODE
             metrics: undefined
           })),
           ...DEFAULT_PLATFORMS.filter(p => !existingPlatforms.has(p.platform))
@@ -159,7 +84,7 @@ export const usePlatformConnections = () => {
     }
   }, [user]);
 
-  // Connect a platform (real OAuth or test mode)
+  // Connect a platform (real OAuth only)
   const connectPlatform = useCallback(async (platformId: string, credentials?: any) => {
     if (!user) return;
 
@@ -186,33 +111,10 @@ export const usePlatformConnections = () => {
     }
   }, [user, fetchPlatforms]);
 
-  // Enable test mode for a platform
-  const enableTestMode = useCallback(async (platformId: string) => {
-    // Update local state with test mode data
-    setPlatforms(prev => prev.map(p => {
-      if (p.platform === platformId) {
-        const testData = TEST_MODE_PLATFORMS.find(t => t.platform === platformId);
-        return testData || { ...p, is_connected: true, health_status: 'healthy', is_test_mode: true };
-      }
-      return p;
-    }));
-
-    // Also store in database with test mode flag
-    if (user) {
-      await supabase
-        .from('platform_accounts')
-        .upsert({
-          user_id: user.id,
-          platform: platformId,
-          is_connected: true,
-          health_status: 'healthy',
-          handle: TEST_MODE_PLATFORMS.find(t => t.platform === platformId)?.handle || '@testuser',
-          last_health_check: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,platform'
-        });
-    }
-  }, [user]);
+  // NO TEST MODE - This function is disabled
+  const enableTestMode = useCallback(async (_platformId: string) => {
+    console.warn('[DOMINION] Test mode is permanently disabled. Use real OAuth.');
+  }, []);
 
   // Disconnect a platform
   const disconnectPlatform = useCallback(async (platformId: string) => {
@@ -257,10 +159,10 @@ export const usePlatformConnections = () => {
     fetchPlatforms();
   }, [fetchPlatforms]);
 
-  // Computed values
+  // Computed values - REAL DATA ONLY
   const connectedCount = platforms.filter(p => p.is_connected).length;
   const healthyCount = platforms.filter(p => p.health_status === 'healthy').length;
-  const testModeCount = platforms.filter(p => p.is_test_mode).length;
+  const testModeCount = 0; // ALWAYS 0 - NO TEST MODE
   const totalRevenue = platforms.reduce((sum, p) => sum + (p.metrics?.revenue_attributed || 0), 0);
 
   return {

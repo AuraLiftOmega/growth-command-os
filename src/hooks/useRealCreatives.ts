@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
-import { isTestMode } from "@/lib/demo-mode";
 
 export interface RealCreative {
   id: string;
@@ -29,13 +28,7 @@ export interface RealCreative {
   updated_at: string;
 }
 
-// Test mode demo creatives
-const TEST_MODE_CREATIVES: RealCreative[] = [
-  { id: 'c1', user_id: 'demo', name: 'Aura Lift - Transform Hook', platform: 'tiktok', hook: "Watch your skin transform in 7 days", script: "Full transformation script", video_url: null, thumbnail_url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400', style: 'ugc', emotional_trigger: 'transformation', quality_score: 92, impressions: 487291, clicks: 19421, ctr: 3.98, conversions: 1847, revenue: 164383, spend: 34212, roas: 4.8, status: 'published', shopify_product_id: 'demo-1', created_at: new Date(Date.now() - 86400000).toISOString(), updated_at: new Date().toISOString() },
-  { id: 'c2', user_id: 'demo', name: 'Radiance - Before/After', platform: 'instagram_reels', hook: "The secret dermatologists don't want you to know", script: "Before/after reveal script", video_url: null, thumbnail_url: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400', style: 'cinematic', emotional_trigger: 'curiosity', quality_score: 78, impressions: 324891, clicks: 12891, ctr: 3.97, conversions: 987, revenue: 64155, spend: 18234, roas: 3.5, status: 'published', shopify_product_id: 'demo-2', created_at: new Date(Date.now() - 172800000).toISOString(), updated_at: new Date().toISOString() },
-  { id: 'c3', user_id: 'demo', name: 'Youth Renewal - Testimonial', platform: 'youtube_shorts', hook: "I tried this for 30 days...", script: "Customer testimonial script", video_url: null, thumbnail_url: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', style: 'testimonial', emotional_trigger: 'social_proof', quality_score: 85, impressions: 189234, clicks: 7421, ctr: 3.92, conversions: 534, revenue: 41652, spend: 11891, roas: 3.5, status: 'optimizing', shopify_product_id: 'demo-3', created_at: new Date(Date.now() - 259200000).toISOString(), updated_at: new Date().toISOString() },
-  { id: 'c4', user_id: 'demo', name: 'Aura Lift - Problem/Solution', platform: 'facebook', hook: "Tired of looking tired?", script: "Problem solution script", video_url: null, thumbnail_url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400', style: 'educational', emotional_trigger: 'pain_point', quality_score: 71, impressions: 234891, clicks: 8921, ctr: 3.80, conversions: 623, revenue: 55447, spend: 15234, roas: 3.6, status: 'testing', shopify_product_id: 'demo-1', created_at: new Date(Date.now() - 345600000).toISOString(), updated_at: new Date().toISOString() },
-];
+// NO TEST MODE DATA - Production only
 
 export const useRealCreatives = () => {
   const { user } = useAuth();
@@ -44,15 +37,13 @@ export const useRealCreatives = () => {
   const [hasRealData, setHasRealData] = useState(false);
 
   const fetchCreatives = useCallback(async () => {
-    // Use test mode data if enabled
-    if (isTestMode()) {
-      setCreatives(TEST_MODE_CREATIVES);
-      setHasRealData(true);
+    // NO TEST MODE - Only real data from database
+    if (!user) {
+      setCreatives([]);
+      setHasRealData(false);
       setIsLoading(false);
       return;
     }
-
-    if (!user) return;
 
     try {
       const { data, error } = await supabase
@@ -95,6 +86,8 @@ export const useRealCreatives = () => {
       }
     } catch (err) {
       console.error('Error fetching creatives:', err);
+      setCreatives([]);
+      setHasRealData(false);
     } finally {
       setIsLoading(false);
     }
