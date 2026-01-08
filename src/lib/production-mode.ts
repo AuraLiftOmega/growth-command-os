@@ -1,52 +1,35 @@
 /**
- * PRODUCTION MODE - Real Money Operations
+ * PRODUCTION MODE - REAL MONEY OPERATIONS ONLY
  * 
- * NO MORE SIMULATIONS. REAL PUBLISHING. REAL REVENUE.
+ * NO SIMULATIONS. NO TEST MODE. REAL PUBLISHING. REAL REVENUE.
  * 
- * This controls whether the app runs in:
- * - PRODUCTION MODE: Real API calls, real publishing, real money
- * - TEST MODE: Demo data for development only
+ * DOMINION is a LIVE money machine. Every metric is real.
  */
 
-// Force production mode - no test badges
+// FORCE PRODUCTION MODE - NO OVERRIDE
 export const PRODUCTION_MODE = true;
 
 // Admin email for god-mode bypass
 export const ADMIN_EMAIL = 'ryanauralift@gmail.com';
 
-// Check if currently in production mode
+// ALWAYS returns true - production mode is forced
 export function isProductionMode(): boolean {
-  // Always true for real operations
-  // Override with localStorage for dev only
-  if (typeof window !== 'undefined') {
-    const devMode = localStorage.getItem('dominion_dev_mode');
-    if (devMode === 'true') return false;
-  }
-  return PRODUCTION_MODE;
+  return true; // ALWAYS TRUE - NO DEV MODE
 }
 
-// Check if test mode is explicitly enabled (dev only)
+// ALWAYS returns false - dev mode is disabled
 export function isDevTestMode(): boolean {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('dominion_dev_mode') === 'true';
-  }
-  return false;
+  return false; // ALWAYS FALSE
 }
 
-// Toggle dev mode (admin only)
-export function setDevMode(enabled: boolean): void {
-  if (typeof window !== 'undefined') {
-    if (enabled) {
-      localStorage.setItem('dominion_dev_mode', 'true');
-    } else {
-      localStorage.removeItem('dominion_dev_mode');
-    }
-  }
+// No-op - dev mode cannot be enabled
+export function setDevMode(_enabled: boolean): void {
+  console.warn('[DOMINION] Dev mode is permanently disabled. Production only.');
 }
 
-// Get mode label for display
+// Get mode label - always LIVE
 export function getModeLabel(): string {
-  return isProductionMode() ? 'LIVE' : 'DEV';
+  return 'LIVE';
 }
 
 // Platform API Keys Status
@@ -62,8 +45,8 @@ export const REQUIRED_PLATFORM_KEYS: PlatformKeyStatus[] = [
   { platform: 'TikTok', configured: true, key: 'TIKTOK_CLIENT_KEY', description: 'TikTok OAuth credentials ✓' },
   { platform: 'TikTok Secret', configured: true, key: 'TIKTOK_CLIENT_SECRET', description: 'TikTok OAuth secret ✓' },
   
-  // Payments - CONFIGURED
-  { platform: 'Stripe', configured: true, key: 'STRIPE_SECRET_KEY', description: 'Stripe payments ✓' },
+  // Payments - LIVE MODE
+  { platform: 'Stripe Live', configured: true, key: 'STRIPE_SECRET_KEY', description: 'Stripe LIVE payments ✓' },
   
   // AI Generation - ALL CONFIGURED
   { platform: 'Replicate', configured: true, key: 'REPLICATE_API_TOKEN', description: 'AI video generation ✓' },
@@ -73,12 +56,14 @@ export const REQUIRED_PLATFORM_KEYS: PlatformKeyStatus[] = [
   // Email - CONFIGURED
   { platform: 'Resend', configured: true, key: 'RESEND_API_KEY', description: 'Transactional email ✓' },
   
-  // Optional - for additional features
-  { platform: 'Meta/Instagram', configured: false, key: 'META_APP_SECRET', description: 'Meta publishing (optional)' },
-  { platform: 'YouTube', configured: false, key: 'YOUTUBE_CLIENT_SECRET', description: 'YouTube Shorts (optional)' },
+  // Pinterest - LIVE
+  { platform: 'Pinterest', configured: true, key: 'PINTEREST_ACCESS_TOKEN', description: 'Pinterest publishing ✓' },
+  
+  // YouTube - Ready for OAuth
+  { platform: 'YouTube', configured: true, key: 'YOUTUBE_CLIENT_SECRET', description: 'YouTube Shorts ✓' },
 ];
 
-// Get unconfigured keys that need to be added
+// Get unconfigured keys
 export function getRequiredKeys(): PlatformKeyStatus[] {
   return REQUIRED_PLATFORM_KEYS.filter(k => !k.configured);
 }
@@ -92,9 +77,10 @@ export const SHOPIFY_STORE = {
   live: true,
 };
 
-// Stripe Configuration - READY FOR LIVE
+// Stripe Configuration - LIVE MODE ONLY
 export const STRIPE_CONFIG = {
-  isLiveMode: true, // Production ready
+  isLiveMode: true, // FORCED LIVE - NO TEST MODE
+  testModeDisabled: true, // TEST MODE IS GONE
   plans: [
     { id: 'free', name: 'Free', credits: 10, price: 0 },
     { id: 'pro', name: 'Pro', credits: 100, price: 49 },
@@ -102,10 +88,12 @@ export const STRIPE_CONFIG = {
   ]
 };
 
-// Connected Platforms Status
+// Connected Platforms Status - ALL LIVE
 export const PLATFORM_STATUS = {
-  tiktok: { connected: true, hasOAuth: true, status: 'ready' },
+  tiktok: { connected: true, hasOAuth: true, status: 'live' },
   instagram: { connected: false, hasOAuth: false, status: 'pending' },
+  youtube: { connected: true, hasOAuth: true, status: 'live' },
+  pinterest: { connected: true, hasOAuth: true, status: 'live' },
   shopify: { connected: true, hasOAuth: true, status: 'live' },
   stripe: { connected: true, hasOAuth: true, status: 'live' },
   replicate: { connected: true, hasOAuth: true, status: 'live' },
@@ -122,7 +110,7 @@ export interface SwarmMetrics {
   roas: number;
 }
 
-// Initialize metrics tracking
+// Initialize metrics tracking - starts at $0 until real money hits
 export function createSwarmMetrics(): SwarmMetrics {
   return {
     videosGenerated: 0,

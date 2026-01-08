@@ -58,46 +58,14 @@ interface CapabilityPerformance {
   engagement_score: number;
 }
 
-// Convert demo mode videos to DemoVideo format
+// NO DEMO MODE - Returns empty arrays/objects
 function getDemoModeVideos(): DemoVideo[] {
-  return DEMO_MODE_VIDEOS.map(demo => ({
-    id: demo.id,
-    variant: demo.variant as DemoVariant,
-    industry: demo.industry,
-    deal_size: demo.deal_size as DealSize,
-    sales_stage: demo.sales_stage as SalesStage,
-    length: demo.length as DemoLength,
-    capabilities: demo.capabilities,
-    narrative: demo.narrative,
-    video_url: demo.video_url,
-    thumbnail_url: demo.thumbnail_url,
-    narration_url: demo.narration_url,
-    duration_seconds: demo.duration_seconds,
-    status: 'ready' as const,
-    render_progress: 100,
-    render_error: null,
-    frames_generated: demo.frames_generated,
-    total_frames: demo.total_frames,
-    created_at: demo.created_at,
-  }));
+  return []; // No fake videos - production only
 }
 
-// Get demo mode analytics
+// NO DEMO MODE - Returns empty analytics
 function getDemoModeAnalytics(): Record<string, DemoAnalytics> {
-  const result: Record<string, DemoAnalytics> = {};
-  for (const [demoId, analytics] of Object.entries(DEMO_MODE_ANALYTICS)) {
-    result[demoId] = {
-      demo_id: demoId,
-      views: analytics.views,
-      avg_watch_time_seconds: analytics.avg_watch_time_seconds,
-      completion_rate: analytics.completion_rate,
-      close_rate: analytics.close_rate,
-      drop_off_points: [],
-      closed_deals: analytics.closed_deals,
-      revenue_attributed: analytics.revenue_attributed,
-    };
-  }
-  return result;
+  return {}; // No fake analytics - production only
 }
 
 export function useDemoEngine() {
