@@ -1,11 +1,11 @@
 /**
- * ANALYTICS PANEL
+ * ANALYTICS PANEL - INTERACTIVE DASHBOARDS
  * 
  * Cross-channel analytics with:
- * - Revenue attribution
- * - Channel comparison
- * - Customer journey mapping
- * - Cohort analysis
+ * - Pinterest metrics heatmaps
+ * - Revenue waterfalls
+ * - Animated KPIs with sparklines
+ * - Live Pin carousel & leaderboard
  */
 
 import { useState } from 'react';
@@ -21,28 +21,17 @@ import {
   ArrowDownRight,
   Calendar,
   Download,
-  Filter
+  Heart,
+  MousePointerClick,
+  Video,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  Legend
-} from 'recharts';
+import { PinterestHeatmap, RevenueWaterfall, SwarmProgressRings, AnimatedKPICard } from '@/components/dashboard/charts';
+import { LivePinCarousel, PinLeaderboard, SwarmStatusPanel } from '@/components/dashboard/pinterest';
 
 // Demo data
 const revenueData = [
@@ -81,12 +70,6 @@ const customerMetrics = [
 
 export function AnalyticsPanel() {
   const [timeRange, setTimeRange] = useState('7d');
-  const [selectedChannel, setSelectedChannel] = useState('all');
-
-  const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
-  const totalOrders = revenueData.reduce((sum, d) => sum + d.orders, 0);
-  const totalVisitors = revenueData.reduce((sum, d) => sum + d.visitors, 0);
-  const conversionRate = ((totalOrders / totalVisitors) * 100).toFixed(2);
 
   return (
     <div className="space-y-6">
@@ -98,8 +81,8 @@ export function AnalyticsPanel() {
               <BarChart3 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-display font-bold">Cross-Channel Analytics</h2>
-              <p className="text-muted-foreground">Real-time performance across all channels</p>
+              <h2 className="text-2xl font-display font-bold">Pinterest Analytics</h2>
+              <p className="text-muted-foreground">Real-time performance • Live metrics</p>
             </div>
           </div>
 
@@ -113,7 +96,6 @@ export function AnalyticsPanel() {
                 <SelectItem value="24h">Last 24h</SelectItem>
                 <SelectItem value="7d">Last 7 days</SelectItem>
                 <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" size="sm" className="gap-2">
@@ -124,154 +106,72 @@ export function AnalyticsPanel() {
         </div>
       </Card>
 
-      {/* Summary Metrics */}
+      {/* Animated KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {customerMetrics.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <motion.div
-              key={metric.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon className="w-5 h-5 text-primary" />
-                  <Badge variant="outline" className={`text-xs ${metric.change >= 0 ? 'text-success' : 'text-destructive'}`}>
-                    {metric.change >= 0 ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-                    {Math.abs(metric.change)}%
-                  </Badge>
-                </div>
-                <p className="text-2xl font-bold">{metric.value}</p>
-                <p className="text-xs text-muted-foreground">{metric.label}</p>
-              </Card>
-            </motion.div>
-          );
-        })}
+        <AnimatedKPICard
+          title="Pin Impressions"
+          value={48500}
+          previousValue={42000}
+          icon={Eye}
+          color="primary"
+          live
+        />
+        <AnimatedKPICard
+          title="Total Saves"
+          value={2340}
+          previousValue={1890}
+          icon={Heart}
+          color="accent"
+        />
+        <AnimatedKPICard
+          title="Link Clicks"
+          value={890}
+          previousValue={720}
+          icon={MousePointerClick}
+          color="success"
+        />
+        <AnimatedKPICard
+          title="Revenue"
+          value={19584}
+          previousValue={15200}
+          format="currency"
+          icon={DollarSign}
+          color="success"
+          live
+        />
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Revenue Chart */}
-        <div className="col-span-12 lg:col-span-8">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-semibold">Revenue Overview</h3>
-                <p className="text-sm text-muted-foreground">
-                  Total: ${totalRevenue.toLocaleString()} • {totalOrders} orders • {conversionRate}% CVR
-                </p>
-              </div>
-            </div>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="date" className="text-xs" />
-                  <YAxis className="text-xs" tickFormatter={(val) => `$${val}`} />
-                  <Tooltip
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold">{label}</p>
-                            <p className="text-success">Revenue: ${payload[0].value}</p>
-                            <p className="text-muted-foreground text-sm">Orders: {payload[0].payload.orders}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(var(--primary))"
-                    fillOpacity={1}
-                    fill="url(#colorRevenue)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
+      {/* Tabs for different views */}
+      <Tabs defaultValue="heatmap" className="space-y-6">
+        <TabsList className="grid grid-cols-4 w-full max-w-xl">
+          <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
+          <TabsTrigger value="funnel">Revenue Flow</TabsTrigger>
+          <TabsTrigger value="pins">Live Pins</TabsTrigger>
+          <TabsTrigger value="swarm">Swarm</TabsTrigger>
+        </TabsList>
 
-        {/* Channel Breakdown */}
-        <div className="col-span-12 lg:col-span-4">
-          <Card className="p-6 h-full">
-            <h3 className="font-semibold mb-4">Revenue by Channel</h3>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={channelData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="revenue"
-                  >
-                    {channelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-2 mt-4">
-              {channelData.slice(0, 4).map((channel) => (
-                <div key={channel.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: channel.color }} />
-                    <span>{channel.name}</span>
-                  </div>
-                  <span className="font-medium">{channel.percentage}%</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+        <TabsContent value="heatmap" className="space-y-6">
+          <PinterestHeatmap />
+          <PinLeaderboard />
+        </TabsContent>
 
-        {/* Top Products */}
-        <div className="col-span-12">
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">Top Performing Products</h3>
-            <div className="space-y-4">
-              {productData.map((product, index) => (
-                <div key={product.name} className="flex items-center gap-4">
-                  <span className="text-lg font-bold text-muted-foreground w-6">#{index + 1}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium">{product.name}</p>
-                      <div className="flex items-center gap-4">
-                        <Badge variant="outline" className={product.trend >= 0 ? 'text-success' : 'text-destructive'}>
-                          {product.trend >= 0 ? '+' : ''}{product.trend}%
-                        </Badge>
-                        <span className="font-bold text-success">${product.revenue.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Progress value={(product.revenue / productData[0].revenue) * 100} className="flex-1 h-2" />
-                      <span className="text-xs text-muted-foreground w-20">{product.units} units</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      </div>
+        <TabsContent value="funnel" className="space-y-6">
+          <RevenueWaterfall />
+          <SwarmProgressRings />
+        </TabsContent>
+
+        <TabsContent value="pins" className="space-y-6">
+          <LivePinCarousel />
+          <PinLeaderboard />
+        </TabsContent>
+
+        <TabsContent value="swarm" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SwarmProgressRings />
+            <SwarmStatusPanel />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
