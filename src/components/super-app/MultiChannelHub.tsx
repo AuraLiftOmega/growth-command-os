@@ -43,13 +43,26 @@ interface Channel {
   apiType: 'oauth' | 'api_key' | 'webhook';
 }
 
+// Pinterest FIRST - Primary revenue channel for DOMINION
 const CHANNELS: Channel[] = [
+  { 
+    id: 'pinterest', 
+    name: '📌 Pinterest', 
+    icon: '📌', 
+    color: 'from-red-500/20 to-red-600/20', 
+    status: 'connected', 
+    handle: '@auralift_essentials', 
+    revenue: 18750, // Top revenue channel
+    orders: 234, 
+    syncEnabled: true, 
+    apiType: 'oauth',
+    lastSync: new Date().toISOString()
+  },
   { id: 'shopify', name: 'Shopify', icon: '🛍️', color: 'from-green-500/20 to-green-600/20', status: 'connected', handle: 'lovable-project-7fb70', revenue: 12847, orders: 156, syncEnabled: true, apiType: 'oauth' },
   { id: 'tiktok', name: 'TikTok', icon: '🎵', color: 'from-pink-500/20 to-cyan-500/20', status: 'connected', handle: '@auraliftessentials', revenue: 8450, orders: 89, syncEnabled: true, apiType: 'oauth' },
   { id: 'tiktok_shop', name: 'TikTok Shop', icon: '🛒', color: 'from-pink-500/20 to-purple-500/20', status: 'connected', revenue: 6240, orders: 78, syncEnabled: true, apiType: 'oauth' },
   { id: 'instagram', name: 'Instagram', icon: '📸', color: 'from-purple-500/20 to-pink-500/20', status: 'connected', handle: '@auralift', revenue: 5670, orders: 67, syncEnabled: true, apiType: 'oauth' },
   { id: 'facebook', name: 'Facebook Shops', icon: '📘', color: 'from-blue-500/20 to-blue-600/20', status: 'connected', handle: 'AuraLift Beauty', revenue: 4320, orders: 52, syncEnabled: true, apiType: 'oauth' },
-  { id: 'pinterest', name: 'Pinterest', icon: '📌', color: 'from-red-500/20 to-red-600/20', status: 'connected', revenue: 2890, orders: 34, syncEnabled: true, apiType: 'oauth' },
   { id: 'youtube', name: 'YouTube Shopping', icon: '📺', color: 'from-red-600/20 to-red-700/20', status: 'connected', revenue: 3210, orders: 28, syncEnabled: true, apiType: 'oauth' },
   { id: 'amazon', name: 'Amazon Seller', icon: '📦', color: 'from-orange-500/20 to-yellow-500/20', status: 'connected', revenue: 9870, orders: 124, syncEnabled: true, apiType: 'api_key' },
   { id: 'etsy', name: 'Etsy', icon: '🧶', color: 'from-orange-400/20 to-orange-500/20', status: 'pending', apiType: 'oauth' },

@@ -61,6 +61,7 @@ interface SwarmAction {
 
 export function MarketingSwarmEngine() {
   const [isSwarmActive, setIsSwarmActive] = useState(true);
+  // Pinterest-first swarm agents with analytics tracking
   const [agents, setAgents] = useState<SwarmAgent[]>([
     {
       id: 'pinterest-swarm',
@@ -68,10 +69,32 @@ export function MarketingSwarmEngine() {
       type: 'posting',
       status: 'active',
       icon: Share2,
+      tasksCompleted: 156,
+      currentTask: 'Publishing Radiance Serum Rich Pin to Beauty board with Shopify link',
+      efficiency: 98,
+      lastAction: '10 sec ago'
+    },
+    {
+      id: 'pinterest-optimizer',
+      name: '📌 Pinterest Optimizer',
+      type: 'targeting',
+      status: 'processing',
+      icon: Target,
       tasksCompleted: 89,
-      currentTask: 'Publishing Radiance Serum video Pin to beauty board',
+      currentTask: 'Analyzing Pin saves/clicks → scaling top 3 performers 3x',
       efficiency: 97,
-      lastAction: '15 sec ago'
+      lastAction: '30 sec ago'
+    },
+    {
+      id: 'pinterest-analytics',
+      name: '📊 Pinterest Analytics',
+      type: 'testing',
+      status: 'active',
+      icon: BarChart3,
+      tasksCompleted: 234,
+      currentTask: 'Tracking impressions/saves/outbound_clicks via v5 API',
+      efficiency: 99,
+      lastAction: '5 sec ago'
     },
     {
       id: 'avatar-gen',
@@ -79,8 +102,8 @@ export function MarketingSwarmEngine() {
       type: 'avatar',
       status: 'processing',
       icon: Users,
-      tasksCompleted: 47,
-      currentTask: 'Creating female entrepreneur avatar for Pinterest',
+      tasksCompleted: 67,
+      currentTask: 'Creating beauty influencer avatar for Pinterest 2:3 video',
       efficiency: 94,
       lastAction: '2 min ago'
     },
@@ -90,9 +113,9 @@ export function MarketingSwarmEngine() {
       type: 'video',
       status: 'active',
       icon: Video,
-      tasksCompleted: 156,
-      currentTask: 'Rendering 2:3 vertical video for Pinterest',
-      efficiency: 91,
+      tasksCompleted: 189,
+      currentTask: 'Rendering 2:3 vertical video optimized for Pinterest',
+      efficiency: 92,
       lastAction: '1 min ago'
     },
     {
@@ -101,21 +124,21 @@ export function MarketingSwarmEngine() {
       type: 'pricing',
       status: 'active',
       icon: DollarSign,
-      tasksCompleted: 89,
-      currentTask: 'Optimizing Vitamin C Serum price for max margin',
+      tasksCompleted: 112,
+      currentTask: 'Optimizing Pinterest-linked product pricing for conversions',
       efficiency: 96,
       lastAction: '5 min ago'
     },
     {
       id: 'auto-poster',
-      name: 'Multi-Channel Agent',
+      name: 'Multi-Channel Syndication',
       type: 'posting',
       status: 'active',
       icon: Megaphone,
-      tasksCompleted: 234,
-      currentTask: 'Cross-posting to TikTok, IG, FB after Pinterest',
+      tasksCompleted: 345,
+      currentTask: 'Pinterest-first → then TikTok, IG, FB',
       efficiency: 98,
-      lastAction: '30 sec ago'
+      lastAction: '45 sec ago'
     },
     {
       id: 'ab-tester',
@@ -123,9 +146,9 @@ export function MarketingSwarmEngine() {
       type: 'testing',
       status: 'processing',
       icon: BarChart3,
-      tasksCompleted: 67,
-      currentTask: 'Testing 4 Pin descriptions for engagement',
-      efficiency: 89,
+      tasksCompleted: 78,
+      currentTask: 'Testing 6 Pin titles/descriptions for max saves',
+      efficiency: 91,
       lastAction: '3 min ago'
     }
   ]);
@@ -134,55 +157,76 @@ export function MarketingSwarmEngine() {
     {
       id: '0',
       agent: '📌 Pinterest Publisher',
-      action: 'Published Radiance Serum video Pin to Beauty board',
-      result: 'Video Pin live with rich description & CTA',
-      impact: '5K+ impressions projected',
-      timestamp: new Date(Date.now() - 30 * 1000),
+      action: 'Published Rich Pin with Shopify product link',
+      result: 'Radiance Serum video Pin live on Beauty board',
+      impact: '18.5K impressions, 892 saves',
+      timestamp: new Date(Date.now() - 15 * 1000),
       status: 'success'
     },
     {
       id: '1',
-      agent: 'Video Swarm',
-      action: 'Generated 2:3 vertical video for Pinterest',
-      result: 'Optimized for Pinterest feed discovery',
-      impact: 'Projected 50K+ impressions',
-      timestamp: new Date(Date.now() - 2 * 60 * 1000),
+      agent: '📊 Pinterest Analytics',
+      action: 'Pulled v5 API metrics: outbound_clicks +340%',
+      result: 'Rich Pins driving 3x more Shopify traffic',
+      impact: '+$2,450 attributed revenue',
+      timestamp: new Date(Date.now() - 45 * 1000),
       status: 'success'
     },
     {
       id: '2',
-      agent: 'Dynamic Pricing AI',
-      action: 'Increased Vitamin C Serum price by 8%',
-      result: 'Demand still high, margin improved',
-      impact: '+$1,240/day revenue',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      agent: '📌 Pinterest Optimizer',
+      action: 'Scaled top 3 Pins 3x budget, killed 2 underperformers',
+      result: 'Save rate improved to 8.1%',
+      impact: '+156% engagement rate',
+      timestamp: new Date(Date.now() - 2 * 60 * 1000),
       status: 'success'
     },
     {
       id: '3',
-      agent: 'Multi-Channel Agent',
-      action: 'Cross-posted to TikTok, Instagram, Facebook',
-      result: 'Pinterest-first strategy executed',
-      impact: '4 platforms synced',
-      timestamp: new Date(Date.now() - 8 * 60 * 1000),
+      agent: 'Video Swarm',
+      action: 'Generated 6 Pinterest-optimized 2:3 videos',
+      result: 'Skincare hooks: glow demos, before/after, UGC',
+      impact: 'Queue ready for auto-posting',
+      timestamp: new Date(Date.now() - 3 * 60 * 1000),
       status: 'success'
     },
     {
       id: '4',
+      agent: 'Avatar Generator',
+      action: 'Created beauty influencer avatar with gestures',
+      result: 'Lip-sync ready for Pinterest talking avatar video',
+      impact: 'Projected 25K+ views',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000),
+      status: 'success'
+    },
+    {
+      id: '5',
+      agent: 'Multi-Channel Syndication',
+      action: 'Syndicated top Pin to TikTok, IG, FB',
+      result: 'Pinterest-first → cross-platform amplification',
+      impact: '5 platforms reached',
+      timestamp: new Date(Date.now() - 8 * 60 * 1000),
+      status: 'success'
+    },
+    {
+      id: '6',
       agent: 'A/B Test Agent',
-      action: 'Declared winner: Pin description B with emojis',
-      result: 'Save rate 6.2% vs 3.1% baseline',
-      impact: '+100% saves',
+      action: 'Winner: Pin with "✨ Glow up" hook + emojis',
+      result: 'Click-through 9.2% vs 4.1% baseline',
+      impact: '+124% outbound clicks',
       timestamp: new Date(Date.now() - 12 * 60 * 1000),
       status: 'success'
     }
   ]);
 
   const [swarmMetrics, setSwarmMetrics] = useState({
-    totalTasks: 705,
-    activeAgents: 6,
-    avgEfficiency: 93,
-    revenueGenerated: 48750
+    totalTasks: 1247,
+    activeAgents: 8,
+    avgEfficiency: 96,
+    revenueGenerated: 78450,
+    pinterestRevenue: 28750,
+    pinterestImpressions: 245000,
+    pinterestSaves: 12340
   });
 
   // Simulate swarm activity
@@ -285,24 +329,34 @@ export function MarketingSwarmEngine() {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Swarm Metrics */}
-        <div className="grid grid-cols-4 gap-3">
+        {/* Pinterest-First Metrics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="p-3 rounded-lg bg-gradient-to-br from-red-500/10 to-red-600/10 border border-red-500/20 text-center">
+            <p className="text-2xl font-bold text-red-500">${(swarmMetrics.pinterestRevenue / 1000).toFixed(1)}K</p>
+            <p className="text-xs text-muted-foreground">📌 Pinterest Revenue</p>
+          </div>
+          <div className="p-3 rounded-lg bg-gradient-to-br from-red-500/10 to-red-600/10 border border-red-500/20 text-center">
+            <p className="text-2xl font-bold text-red-500">{(swarmMetrics.pinterestImpressions / 1000).toFixed(0)}K</p>
+            <p className="text-xs text-muted-foreground">📌 Impressions</p>
+          </div>
           <div className="p-3 rounded-lg bg-muted/30 text-center">
             <p className="text-2xl font-bold text-success">${(swarmMetrics.revenueGenerated / 1000).toFixed(1)}K</p>
-            <p className="text-xs text-muted-foreground">Revenue Generated</p>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/30 text-center">
-            <p className="text-2xl font-bold text-primary">{swarmMetrics.totalTasks}</p>
-            <p className="text-xs text-muted-foreground">Tasks Completed</p>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/30 text-center">
-            <p className="text-2xl font-bold">{swarmMetrics.activeAgents}</p>
-            <p className="text-xs text-muted-foreground">Active Agents</p>
+            <p className="text-xs text-muted-foreground">Total Revenue</p>
           </div>
           <div className="p-3 rounded-lg bg-muted/30 text-center">
             <p className="text-2xl font-bold text-chart-4">{swarmMetrics.avgEfficiency}%</p>
-            <p className="text-xs text-muted-foreground">Avg Efficiency</p>
+            <p className="text-xs text-muted-foreground">Swarm Efficiency</p>
           </div>
+        </div>
+
+        {/* Agent Count & Tasks */}
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+          <div className="flex items-center gap-4 text-sm">
+            <span><strong>{swarmMetrics.activeAgents}</strong> agents active</span>
+            <span><strong>{swarmMetrics.totalTasks}</strong> tasks completed</span>
+            <span className="text-red-500"><strong>{swarmMetrics.pinterestSaves.toLocaleString()}</strong> Pin saves</span>
+          </div>
+          <Badge className="bg-red-500/20 text-red-500 animate-pulse">📌 PINTEREST FIRST</Badge>
         </div>
 
         {/* Agent Grid */}
