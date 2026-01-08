@@ -83,9 +83,19 @@ export function RuthlessOptimizer() {
   }, []);
 
   const loadOptimizationData = () => {
-    setActions([
+setActions([
       {
         id: '1',
+        type: 'scale',
+        target: 'YouTube Short - Radiance Vitamin C Serum',
+        reason: 'Uploaded via Swarm: 2.4K views in 3 hours, 8.2% CTR',
+        impact: 'Scheduled 5 more Shorts this week',
+        status: 'executed',
+        timestamp: new Date(Date.now() - 10 * 60 * 1000),
+        confidence: 97
+      },
+      {
+        id: '2',
         type: 'kill',
         target: 'Facebook Ad - Generic Hook',
         reason: 'ROAS 1.2x for 72 hours, below 3x threshold',
@@ -95,7 +105,7 @@ export function RuthlessOptimizer() {
         confidence: 94
       },
       {
-        id: '2',
+        id: '3',
         type: 'scale',
         target: 'TikTok - UGC Testimonial',
         reason: 'ROAS 7.8x sustained for 48 hours',
@@ -105,27 +115,27 @@ export function RuthlessOptimizer() {
         confidence: 96
       },
       {
-        id: '3',
+        id: '4',
         type: 'fix',
-        target: 'Checkout Flow',
-        reason: 'Detected 23% cart abandonment spike',
-        impact: 'Fixed payment timeout, recovered $2.1K',
+        target: 'YouTube Upload Pipeline',
+        reason: 'Token refresh detected, auto-renewed OAuth',
+        impact: 'Prevented upload interruption',
         status: 'executed',
         timestamp: new Date(Date.now() - 45 * 60 * 1000),
-        confidence: 88
-      },
-      {
-        id: '4',
-        type: 'expand',
-        target: 'Pinterest Ads',
-        reason: 'Audience overlap analysis shows 34% untapped potential',
-        impact: 'Projected +$4.2K weekly revenue',
-        status: 'pending',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000),
-        confidence: 82
+        confidence: 92
       },
       {
         id: '5',
+        type: 'expand',
+        target: 'YouTube Shorts Strategy',
+        reason: 'Pinterest viral content ideal for Shorts repurposing',
+        impact: 'Projected +$6.8K weekly revenue',
+        status: 'pending',
+        timestamp: new Date(Date.now() - 60 * 60 * 1000),
+        confidence: 85
+      },
+      {
+        id: '6',
         type: 'defend',
         target: 'Brand Keywords',
         reason: 'Competitor bidding on brand terms detected',
@@ -136,10 +146,11 @@ export function RuthlessOptimizer() {
       }
     ]);
 
-    setHealth([
+setHealth([
       { component: 'Payment Processing', status: 'healthy', message: 'All gateways operational' },
       { component: 'Ad Platform APIs', status: 'healthy', message: 'Meta, TikTok, Google connected' },
-      { component: 'Inventory Sync', status: 'warning', message: 'Etsy sync 3 hours delayed', autoFixed: true },
+      { component: 'Pinterest API', status: 'healthy', message: 'Video Pins live, 12 queued' },
+      { component: 'YouTube API', status: 'healthy', message: 'Shorts uploading, 3 pending' },
       { component: 'Email Delivery', status: 'healthy', message: '99.2% deliverability' },
       { component: 'Video Rendering', status: 'healthy', message: 'Queue clear, 0 pending' }
     ]);

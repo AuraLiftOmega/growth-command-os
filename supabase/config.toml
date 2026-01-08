@@ -101,3 +101,9 @@ verify_jwt = false
 
 [functions.omega-swarm-2026]
 verify_jwt = false
+
+[functions.youtube-publish]
+verify_jwt = false
+
+[functions.youtube-oauth]
+verify_jwt = false
