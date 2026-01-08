@@ -19,7 +19,9 @@ import {
   Bell,
   ChevronRight,
   Play,
-  Loader2
+  Loader2,
+  Skull,
+  Crown
 } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
@@ -35,6 +37,7 @@ import { CEOInsightsPanel } from '@/components/ceo-engine/CEOInsightsPanel';
 import { CEOAutonomousActions } from '@/components/ceo-engine/CEOAutonomousActions';
 import { AutonomousLoopsPanel } from '@/components/ceo-engine/AutonomousLoopsPanel';
 import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
+import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer } from '@/components/ceo-brain';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRevenueEngine } from '@/hooks/useRevenueEngine';
@@ -282,112 +285,61 @@ export default function CEOBrain() {
             </motion.div>
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-12 gap-6">
-            {/* Left Column - Chat & Calendar */}
-            <div className="col-span-12 lg:col-span-5 space-y-6">
-              <CEOChatWidget />
-              <CEOCalendarWidget />
-            </div>
+          {/* SUPERINTELLIGENT CEO BRAIN - Tabbed Interface */}
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="w-full grid grid-cols-5 mb-6">
+              <TabsTrigger value="overview" className="gap-2">
+                <Brain className="w-4 h-4" /> Overview
+              </TabsTrigger>
+              <TabsTrigger value="products" className="gap-2">
+                <ShoppingCart className="w-4 h-4" /> Products
+              </TabsTrigger>
+              <TabsTrigger value="swarm" className="gap-2">
+                <Bot className="w-4 h-4" /> Swarm
+              </TabsTrigger>
+              <TabsTrigger value="predictions" className="gap-2">
+                <BarChart3 className="w-4 h-4" /> Predictions
+              </TabsTrigger>
+              <TabsTrigger value="optimizer" className="gap-2">
+                <Skull className="w-4 h-4" /> Ruthless
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Middle Column - Insights & Actions */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
-              <CEOInsightsPanel />
-              
-              {/* Recent Autonomous Actions */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-amber-500" />
-                      <CardTitle className="text-base">Autonomous Actions</CardTitle>
-                    </div>
-                    <Badge variant="outline" className="text-xs">Live</Badge>
-                  </div>
-                  <CardDescription>
-                    CEO Brain executing income-maximizing decisions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[280px]">
-                    <div className="space-y-3">
-                      {recentActions.map((action) => (
-                        <motion.div
-                          key={action.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="p-3 rounded-lg bg-muted/50 border"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {action.type.replace('_', ' ')}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {formatTimeAgo(action.timestamp)}
-                            </span>
-                          </div>
-                          <p className="text-sm mb-2">{action.description}</p>
-                          <div className="flex items-center gap-1 text-xs text-success">
-                            <TrendingUp className="w-3 h-3" />
-                            {action.impact}
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
+            <TabsContent value="overview">
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-12 lg:col-span-5 space-y-6">
+                  <CEOChatWidget />
+                  <CEOCalendarWidget />
+                </div>
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                  <CEOInsightsPanel />
+                  <AutonomousLoopsPanel />
+                </div>
+                <div className="col-span-12 lg:col-span-3">
+                  <CEOAutonomousActions />
+                </div>
+              </div>
+            </TabsContent>
 
-            {/* Right Column - Autonomous Control */}
-            <div className="col-span-12 lg:col-span-3 space-y-6">
-              <AutonomousLoopsPanel />
-              
-              {/* Quick Stats */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    CEO Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Revenue Goal</span>
-                      <span className="text-sm font-medium">78%</span>
-                    </div>
-                    <Progress value={78} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Conversion Rate</span>
-                      <span className="text-sm font-medium">92%</span>
-                    </div>
-                    <Progress value={92} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Chat Close Rate</span>
-                      <span className="text-sm font-medium">45%</span>
-                    </div>
-                    <Progress value={45} className="h-2" />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">Autonomy Level</span>
-                      <span className="text-sm font-medium text-amber-500">85%</span>
-                    </div>
-                    <Progress value={85} className="h-2 bg-amber-500/20 [&>div]:bg-amber-500" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            <TabsContent value="products">
+              <ProductIntelligenceEngine />
+            </TabsContent>
+
+            <TabsContent value="swarm">
+              <MarketingSwarmEngine />
+            </TabsContent>
+
+            <TabsContent value="predictions">
+              <PredictiveDecisionEngine />
+            </TabsContent>
+
+            <TabsContent value="optimizer">
+              <RuthlessOptimizer />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
-      {/* CEO Onboarding Modal */}
       <CEOOnboarding open={showOnboarding} onOpenChange={setShowOnboarding} />
     </div>
   );
