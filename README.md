@@ -1,4 +1,35 @@
-# Dominion AI – AuraLift Essentials Viral Ad Empire
+## Dominion AI – AuraLift Essentials Viral Ad Empire
+
+All-in-one AI-powered sales platform for **AuraLift Essentials** skincare.  
+Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
+
+Built with **Lovable** (React + Supabase) and **2-way GitHub sync** for unbreakable version control and collaboration.
+
+[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-6366f1?style=for-the-badge&logo=lovable)](https://lovable.dev)
+[![GitHub Sync](https://img.shields.io/badge/GitHub%20Sync-Active-success?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command/blob/main/LICENSE)
+
+## Where We Are: Empire Foundation Locked In
+✅ GitHub 2-way sync with Lovable (live)  
+✅ Master README (professional, branded)  
+✅ Real AuraLift products in Shopify (5 products)  
+✅ HeyGen + ElevenLabs API keys (secrets ready)  
+✅ Stripe checkout + Shopify sync (verified)  
+✅ Basic dashboard structure (from prompts)
+
+## Key Features
+- **Real AuraLift Products** (synced from Shopify):  
+  - Radiance Vitamin C Serum  
+  - Hydra-Glow Retinol Night Cream  
+  - Ultra Hydration Hyaluronic Serum  
+  - Omega Glow Collagen Peptide Moisturizer  
+  - Luxe Rose Quartz Face Roller Set
+- **AI Ad Generation**: One-click vivid vertical videos with custom avatars, hyper-realistic voices, and channel-optimized captions
+- **Social Channels**: OAuth login + autonomous posting to TikTok, Meta (Facebook/Instagram), X, YouTube, LinkedIn, Pinterest — with Omega-tailored language (punchy for TikTok, polished for IG, concise for X)
+- **Analytics Dashboard**: ROAS, engagement, sales tracking with pixels
+- **Autonomous Mode**: n8n workflows for low-inventory → generate ad → post to best-performing channel
+
+[...rest of your README continues here...] Dominion AI – AuraLift Essentials Viral Ad Empire
 
 All-in-one AI-powered sales platform for **AuraLift Essentials** skincare.  
 Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
