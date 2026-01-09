@@ -11,6 +11,8 @@ import {
   Zap,
   Brain,
   Target,
+  Github,
+  Sparkles,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +40,9 @@ import {
 } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { OmegaAIBrain } from "./OmegaAIBrain";
+import { GitHubExportButton } from "./GitHubExportButton";
 
 const mainNavItems = [
   {
@@ -86,6 +91,7 @@ export function DashboardSidebar() {
   const [socialOpen, setSocialOpen] = useState(
     location.pathname.includes("/dashboard/social")
   );
+  const [omegaOpen, setOmegaOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
   const isActiveGroup = (path: string) => location.pathname.startsWith(path);
@@ -169,9 +175,33 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Omega AI Brain Toggle */}
+        {!collapsed && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <Button
+                variant={omegaOpen ? "default" : "outline"}
+                className="w-full gap-2 justify-start"
+                onClick={() => setOmegaOpen(!omegaOpen)}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>OMEGA AI</span>
+                <Badge variant="secondary" className="ml-auto text-[9px]">
+                  {omegaOpen ? 'Open' : 'Ask'}
+                </Badge>
+              </Button>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
+      {/* Omega AI Brain Panel */}
+      <OmegaAIBrain isExpanded={omegaOpen} onToggle={() => setOmegaOpen(false)} />
       <SidebarFooter className="border-t border-sidebar-border p-3">
+        {/* GitHub Export */}
+        {!collapsed && <GitHubExportButton className="w-full mb-2" />}
+        
         {/* Settings */}
         <SidebarMenu>
           <SidebarMenuItem>
