@@ -1,6 +1,6 @@
 /**
  * AGENT ACTIVITY LOG
- * Live log of agent actions with "HOT" actions pulsing for War Room
+ * Live log with pulsing HOT actions for War Room
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,12 +18,11 @@ import {
   RefreshCw,
   Zap,
   DollarSign,
-  TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useOmegaSwarm, type HotAction, type AgentType } from '@/hooks/useOmegaSwarm';
+import { useOmegaSwarm, type HotAction } from '@/hooks/useOmegaSwarm';
 
-const AGENT_EMOJIS: Record<AgentType, string> = {
+const AGENT_EMOJIS: Record<string, string> = {
   analytics: '📊',
   forecasting: '🔮',
   sales: '💼',
@@ -37,15 +36,13 @@ const AGENT_EMOJIS: Record<AgentType, string> = {
 
 const STATUS_ICONS = {
   pending: Clock,
-  executing: Loader2,
-  completed: CheckCircle2,
+  executed: CheckCircle2,
   failed: XCircle,
 };
 
 const STATUS_STYLES = {
   pending: 'text-amber-500',
-  executing: 'text-primary animate-spin',
-  completed: 'text-success',
+  executed: 'text-success',
   failed: 'text-destructive',
 };
 
@@ -58,20 +55,27 @@ function formatTimeAgo(date: Date): string {
   return `${hours}h ago`;
 }
 
+function getConfidenceColor(confidence: number): string {
+  if (confidence >= 80) return 'text-success';
+  if (confidence >= 60) return 'text-amber-500';
+  return 'text-muted-foreground';
+}
+
 interface ActionItemProps {
   action: HotAction;
   index: number;
 }
 
 function ActionItem({ action, index }: ActionItemProps) {
-  const StatusIcon = STATUS_ICONS[action.status];
+  const StatusIcon = STATUS_ICONS[action.status] || Clock;
+  const agentEmoji = AGENT_EMOJIS[action.agent] || '🤖';
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: index * 0.03 }}
       className={cn(
         'p-3 rounded-xl border transition-all',
         action.isHot 
@@ -80,17 +84,15 @@ function ActionItem({ action, index }: ActionItemProps) {
       )}
     >
       <div className="flex items-start gap-3">
-        {/* Agent Emoji */}
         <div className={cn(
           'w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0',
           action.isHot ? 'bg-orange-500/20 animate-pulse' : 'bg-muted'
         )}>
-          {AGENT_EMOJIS[action.agent]}
+          {agentEmoji}
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="font-medium text-sm capitalize">{action.agent}</span>
             {action.isHot && (
               <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30 gap-1 animate-pulse">
@@ -99,7 +101,7 @@ function ActionItem({ action, index }: ActionItemProps) {
               </Badge>
             )}
             <Badge variant="outline" className={cn('text-[10px] gap-1', STATUS_STYLES[action.status])}>
-              <StatusIcon className="w-3 h-3" />
+              <StatusIcon className={cn('w-3 h-3', action.status === 'pending' && 'animate-spin')} />
               {action.status}
             </Badge>
             <span className="text-xs text-muted-foreground ml-auto">
@@ -108,7 +110,6 @@ function ActionItem({ action, index }: ActionItemProps) {
           </div>
           <p className="text-sm text-foreground/90 line-clamp-2">{action.action}</p>
           
-          {/* Metrics */}
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-1 text-xs">
               <Zap className="w-3 h-3 text-primary" />
@@ -120,7 +121,7 @@ function ActionItem({ action, index }: ActionItemProps) {
               <div className="flex items-center gap-1 text-xs">
                 <DollarSign className="w-3 h-3 text-success" />
                 <span className="text-success">
-                  +${action.revenueImpact.toLocaleString()} impact
+                  +${action.revenueImpact.toLocaleString()}
                 </span>
               </div>
             )}
@@ -129,12 +130,6 @@ function ActionItem({ action, index }: ActionItemProps) {
       </div>
     </motion.div>
   );
-}
-
-function getConfidenceColor(confidence: number): string {
-  if (confidence >= 80) return 'text-success';
-  if (confidence >= 60) return 'text-amber-500';
-  return 'text-muted-foreground';
 }
 
 interface AgentActivityLogProps {
@@ -167,7 +162,7 @@ export function AgentActivityLog({ className, maxHeight = '500px' }: AgentActivi
                 )}
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                {hotActions.length} actions • ${totalRevenue.toLocaleString()} revenue impact
+                {hotActions.length} actions • ${totalRevenue.toLocaleString()} impact
               </p>
             </div>
           </div>
@@ -179,11 +174,9 @@ export function AgentActivityLog({ className, maxHeight = '500px' }: AgentActivi
             className="gap-1.5"
           >
             <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
-            Refresh
           </Button>
         </div>
 
-        {/* Quick Stats Bar */}
         <div className="grid grid-cols-4 gap-2 mt-3">
           <div className="p-2 rounded-lg bg-success/10 text-center">
             <p className="text-sm font-bold text-success">{stats.activeAgents}</p>
@@ -215,7 +208,7 @@ export function AgentActivityLog({ className, maxHeight = '500px' }: AgentActivi
               >
                 <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p>No recent actions</p>
-                <p className="text-xs mt-1">Execute an agent or run a full cycle</p>
+                <p className="text-xs mt-1">Run agents or enable hourly loop</p>
               </motion.div>
             ) : (
               <div className="space-y-3">
