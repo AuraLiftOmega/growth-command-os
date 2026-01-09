@@ -1,4 +1,6 @@
-# Dominion AI – AuraLift Essentials Viral Ad Empire
+#[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-6366f1?style=for-the-badge&logo=lovable)](https://lovable.dev)
+[![GitHub Sync](https://img.shields.io/badge/GitHub%20Sync-Active-success?style=for-the-badge)](https://github.com/rfloweroflife-ui)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](https://github.com/rfloweroflife-ui/blob/main/LICENSE) Dominion AI – AuraLift Essentials Viral Ad Empire
 
 All-in-one AI-powered sales platform for AuraLift Essentials skincare: Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
 
