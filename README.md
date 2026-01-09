@@ -1,4 +1,37 @@
-# Welcome to your Lovable project
+# Dominion AI – AuraLift Essentials Viral Ad Empire
+
+All-in-one AI-powered sales platform for AuraLift Essentials skincare: Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
+
+Built with Lovable (React + Supabase) and 2-way GitHub sync for unbreakable version control and collaboration.
+
+## Key Features
+- Real AuraLift products: Radiance Vitamin C Serum, Hydra-Glow Retinol Night Cream, Ultra Hydration Hyaluronic Serum, Omega Glow Collagen Moisturizer, Luxe Rose Quartz Roller
+- AI ad generation: One-click vivid videos with custom avatars, voices, and channel-optimized captions
+- Social channels: OAuth login + autonomous posting (TikTok, Meta, Instagram, X, YouTube, etc.) with Omega-tailored language (punchy for TikTok, polished for IG)
+- Analytics: ROAS, engagement, sales tracking with pixels
+- Autonomous mode: n8n workflows for low-inventory → gen ad → post to best channel
+
+## Tech Stack
+- Frontend: React, Tailwind, Framer Motion
+- Backend: Supabase (auth, storage, RLS)
+- AI: HeyGen (video), ElevenLabs (voice), Omega (brain)
+- Automation: n8n + GitHub Actions for CI/CD
+- Deployment: Vercel (auto-deploy on push)
+
+## Quick Start (Local Dev)
+1. Clone: `git clone https://github.com/yourusername/dominion-ai.git`
+2. Install: `npm install`
+3. Run: `npm run dev`
+
+## Contributing
+PRs welcome! Open issues for features, bugs, or new channels.
+
+## License
+MIT
+
+---
+
+[Keep all existing content below this line – do not delete]
 
 ## Project info
 
