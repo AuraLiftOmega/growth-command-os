@@ -70,8 +70,9 @@ const AppRoutes = () => {
         } 
       />
       
+      {/* Dashboard routes with nested paths */}
       <Route 
-        path="/dashboard" 
+        path="/dashboard/*" 
         element={
           <ProtectedRoute>
             <Dashboard />

@@ -1,0 +1,267 @@
+import { useState } from "react";
+import {
+  Home,
+  ShoppingBag,
+  Video,
+  Share2,
+  BarChart3,
+  Settings,
+  ChevronDown,
+  LogOut,
+  Zap,
+  Brain,
+  Target,
+} from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+
+const mainNavItems = [
+  {
+    title: "Home",
+    icon: Home,
+    path: "/dashboard",
+    badge: null,
+  },
+  {
+    title: "Products",
+    icon: ShoppingBag,
+    path: "/dashboard/products",
+    badge: "Sync",
+  },
+  {
+    title: "Video Ad Studio",
+    icon: Video,
+    path: "/dashboard/video-studio",
+    badge: "New",
+  },
+  {
+    title: "Social Channels",
+    icon: Share2,
+    path: "/dashboard/social",
+    badge: null,
+    subItems: [
+      { title: "TikTok", path: "/dashboard/social/tiktok" },
+      { title: "Instagram", path: "/dashboard/social/instagram" },
+      { title: "Pinterest", path: "/dashboard/social/pinterest" },
+      { title: "YouTube", path: "/dashboard/social/youtube" },
+    ],
+  },
+  {
+    title: "Sales Analytics",
+    icon: BarChart3,
+    path: "/dashboard/analytics",
+    badge: null,
+  },
+];
+
+const commandItems = [
+  { title: "OMEGA Command", icon: Zap, path: "/omega-command" },
+  { title: "CEO Brain", icon: Brain, path: "/ceo-brain" },
+  { title: "War Room", icon: Target, path: "/war-room" },
+];
+
+export function DashboardSidebar() {
+  const location = useLocation();
+  const { user, signOut } = useAuth();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+  const [socialOpen, setSocialOpen] = useState(
+    location.pathname.includes("/dashboard/social")
+  );
+
+  const isActive = (path: string) => location.pathname === path;
+  const isActiveGroup = (path: string) => location.pathname.startsWith(path);
+
+  const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
+
+  return (
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 text-primary-foreground" />
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="font-bold text-lg tracking-tight">DOMINION</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                Revenue OS
+              </span>
+            </div>
+          )}
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="scrollbar-thin">
+        {/* Main Navigation */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Main
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavItems.map((item) =>
+                item.subItems ? (
+                  <Collapsible
+                    key={item.title}
+                    open={socialOpen}
+                    onOpenChange={setSocialOpen}
+                  >
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className={cn(
+                            "w-full justify-between",
+                            isActiveGroup(item.path) && "bg-sidebar-accent"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <item.icon className="w-4 h-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </div>
+                          {!collapsed && (
+                            <ChevronDown
+                              className={cn(
+                                "w-4 h-4 transition-transform",
+                                socialOpen && "rotate-180"
+                              )}
+                            />
+                          )}
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.subItems.map((sub) => (
+                            <SidebarMenuSubItem key={sub.path}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={isActive(sub.path)}
+                              >
+                                <NavLink to={sub.path}>{sub.title}</NavLink>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                      <NavLink to={item.path} className="flex items-center gap-3">
+                        <item.icon className="w-4 h-4" />
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1">{item.title}</span>
+                            {item.badge && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[9px] px-1.5 py-0 h-4",
+                                  item.badge === "New"
+                                    ? "border-accent text-accent"
+                                    : "border-success text-success"
+                                )}
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Command Center */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Command Center
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {commandItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                    <NavLink to={item.path} className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        {/* Settings */}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={isActive("/settings")}>
+              <NavLink to="/settings" className="flex items-center gap-3">
+                <Settings className="w-4 h-4" />
+                {!collapsed && <span>Settings</span>}
+              </NavLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        {/* User Card */}
+        {!collapsed && (
+          <div className="mt-3 p-3 rounded-xl bg-sidebar-accent/50">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-9 h-9">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs font-bold">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {user?.email?.split("@")[0] || "User"}
+                </p>
+                <p className="text-[10px] text-muted-foreground">Pro Plan</p>
+              </div>
+            </div>
+            <button
+              onClick={signOut}
+              className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <LogOut className="w-3 h-3" />
+              Sign Out
+            </button>
+          </div>
+        )}
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
