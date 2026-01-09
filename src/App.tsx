@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
 import WarRoom from "./pages/WarRoom";
+import OAuthCallback from "./pages/OAuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,9 @@ const AppRoutes = () => {
       {/* Public routes for store and pricing */}
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
+      
+      {/* OAuth callback route */}
+      <Route path="/oauth/callback" element={<OAuthCallback />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>

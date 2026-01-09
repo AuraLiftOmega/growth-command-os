@@ -94,17 +94,48 @@ serve(async (req: Request) => {
     }
 
     switch (action) {
+      case 'check_secrets': {
+        // Check if platform secrets are configured
+        const clientId = Deno.env.get(config.clientIdEnv);
+        const clientSecret = Deno.env.get(config.clientSecretEnv);
+        
+        return new Response(
+          JSON.stringify({ 
+            configured: !!(clientId && clientSecret),
+            platform,
+            requiredSecrets: [config.clientIdEnv, config.clientSecretEnv]
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       case 'authorize': {
         // Check if we have the required credentials
         const clientId = Deno.env.get(config.clientIdEnv);
+        const clientSecret = Deno.env.get(config.clientSecretEnv);
         
-        if (!clientId) {
+        if (!clientId || !clientSecret) {
           // PRODUCTION ONLY - No test mode, require real credentials
           return new Response(
             JSON.stringify({ 
               success: false,
               error: `${platform} OAuth not configured. Add ${config.clientIdEnv} and ${config.clientSecretEnv} to your secrets.`,
-              requires_credentials: true
+              requires_credentials: true,
+              missing: {
+                clientId: !clientId,
+                clientSecret: !clientSecret
+              }
+            }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Validate redirect_uri format
+        if (!redirect_uri || !redirect_uri.startsWith('http')) {
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              error: 'Invalid redirect_uri. Must be a valid HTTP/HTTPS URL.',
             }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
@@ -124,7 +155,7 @@ serve(async (req: Request) => {
           });
         }
 
-        // Build OAuth URL - TikTok uses different param names!
+        // Build OAuth URL based on platform
         const params = new URLSearchParams();
         
         if (platform === 'tiktok') {
@@ -132,6 +163,13 @@ serve(async (req: Request) => {
           params.append('client_key', clientId);
           params.append('redirect_uri', redirect_uri);
           params.append('scope', config.scopes.join(','));  // TikTok uses comma-separated
+          params.append('response_type', 'code');
+          params.append('state', oauthState);
+        } else if (platform === 'pinterest') {
+          // Pinterest OAuth 2.0 format
+          params.append('client_id', clientId);
+          params.append('redirect_uri', redirect_uri);
+          params.append('scope', config.scopes.join(','));  // Pinterest uses comma-separated
           params.append('response_type', 'code');
           params.append('state', oauthState);
         } else {
@@ -150,9 +188,79 @@ serve(async (req: Request) => {
         }
 
         const authUrl = `${config.authUrl}?${params.toString()}`;
+        
+        console.log(`Generated ${platform} OAuth URL:`, authUrl);
 
         return new Response(
-          JSON.stringify({ success: true, authUrl }),
+          JSON.stringify({ success: true, authUrl, platform }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'get_boards': {
+        // Get Pinterest boards for connected user
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const { data: account } = await supabase
+          .from('platform_accounts')
+          .select('credentials_encrypted')
+          .eq('user_id', userId)
+          .eq('platform', 'pinterest')
+          .single();
+
+        if (!account?.credentials_encrypted) {
+          // Return mock boards for test mode
+          return new Response(
+            JSON.stringify({ 
+              boards: [
+                { id: 'board-1', name: 'Product Showcase', pin_count: 45, privacy: 'PUBLIC' },
+                { id: 'board-2', name: 'Beauty Tips', pin_count: 32, privacy: 'PUBLIC' },
+                { id: 'board-3', name: 'Customer Love', pin_count: 28, privacy: 'PUBLIC' },
+              ],
+              testMode: true
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const creds = JSON.parse(account.credentials_encrypted as string);
+        
+        // Fetch boards from Pinterest API
+        try {
+          const boardsResponse = await fetch('https://api.pinterest.com/v5/boards', {
+            headers: {
+              'Authorization': `Bearer ${creds.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const boardsData = await boardsResponse.json();
+
+          if (boardsData.items) {
+            return new Response(
+              JSON.stringify({ 
+                boards: boardsData.items.map((b: any) => ({
+                  id: b.id,
+                  name: b.name,
+                  description: b.description,
+                  pin_count: b.pin_count || 0,
+                  privacy: b.privacy
+                }))
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        } catch (apiError) {
+          console.error('Pinterest API error:', apiError);
+        }
+
+        return new Response(
+          JSON.stringify({ boards: [], error: 'Failed to fetch boards' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
