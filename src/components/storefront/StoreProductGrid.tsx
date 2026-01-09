@@ -30,7 +30,11 @@ export function StoreProductGrid({
       setError(null);
       
       try {
-        const query = category ? `product_type:${category}` : undefined;
+        // Filter by AuraLift Beauty vendor, optionally also by category
+        let query = 'vendor:"AuraLift Beauty"';
+        if (category && category !== 'all') {
+          query += ` AND product_type:${category}`;
+        }
         const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: limit, query });
         setProducts(data.data.products.edges || []);
       } catch (err) {
