@@ -240,6 +240,7 @@ export type Database = {
           provider: string | null
           revenue: number | null
           script: string
+          shopify_product_id: string | null
           status: string | null
           test_mode: boolean | null
           thumbnail_url: string | null
@@ -266,6 +267,7 @@ export type Database = {
           provider?: string | null
           revenue?: number | null
           script: string
+          shopify_product_id?: string | null
           status?: string | null
           test_mode?: boolean | null
           thumbnail_url?: string | null
@@ -292,6 +294,7 @@ export type Database = {
           provider?: string | null
           revenue?: number | null
           script?: string
+          shopify_product_id?: string | null
           status?: string | null
           test_mode?: boolean | null
           thumbnail_url?: string | null
@@ -2354,6 +2357,74 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_posts: {
+        Row: {
+          ad_id: string | null
+          caption: string | null
+          comments: number | null
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          likes: number | null
+          platform: string
+          platform_post_id: string | null
+          post_url: string | null
+          posted_at: string | null
+          revenue_attributed: number | null
+          shares: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          ad_id?: string | null
+          caption?: string | null
+          comments?: number | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          platform: string
+          platform_post_id?: string | null
+          post_url?: string | null
+          posted_at?: string | null
+          revenue_attributed?: number | null
+          shares?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          ad_id?: string | null
+          caption?: string | null
+          comments?: number | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          platform?: string
+          platform_post_id?: string | null
+          post_url?: string | null
+          posted_at?: string | null
+          revenue_attributed?: number | null
+          shares?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_posts_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       power_user_applications: {
         Row: {
           approval_notes: string | null
@@ -2999,6 +3070,72 @@ export type Database = {
           user_id?: string
           variant_id?: string | null
           vendor?: string | null
+        }
+        Relationships: []
+      }
+      social_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          created_at: string
+          followers_count: number | null
+          handle: string | null
+          health_status: string | null
+          id: string
+          is_connected: boolean | null
+          is_test_mode: boolean | null
+          last_post_at: string | null
+          last_sync_at: string | null
+          metadata: Json | null
+          platform: string
+          platform_user_id: string | null
+          profile_image_url: string | null
+          profile_url: string | null
+          refresh_token_encrypted: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          followers_count?: number | null
+          handle?: string | null
+          health_status?: string | null
+          id?: string
+          is_connected?: boolean | null
+          is_test_mode?: boolean | null
+          last_post_at?: string | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          platform: string
+          platform_user_id?: string | null
+          profile_image_url?: string | null
+          profile_url?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          created_at?: string
+          followers_count?: number | null
+          handle?: string | null
+          health_status?: string | null
+          id?: string
+          is_connected?: boolean | null
+          is_test_mode?: boolean | null
+          last_post_at?: string | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          platform?: string
+          platform_user_id?: string | null
+          profile_image_url?: string | null
+          profile_url?: string | null
+          refresh_token_encrypted?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

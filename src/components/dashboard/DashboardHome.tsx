@@ -10,12 +10,17 @@ import {
   ArrowDownRight,
   Activity,
   Target,
+  Brain,
 } from "lucide-react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useLiveMetrics } from "@/hooks/useLiveMetrics";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { ShopifySyncStatus } from "@/components/dashboard/ShopifySyncStatus";
+import { OmegaAISidebar } from "@/components/dashboard/OmegaAISidebar";
 
 interface StatCardProps {
   title: string;
@@ -90,6 +95,7 @@ function StatCard({
 
 export function DashboardHome() {
   const { metrics } = useLiveMetrics();
+  const [omegaOpen, setOmegaOpen] = useState(false);
 
   const formatCurrency = (num: number) => {
     if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
@@ -275,6 +281,20 @@ export function DashboardHome() {
       >
         <RevenueChart />
       </motion.div>
+
+      {/* Shopify Sync Status */}
+      <ShopifySyncStatus showSyncButton />
+
+      {/* Omega AI Button */}
+      <Button
+        onClick={() => setOmegaOpen(true)}
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-gradient-to-r from-primary to-accent z-30"
+      >
+        <Brain className="w-6 h-6" />
+      </Button>
+
+      {/* Omega AI Sidebar */}
+      <OmegaAISidebar isOpen={omegaOpen} onClose={() => setOmegaOpen(false)} />
     </div>
   );
 }
