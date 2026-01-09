@@ -1,29 +1,27 @@
 /**
- * OMEGA BRAIN PANEL
- * Full 9-agent intelligence dashboard with confidence %, last action, and Execute buttons
+ * OMEGA BRAIN PANEL - Maximum Intelligence
+ * Full 9-agent dashboard with confidence %, triggers, and hourly auto-loop
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Brain,
   Zap,
-  Play,
   RefreshCw,
-  TrendingUp,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Loader2,
   Crown,
   Sparkles,
   Target,
   Activity,
+  Timer,
+  Flame,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOmegaSwarm, type AgentType, type OmegaAgent } from '@/hooks/useOmegaSwarm';
@@ -101,7 +99,16 @@ function AgentCard({ agent, isExecuting, onExecute }: AgentCardProps) {
         </Badge>
       </div>
 
-      {/* Confidence & Stats */}
+      {/* Triggers */}
+      <div className="flex flex-wrap gap-1 mb-3">
+        {agent.triggers.slice(0, 3).map(trigger => (
+          <Badge key={trigger} variant="outline" className="text-[9px] bg-background/50">
+            {trigger}
+          </Badge>
+        ))}
+      </div>
+
+      {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-2 mb-3">
         <div className="text-center p-2 rounded-lg bg-background/50">
           <p className={cn('text-lg font-bold', getConfidenceColor(agent.confidence))}>
@@ -111,7 +118,7 @@ function AgentCard({ agent, isExecuting, onExecute }: AgentCardProps) {
         </div>
         <div className="text-center p-2 rounded-lg bg-background/50">
           <p className="text-lg font-bold">{agent.actionsToday}</p>
-          <p className="text-[10px] text-muted-foreground">Actions</p>
+          <p className="text-[10px] text-muted-foreground">Actions 24h</p>
         </div>
         <div className="text-center p-2 rounded-lg bg-background/50">
           <p className="text-lg font-bold text-success">
@@ -166,7 +173,8 @@ export function OmegaBrainPanel() {
     isLoading,
     isExecuting,
     executeAgent,
-    executeFullCycle,
+    executeHourlyLoop,
+    toggleHourlyLoop,
     simulateFirstSale,
     refresh,
   } = useOmegaSwarm();
@@ -174,7 +182,7 @@ export function OmegaBrainPanel() {
   return (
     <Card className="border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-transparent to-primary/5">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 shadow-lg shadow-orange-500/30">
               <Brain className="w-6 h-6 text-white" />
@@ -187,15 +195,33 @@ export function OmegaBrainPanel() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
                   </span>
-                  9 AGENTS LIVE
+                  9 AGENTS
                 </Badge>
+                {stats.hourlyLoopActive && (
+                  <Badge className="bg-orange-500/20 text-orange-500 border-orange-500/30 gap-1">
+                    <Timer className="w-3 h-3" />
+                    AUTO
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>
-                {stats.activeAgents} agents active • {stats.totalActions24h} actions (24h) • Avg {stats.avgConfidence}% confidence
+                {stats.activeAgents} active • {stats.totalActions24h} actions (24h) • {stats.avgConfidence}% avg confidence
               </CardDescription>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Hourly Loop Toggle */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border">
+              <Timer className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium">Hourly Loop</span>
+              <Switch
+                checked={stats.hourlyLoopActive}
+                onCheckedChange={toggleHourlyLoop}
+                disabled={isExecuting !== null}
+              />
+            </div>
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -211,10 +237,11 @@ export function OmegaBrainPanel() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Simulate first sale → agents propose 3 actions</p>
+                  <p>Simulate first sale → 3 agents propose actions</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            
             <Button
               size="sm"
               variant="outline"
@@ -223,50 +250,56 @@ export function OmegaBrainPanel() {
               className="gap-1.5"
             >
               <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
-              Refresh
             </Button>
+            
             <Button
               size="sm"
               className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-              onClick={executeFullCycle}
+              onClick={executeHourlyLoop}
               disabled={isExecuting !== null}
             >
-              {isExecuting === 'all' ? (
+              {isExecuting === 'hourly' || isExecuting === 'all' ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Running Cycle...
+                  Running...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Full Swarm Cycle
+                  Run All 9
                 </>
               )}
             </Button>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-5 gap-3 mt-4">
+        {/* Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
           <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-center">
             <p className="text-xl font-bold text-success">${stats.totalRevenue24h.toLocaleString()}</p>
-            <p className="text-xs text-muted-foreground">Revenue Impact (24h)</p>
+            <p className="text-xs text-muted-foreground">Revenue Impact</p>
           </div>
           <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-center">
             <p className="text-xl font-bold text-primary">{stats.totalActions24h}</p>
-            <p className="text-xs text-muted-foreground">Actions (24h)</p>
+            <p className="text-xs text-muted-foreground">Actions 24h</p>
           </div>
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
             <p className="text-xl font-bold text-amber-500">{stats.avgConfidence}%</p>
-            <p className="text-xs text-muted-foreground">Avg Confidence</p>
+            <p className="text-xs text-muted-foreground">Confidence</p>
           </div>
           <div className="p-3 rounded-xl bg-muted/50 border text-center">
             <p className="text-xl font-bold">{stats.activeAgents}/9</p>
-            <p className="text-xs text-muted-foreground">Active Agents</p>
+            <p className="text-xs text-muted-foreground">Active</p>
           </div>
-          <div className="p-3 rounded-xl bg-muted/50 border text-center">
-            <p className="text-xl font-bold">{stats.pendingActions}</p>
-            <p className="text-xs text-muted-foreground">Pending Actions</p>
+          <div className="p-3 rounded-xl bg-muted/50 border text-center flex items-center justify-center gap-2">
+            {stats.hasRealData ? (
+              <>
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-medium text-orange-500">LIVE DATA</span>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">No data yet</span>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -284,12 +317,12 @@ export function OmegaBrainPanel() {
           ))}
         </div>
 
-        {/* Last Full Cycle */}
+        {/* Last Cycle Info */}
         {stats.lastFullCycle && (
           <div className="mt-4 pt-4 border-t flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              Last full cycle: {formatTimeAgo(stats.lastFullCycle)}
+              Last cycle: {formatTimeAgo(stats.lastFullCycle)}
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-success" />
