@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { DEMO_PLAYBACK_SCENES } from '@/lib/demo-mode';
+// Production mode - no demo fallbacks, generate from narrative
 
 interface DemoVideoPlayerProps {
   thumbnail?: string | null;
@@ -65,10 +65,16 @@ export const DemoVideoPlayer = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  const scenes = DEMO_PLAYBACK_SCENES;
-  const currentScene = scenes[currentSceneIndex];
-  const totalProgress = ((currentSceneIndex * 100) + sceneProgress) / scenes.length;
-  const sceneDuration = durationSeconds / scenes.length;
+  // Generate scenes from narrative or use production defaults
+  const scenes = narrative?.scenes || [
+    { title: 'DOMINION Overview', subtitle: 'Your autonomous revenue engine', gradient: 'from-primary/30 to-chart-2/30', duration: 30, metrics: [] },
+    { title: 'Revenue Performance', subtitle: 'Real-time metrics', gradient: 'from-success/30 to-chart-1/30', duration: 30, metrics: [] },
+    { title: 'Autonomous Operations', subtitle: 'Zero manual intervention', gradient: 'from-chart-2/30 to-chart-3/30', duration: 30, metrics: [] },
+    { title: 'Scale Without Limits', subtitle: 'Production-ready infrastructure', gradient: 'from-chart-4/30 to-primary/30', duration: 30, metrics: [] },
+  ];
+  const currentScene = scenes[currentSceneIndex] || scenes[0];
+  const totalProgress = scenes.length > 0 ? ((currentSceneIndex * 100) + sceneProgress) / scenes.length : 0;
+  const sceneDuration = scenes.length > 0 ? durationSeconds / scenes.length : durationSeconds;
 
   // Handle audio loading
   useEffect(() => {
@@ -232,7 +238,7 @@ export const DemoVideoPlayer = ({
             transition={{ duration: 0.4, delay: 0.2 }}
             className="grid grid-cols-3 gap-4 py-8"
           >
-            {currentScene?.metrics.map((metric, i) => (
+            {(currentScene?.metrics || []).map((metric: { label: string; value: string; change?: string }, i: number) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}

@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DemoVideoPlayer } from '@/components/demo-engine/DemoVideoPlayer';
-import { DEMO_MODE_VIDEOS } from '@/lib/demo-mode';
+// Production mode - no demo fallbacks
 
 interface ShareLinkData {
   id: string;
@@ -159,20 +159,19 @@ const SharedDemo = () => {
     );
   }
 
-  // Use fallback demo data if needed
-  const fallbackDemo = DEMO_MODE_VIDEOS[0];
-  const demo = shareData?.demo_videos || {
-    id: fallbackDemo.id,
-    variant: fallbackDemo.variant,
-    industry: fallbackDemo.industryName,
-    deal_size: fallbackDemo.deal_size,
-    sales_stage: fallbackDemo.sales_stage,
-    narrative: fallbackDemo.narrative,
-    thumbnail_url: fallbackDemo.thumbnail_url,
-    video_url: fallbackDemo.video_url,
-    narration_url: fallbackDemo.narration_url,
-    duration_seconds: fallbackDemo.duration_seconds,
-  };
+  // No fallback demo data in production - use real data only
+  if (!shareData?.demo_videos) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Demo not found</p>
+          <p className="text-muted-foreground">This demo link may have expired or is invalid.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  const demo = shareData.demo_videos;
 
   const narrative = demo.narrative as Record<string, any>;
   const VariantIcon = variantIcons[demo.variant] || Video;

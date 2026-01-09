@@ -112,12 +112,14 @@ export const useOnboardingStore = create<OnboardingStore>()((set, get) => ({
     });
   },
 
+  // REMOVED: Demo mode is permanently disabled
   enableDemoMode: () => {
+    // No demo mode - just apply defaults
     set({
       data: industryDefaultsData,
       isCompleted: true,
       inputQualityScore: 85,
-      isDemoMode: true,
+      isDemoMode: false, // Always false in production
     });
   },
 

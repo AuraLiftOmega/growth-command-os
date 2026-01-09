@@ -121,65 +121,14 @@ serve(async (req: Request) => {
       .single();
 
     if (!platformAccount?.is_connected) {
-      // Test mode - simulate successful upload with analytics
-      console.log('YouTube not connected - using test mode with simulated analytics');
-
-      const testVideoId = `yt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const simulatedAnalytics: YouTubeAnalytics = {
-        views: Math.floor(Math.random() * 50000) + 10000,
-        watch_time_hours: Math.floor(Math.random() * 500) + 100,
-        subscribers_gained: Math.floor(Math.random() * 200) + 20,
-        likes: Math.floor(Math.random() * 3000) + 500,
-        comments: Math.floor(Math.random() * 200) + 30,
-        shares: Math.floor(Math.random() * 500) + 50,
-        ctr: parseFloat((Math.random() * 8 + 2).toFixed(2)),
-        avg_view_duration: Math.floor(Math.random() * 60) + 30
-      };
-
-      // Log the simulated upload
-      await supabase.from('ai_decision_log').insert({
-        user_id: user.id,
-        decision_type: 'youtube_publish',
-        action_taken: `Uploaded ${uploadAsShort ? 'Short' : 'Video'}: ${title.slice(0, 50)}...`,
-        reasoning: 'CEO Brain swarm YouTube strategy - priority #2 after Pinterest',
-        entity_type: 'youtube_video',
-        entity_id: testVideoId,
-        confidence: 0.96,
-        execution_status: 'simulated',
-        impact_metrics: {
-          platform: 'youtube',
-          video_id: testVideoId,
-          is_short: uploadAsShort,
-          product_id,
-          product_name,
-          shopify_url: shopify_product_url,
-          analytics: simulatedAnalytics,
-          scheduled: !!schedule_at
-        }
-      });
-
+      // PRODUCTION ONLY - No test mode, require real connection
       return new Response(
         JSON.stringify({
-          success: true,
-          test_mode: true,
-          video_id: testVideoId,
-          message: `📺 YouTube ${uploadAsShort ? 'Short' : 'Video'} uploaded: "${title.slice(0, 60)}..."`,
-          video_url: uploadAsShort
-            ? `https://youtube.com/shorts/${testVideoId}`
-            : `https://youtube.com/watch?v=${testVideoId}`,
-          is_short: uploadAsShort,
-          channel_id: 'UC_demo_channel',
-          channel_name: 'AuraLift Essentials',
-          is_scheduled: !!schedule_at,
-          scheduled_at: schedule_at,
-          analytics: simulatedAnalytics,
-          product_link: {
-            enabled: !!shopify_product_url,
-            product_name,
-            product_url: shopify_product_url
-          }
+          success: false,
+          error: 'YouTube not connected. Connect your YouTube account in Settings to publish.',
+          requires_connection: true
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

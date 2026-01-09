@@ -99,15 +99,14 @@ serve(async (req: Request) => {
         const clientId = Deno.env.get(config.clientIdEnv);
         
         if (!clientId) {
-          // No OAuth credentials configured - return test mode instruction
+          // PRODUCTION ONLY - No test mode, require real credentials
           return new Response(
             JSON.stringify({ 
               success: false,
-              testMode: true,
-              message: `${platform} OAuth not configured. Enabling Test Mode instead.`,
-              instruction: `To enable real ${platform} connection, add ${config.clientIdEnv} and ${config.clientSecretEnv} to your secrets.`
+              error: `${platform} OAuth not configured. Add ${config.clientIdEnv} and ${config.clientSecretEnv} to your secrets.`,
+              requires_credentials: true
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 

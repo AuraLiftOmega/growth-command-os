@@ -102,60 +102,14 @@ serve(async (req: Request) => {
       .single();
 
     if (!platformAccount?.is_connected) {
-      // Test mode - simulate successful publish with analytics
-      console.log('Pinterest not connected - using test mode with simulated analytics');
-      
-      const testPinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const simulatedAnalytics: PinterestAnalytics = {
-        impressions: Math.floor(Math.random() * 15000) + 5000,
-        saves: Math.floor(Math.random() * 800) + 200,
-        clicks: Math.floor(Math.random() * 500) + 100,
-        outbound_clicks: Math.floor(Math.random() * 200) + 50,
-        video_views: Math.floor(Math.random() * 10000) + 3000,
-        engagement_rate: parseFloat((Math.random() * 5 + 2).toFixed(2))
-      };
-      
-      // Log the simulated publish
-      await supabase.from('ai_decision_log').insert({
-        user_id: user.id,
-        decision_type: 'pinterest_publish',
-        action_taken: `Published video Pin: ${title.slice(0, 50)}...`,
-        reasoning: 'CEO Brain swarm Pinterest-first strategy',
-        entity_type: 'pinterest_pin',
-        entity_id: testPinId,
-        confidence: 0.97,
-        execution_status: 'simulated',
-        impact_metrics: {
-          platform: 'pinterest',
-          pin_id: testPinId,
-          board_id: board_id || 'beauty-skincare',
-          product_id,
-          product_name,
-          shopify_url: shopify_product_url,
-          analytics: simulatedAnalytics,
-          scheduled: !!schedule_at
-        }
-      });
-
+      // PRODUCTION ONLY - No test mode, require real connection
       return new Response(
         JSON.stringify({
-          success: true,
-          test_mode: true,
-          pin_id: testPinId,
-          message: `📌 Video Pin created: "${title.slice(0, 60)}..."`,
-          pin_url: `https://pinterest.com/pin/${testPinId}`,
-          board_id: board_id || 'beauty-skincare',
-          board_name: 'Beauty & Skincare',
-          is_scheduled: !!schedule_at,
-          scheduled_at: schedule_at,
-          analytics: simulatedAnalytics,
-          rich_pin: {
-            enabled: true,
-            product_name,
-            product_url: shopify_product_url
-          }
+          success: false,
+          error: 'Pinterest not connected. Connect your Pinterest account in Settings to publish.',
+          requires_connection: true
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

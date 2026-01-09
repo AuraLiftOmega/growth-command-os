@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { isTestMode } from "@/lib/demo-mode";
 
 interface PlatformConnection {
   id: string;
@@ -28,7 +27,6 @@ interface PlatformConnection {
   health_status: 'healthy' | 'degraded' | 'disconnected' | null;
   handle: string | null;
   last_health_check: string | null;
-  is_test_mode?: boolean;
 }
 
 const platformIcons: Record<string, string> = {
@@ -51,17 +49,7 @@ const platformColors: Record<string, string> = {
   youtube: "from-red-600/20 to-red-700/20",
 };
 
-// Test mode platforms - all connected and healthy
-const TEST_MODE_CONNECTIONS: PlatformConnection[] = [
-  { id: 'test-shopify', platform: 'shopify', is_connected: true, health_status: 'healthy', handle: 'lovable-project-7fb70', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-tiktok', platform: 'tiktok', is_connected: true, health_status: 'healthy', handle: '@aurabeauty', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-instagram', platform: 'instagram', is_connected: true, health_status: 'healthy', handle: '@aura.essentials', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-facebook', platform: 'facebook', is_connected: true, health_status: 'healthy', handle: 'Aura Lift Essentials', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-youtube', platform: 'youtube', is_connected: true, health_status: 'healthy', handle: '@AuraBeautyOfficial', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-pinterest', platform: 'pinterest', is_connected: true, health_status: 'healthy', handle: '@auraessentials', last_health_check: new Date().toISOString(), is_test_mode: true },
-  { id: 'test-amazon', platform: 'amazon', is_connected: true, health_status: 'healthy', handle: 'Aura Seller', last_health_check: new Date().toISOString(), is_test_mode: true },
-];
-
+// DEFAULT CONNECTIONS - Production only
 const DEFAULT_CONNECTIONS: PlatformConnection[] = [
   { id: 'shopify-default', platform: 'shopify', is_connected: true, health_status: 'healthy', handle: 'lovable-project-7fb70', last_health_check: new Date().toISOString() },
   { id: 'tiktok-default', platform: 'tiktok', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
@@ -82,13 +70,7 @@ export const PlatformConnectionsPanel = () => {
 
   useEffect(() => {
     const fetchConnections = async () => {
-      // Use test mode data if enabled
-      if (isTestMode()) {
-        setConnections(TEST_MODE_CONNECTIONS);
-        setIsLoading(false);
-        return;
-      }
-
+      // PRODUCTION ONLY - Fetch real connections from database
       if (!user) {
         setConnections(DEFAULT_CONNECTIONS);
         setIsLoading(false);
@@ -170,7 +152,7 @@ export const PlatformConnectionsPanel = () => {
     setConnectingPlatform(platform);
 
     try {
-      // Try OAuth first
+      // Real OAuth - production only
       const { data, error } = await supabase.functions.invoke('platform-oauth', {
         body: { 
           platform, 
@@ -186,45 +168,13 @@ export const PlatformConnectionsPanel = () => {
         return;
       }
 
-      // Fall back to test mode
-      if (data?.testMode) {
-        await supabase.functions.invoke('platform-oauth', {
-          body: { platform, action: 'test_connect' }
-        });
-        
-        toast.success(`${platform} connected in Test Mode!`);
-        
-        // Update local state
-        setConnections(prev => prev.map(c => 
-          c.platform === platform 
-            ? { ...c, is_connected: true, health_status: 'healthy', handle: `@test_${platform}`, is_test_mode: true }
-            : c
-        ));
+      // OAuth credentials not configured - show error
+      if (!data?.authUrl) {
+        toast.error(`${platform} OAuth not configured. Add API credentials in Settings.`);
       }
     } catch (error: any) {
       console.error('Connection error:', error);
-      
-      // Enable test mode on failure
-      try {
-        await supabase.from('platform_accounts').upsert({
-          user_id: user.id,
-          platform,
-          is_connected: true,
-          health_status: 'healthy',
-          handle: `@${platform}_test`,
-          last_health_check: new Date().toISOString(),
-        }, { onConflict: 'user_id,platform' });
-        
-        toast.success(`${platform} connected in Test Mode`);
-        
-        setConnections(prev => prev.map(c => 
-          c.platform === platform 
-            ? { ...c, is_connected: true, health_status: 'healthy', handle: `@${platform}_test`, is_test_mode: true }
-            : c
-        ));
-      } catch (e) {
-        toast.error(`Failed to connect ${platform}`);
-      }
+      toast.error(`Failed to connect ${platform}. Check API credentials.`);
     } finally {
       setConnectingPlatform(null);
     }
@@ -253,7 +203,6 @@ export const PlatformConnectionsPanel = () => {
 
   const connectedCount = connections.filter(c => c.is_connected).length;
   const healthyCount = connections.filter(c => c.health_status === 'healthy').length;
-  const testModeActive = isTestMode() || connections.some(c => c.is_test_mode);
 
   return (
     <motion.div
@@ -270,9 +219,7 @@ export const PlatformConnectionsPanel = () => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-display font-semibold text-lg">Platform Hub</h3>
-              {testModeActive && (
-                <Badge variant="secondary" className="text-[10px]">TEST MODE</Badge>
-              )}
+              <Badge variant="default" className="text-[10px] bg-success">LIVE</Badge>
             </div>
             <p className="text-muted-foreground text-sm">
               {connectedCount}/{connections.length} connected • {healthyCount} healthy
@@ -318,7 +265,7 @@ export const PlatformConnectionsPanel = () => {
                   : 'border-border/30 hover:border-primary/30'
               }`}
             >
-              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{platformIcons[connection.platform]}</span>
                   <div>
@@ -329,9 +276,6 @@ export const PlatformConnectionsPanel = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  {connection.is_test_mode && (
-                    <Badge variant="outline" className="text-[8px] px-1 py-0">TEST</Badge>
-                  )}
                   {getStatusIcon(connection)}
                 </div>
               </div>
