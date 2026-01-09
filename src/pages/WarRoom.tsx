@@ -4,8 +4,10 @@ import { LethalWarRoom } from "@/components/war-room/LethalWarRoom";
 import { CRMDashboard } from "@/components/crm/CRMDashboard";
 import { LiveProfitEngine } from "@/components/autonomous/LiveProfitEngine";
 import { RealVideoSwarm } from "@/components/autonomous/RealVideoSwarm";
+import { OmegaBrainPanel } from "@/components/omega/OmegaBrainPanel";
+import { AgentActivityLog } from "@/components/omega/AgentActivityLog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, Users, Zap, DollarSign, Flame, Video, Rocket } from "lucide-react";
+import { Target, Users, Zap, DollarSign, Flame, Video, Rocket, Brain } from "lucide-react";
 import { CEOChatWidget } from "@/components/ceo-engine/CEOChatWidget";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -58,8 +60,12 @@ const WarRoom = () => {
             </div>
           </motion.div>
 
-          <Tabs defaultValue="swarm" className="space-y-6">
+          <Tabs defaultValue="agents" className="space-y-6">
             <TabsList className="bg-card border">
+              <TabsTrigger value="agents" className="gap-2">
+                <Brain className="h-4 w-4" />
+                AI Agents
+              </TabsTrigger>
               <TabsTrigger value="swarm" className="gap-2">
                 <Video className="h-4 w-4" />
                 Video Swarm
@@ -81,6 +87,17 @@ const WarRoom = () => {
                 Autonomy Control
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="agents">
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-12 lg:col-span-8">
+                  <OmegaBrainPanel />
+                </div>
+                <div className="col-span-12 lg:col-span-4">
+                  <AgentActivityLog maxHeight="600px" />
+                </div>
+              </div>
+            </TabsContent>
 
             <TabsContent value="swarm">
               <RealVideoSwarm onComplete={handleSwarmComplete} />

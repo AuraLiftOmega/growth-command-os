@@ -38,6 +38,8 @@ import { CEOAutonomousActions } from '@/components/ceo-engine/CEOAutonomousActio
 import { AutonomousLoopsPanel } from '@/components/ceo-engine/AutonomousLoopsPanel';
 import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
 import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer } from '@/components/ceo-brain';
+import { OmegaBrainPanel } from '@/components/omega/OmegaBrainPanel';
+import { AgentActivityLog } from '@/components/omega/AgentActivityLog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRevenueEngine } from '@/hooks/useRevenueEngine';
@@ -286,8 +288,11 @@ export default function CEOBrain() {
           </div>
 
           {/* SUPERINTELLIGENT CEO BRAIN - Tabbed Interface */}
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="w-full grid grid-cols-5 mb-6">
+          <Tabs defaultValue="agents" className="w-full">
+            <TabsList className="w-full grid grid-cols-6 mb-6">
+              <TabsTrigger value="agents" className="gap-2">
+                <Crown className="w-4 h-4" /> Agents
+              </TabsTrigger>
               <TabsTrigger value="overview" className="gap-2">
                 <Brain className="w-4 h-4" /> Overview
               </TabsTrigger>
@@ -304,6 +309,17 @@ export default function CEOBrain() {
                 <Skull className="w-4 h-4" /> Ruthless
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="agents">
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-12 lg:col-span-8">
+                  <OmegaBrainPanel />
+                </div>
+                <div className="col-span-12 lg:col-span-4">
+                  <AgentActivityLog maxHeight="700px" />
+                </div>
+              </div>
+            </TabsContent>
 
             <TabsContent value="overview">
               <div className="grid grid-cols-12 gap-6">
