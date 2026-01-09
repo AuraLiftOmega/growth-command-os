@@ -49,6 +49,8 @@ export function StripePaymentsPanel() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { subscription } = useSubscription();
 
+  const [verificationMessage, setVerificationMessage] = useState<string>("");
+
   useEffect(() => {
     checkStripeConnection();
     fetchRecentTransactions();
@@ -56,10 +58,14 @@ export function StripePaymentsPanel() {
 
   const verifyLiveConnection = async () => {
     setIsVerifying(true);
+    setVerificationMessage("");
     try {
+      console.log("🔍 Verifying Stripe live connection...");
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
         body: { action: "test-live-connection" },
       });
+      
+      console.log("📤 Verification response:", data, error);
       
       if (data?.success) {
         setStripeStatus(prev => ({
@@ -69,12 +75,15 @@ export function StripePaymentsPanel() {
           keyType: "live",
           verified: true
         }));
-        alert("💰 VERIFIED: Real money flow is LIVE and connected!");
+        setVerificationMessage("💰 VERIFIED: Real money flow is LIVE and connected!");
       } else {
-        alert(`Verification failed: ${data?.error || error?.message || "Unknown error"}`);
+        const errorMsg = data?.error || error?.message || "Unknown error";
+        setVerificationMessage(`Verification failed: ${errorMsg}`);
+        console.error("Verification failed:", errorMsg, data?.details);
       }
     } catch (err) {
       console.error("Verification failed:", err);
+      setVerificationMessage(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setIsVerifying(false);
     }
@@ -82,10 +91,13 @@ export function StripePaymentsPanel() {
 
   const checkStripeConnection = async () => {
     try {
+      console.log("🔍 Checking Stripe connection status...");
       // Verify Stripe configuration via edge function
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
         body: { action: "verify-live-mode" },
       });
+      
+      console.log("📤 Stripe status response:", data, error);
       
       if (data) {
         setStripeStatus({
@@ -96,12 +108,18 @@ export function StripePaymentsPanel() {
           verified: data.verified || false
         });
         
+        // Show message if verification failed
+        if (data.message && !data.verified) {
+          setVerificationMessage(data.message);
+        }
+        
         // Log debug info for troubleshooting
         if (data.debug) {
-          console.log("Stripe Debug Info:", data.debug);
+          console.log("🔐 Stripe Debug Info:", data.debug);
         }
       } else if (error) {
         console.error("Stripe check error:", error);
+        setVerificationMessage(`Connection check failed: ${error.message}`);
         setStripeStatus({
           isConnected: false,
           isLiveMode: false,
@@ -112,6 +130,7 @@ export function StripePaymentsPanel() {
       }
     } catch (err) {
       console.error("Stripe connection check failed:", err);
+      setVerificationMessage(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
       setStripeStatus({
         isConnected: false,
         isLiveMode: false,
@@ -166,28 +185,50 @@ export function StripePaymentsPanel() {
         </motion.div>
       )}
 
-      {/* Verify Connection Button */}
+      {/* Verify Connection Button + Status Message */}
       {stripeStatus.isConnected && (
-        <div className="flex justify-end">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={verifyLiveConnection}
-            disabled={isVerifying}
-            className={isFullyLive ? "border-green-500 text-green-500 hover:bg-green-500/10" : ""}
-          >
-            {isVerifying ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                Verifying...
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="w-4 h-4 mr-2" />
-                Verify Live Connection
-              </>
-            )}
-          </Button>
+        <div className="space-y-2">
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={checkStripeConnection}
+              className="border-muted"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Status
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={verifyLiveConnection}
+              disabled={isVerifying}
+              className={stripeStatus.verified ? "border-green-500 text-green-500 hover:bg-green-500/10" : ""}
+            >
+              {isVerifying ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Verify Live Connection
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {/* Verification Message */}
+          {verificationMessage && (
+            <div className={`p-3 rounded-lg text-sm ${
+              verificationMessage.includes("VERIFIED") 
+                ? "bg-green-500/10 border border-green-500/30 text-green-500" 
+                : "bg-yellow-500/10 border border-yellow-500/30 text-yellow-600"
+            }`}>
+              {verificationMessage}
+            </div>
+          )}
         </div>
       )}
 

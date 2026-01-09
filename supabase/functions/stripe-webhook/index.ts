@@ -27,7 +27,10 @@ const PLAN_FEATURES = {
 };
 
 serve(async (req) => {
+  console.log("🚀 [stripe-webhook] Function invoked at", new Date().toISOString());
+  
   if (req.method === "OPTIONS") {
+    console.log("📋 [stripe-webhook] CORS preflight request handled");
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -35,6 +38,13 @@ serve(async (req) => {
     // FORCE LIVE KEYS: Prioritize sk_live_ keys
     const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
     const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    console.log("🔐 [stripe-webhook] Key check:", {
+      hasLiveKey: !!liveKey,
+      liveKeyPrefix: liveKey ? liveKey.substring(0, 8) + "..." : "none",
+      hasFallbackKey: !!fallbackKey,
+      fallbackKeyPrefix: fallbackKey ? fallbackKey.substring(0, 8) + "..." : "none",
+    });
     
     // Use live key first, fallback only if it's a live key
     let stripeSecretKey = liveKey;
@@ -45,13 +55,15 @@ serve(async (req) => {
     }
     
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    console.log("🔐 [stripe-webhook] Webhook secret configured:", !!webhookSecret);
     
     if (!stripeSecretKey) {
+      console.error("❌ [stripe-webhook] No Stripe secret key configured!");
       throw new Error("Stripe secret key not configured");
     }
 
     const isLiveKey = stripeSecretKey.startsWith("sk_live_");
-    console.log(`🔄 Stripe webhook processing — ${isLiveKey ? "💰 LIVE MODE" : "⚠️ TEST MODE"}`);
+    console.log(`🔄 [stripe-webhook] Processing — ${isLiveKey ? "💰 LIVE MODE" : "⚠️ TEST MODE"}`);
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
@@ -74,13 +86,16 @@ serve(async (req) => {
 
   // Handle test action - respond 200 immediately
   if (parsedBody?.action === "test-webhook") {
-    console.log("🔧 Webhook test ping received");
-    return new Response(JSON.stringify({ 
+    console.log("🔧 [stripe-webhook] Test ping received");
+    const response = { 
       success: true,
       isLive: isLiveKey,
       hasWebhookSecret: !!webhookSecret,
-      message: "Webhook endpoint is active",
-    }), {
+      message: "Webhook endpoint is active and responding",
+      timestamp: new Date().toISOString(),
+    };
+    console.log("📤 [stripe-webhook] Test response:", JSON.stringify(response));
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
