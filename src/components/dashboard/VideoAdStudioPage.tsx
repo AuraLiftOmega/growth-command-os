@@ -43,8 +43,10 @@ import {
   Image as ImageIcon,
   ChevronRight,
   LayoutGrid,
-  List
+  List,
+  Rocket
 } from 'lucide-react';
+import { AuraLiftAdGenerator } from './AuraLiftAdGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -132,7 +134,7 @@ const SCRIPT_TEMPLATES = [
 
 export function VideoAdStudioPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('library');
+  const [activeTab, setActiveTab] = useState('auralift');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [videos, setVideos] = useState<VideoAd[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(true);
@@ -451,7 +453,11 @@ export function VideoAdStudioPage() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full max-w-lg grid-cols-3">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+          <TabsTrigger value="auralift" className="gap-2">
+            <Rocket className="w-4 h-4" />
+            AuraLift Ad
+          </TabsTrigger>
           <TabsTrigger value="library" className="gap-2">
             <LayoutGrid className="w-4 h-4" />
             Video Library
@@ -465,6 +471,11 @@ export function VideoAdStudioPage() {
             Settings
           </TabsTrigger>
         </TabsList>
+
+        {/* AuraLift Ad Generator Tab */}
+        <TabsContent value="auralift">
+          <AuraLiftAdGenerator onAdGenerated={() => fetchVideos()} />
+        </TabsContent>
 
         {/* Video Library Tab */}
         <TabsContent value="library" className="space-y-4">

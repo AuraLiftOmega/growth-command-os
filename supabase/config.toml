@@ -107,3 +107,12 @@ verify_jwt = false
 
 [functions.youtube-oauth]
 verify_jwt = false
+
+[functions.elevenlabs-tts]
+verify_jwt = false
+
+[functions.generate-ai-ad]
+verify_jwt = false
+
+[functions.heygen-avatar]
+verify_jwt = false
