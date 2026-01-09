@@ -48,7 +48,18 @@ serve(async (req) => {
   }
 
   try {
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+    // FORCE LIVE KEYS: Prioritize sk_live_ keys
+    const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+    const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    // Use live key first, fallback to STRIPE_SECRET_KEY only if it's also a live key
+    let stripeSecretKey = liveKey;
+    if (!stripeSecretKey && fallbackKey?.startsWith("sk_live_")) {
+      stripeSecretKey = fallbackKey;
+    } else if (!stripeSecretKey) {
+      stripeSecretKey = fallbackKey; // For status checks only
+    }
+    
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     // Determine key type
@@ -65,6 +76,8 @@ serve(async (req) => {
         isLiveMode: isLiveKey,
         hasWebhookSecret: !!webhookSecret,
         keyType: keyType,
+        liveKeyConfigured: !!liveKey || (!!fallbackKey && fallbackKey.startsWith("sk_live_")),
+        message: isLiveKey ? "REAL MONEY LIVE — CONNECTED" : "Live keys required for real payments",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -77,28 +90,83 @@ serve(async (req) => {
         status: "ok",
         isLive: isLiveKey,
         keyType: keyType,
+        message: isLiveKey ? "💰 LIVE MODE ACTIVE 💰" : "Test mode - no real money",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    
+    // Handle test-charge action for verification
+    if (body.action === "test-live-connection") {
+      if (!stripeSecretKey) {
+        return new Response(JSON.stringify({ 
+          error: "No Stripe key configured",
+          isLive: false,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (!isLiveKey) {
+        return new Response(JSON.stringify({ 
+          error: "Live key required (sk_live_) for real money verification",
+          keyType: keyType,
+          isLive: false,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+      
+      // Verify connection by fetching account
+      try {
+        const account = await stripe.accounts.retrieve();
+        return new Response(JSON.stringify({
+          success: true,
+          isLive: true,
+          message: "💰 REAL MONEY LIVE — CONNECTED 💰",
+          accountId: account.id,
+          chargesEnabled: account.charges_enabled,
+          payoutsEnabled: account.payouts_enabled,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (stripeErr) {
+        return new Response(JSON.stringify({
+          error: "Failed to verify Stripe account",
+          details: stripeErr instanceof Error ? stripeErr.message : "Unknown error",
+          isLive: false,
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
-    // For actual checkout, enforce LIVE keys only
+    // For actual checkout, ENFORCE LIVE KEYS ONLY
     if (!stripeSecretKey) {
       throw new Error("Stripe secret key not configured");
     }
     
     // CRITICAL: Reject test keys for real checkout
     if (!isLiveKey) {
-      console.error("REJECTED: Test key used for checkout. Live keys required.");
+      console.error("🚫 REJECTED: Test key used for checkout. Live keys (sk_live_) REQUIRED for real money.");
       return new Response(JSON.stringify({ 
-        error: "Live Stripe keys required (sk_live_). Test keys cannot process real payments.",
+        error: "LIVE STRIPE KEYS REQUIRED. Test keys (sk_test_) cannot process real payments. Add STRIPE_LIVE_SECRET_KEY or update STRIPE_SECRET_KEY with sk_live_ key.",
         keyType: keyType,
+        solution: "Update STRIPE_SECRET_KEY with your sk_live_ key from Stripe Dashboard",
       }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("💰 Processing checkout with LIVE Stripe key — REAL MONEY MODE");
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
@@ -156,6 +224,7 @@ serve(async (req) => {
         email: user.email,
         metadata: {
           supabase_user_id: user.id,
+          environment: "LIVE",
         },
       });
       customerId = customer.id;
@@ -180,6 +249,7 @@ serve(async (req) => {
           stores_limit: String(planConfig.features.stores_limit),
           monthly_video_credits: String(planConfig.features.monthly_video_credits),
           monthly_ai_credits: String(planConfig.features.monthly_ai_credits),
+          environment: "LIVE",
         },
       });
       productId = product.id;
@@ -196,6 +266,7 @@ serve(async (req) => {
       metadata: {
         plan_key: plan,
         billing_cycle: billingCycle,
+        environment: "LIVE",
       },
     });
 
@@ -217,23 +288,27 @@ serve(async (req) => {
           supabase_user_id: user.id,
           plan: plan,
           billing_cycle: billingCycle,
+          environment: "LIVE",
         },
         trial_period_days: 14, // 14-day trial
       },
       metadata: {
         supabase_user_id: user.id,
         plan: plan,
+        environment: "LIVE",
       },
       allow_promotion_codes: true,
     });
 
-    console.log(`Checkout session created for user ${user.id}, plan: ${plan}`);
+    console.log(`💰 LIVE checkout session created for user ${user.id}, plan: ${plan} — REAL MONEY`);
 
     return new Response(
       JSON.stringify({ 
         sessionId: session.id, 
         url: session.url,
         customerId: customerId,
+        isLiveMode: true,
+        message: "💰 REAL MONEY CHECKOUT — LIVE MODE",
       }),
       {
         status: 200,

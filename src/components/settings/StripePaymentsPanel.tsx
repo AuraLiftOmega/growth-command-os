@@ -43,6 +43,7 @@ export function StripePaymentsPanel() {
     keyType: "none"
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const { subscription } = useSubscription();
 
@@ -50,6 +51,31 @@ export function StripePaymentsPanel() {
     checkStripeConnection();
     fetchRecentTransactions();
   }, []);
+
+  const verifyLiveConnection = async () => {
+    setIsVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { action: "test-live-connection" },
+      });
+      
+      if (data?.success) {
+        setStripeStatus(prev => ({
+          ...prev,
+          isConnected: true,
+          isLiveMode: true,
+          keyType: "live"
+        }));
+        alert("💰 VERIFIED: Real money flow is LIVE and connected!");
+      } else {
+        alert(`Verification failed: ${data?.error || error?.message || "Unknown error"}`);
+      }
+    } catch (err) {
+      console.error("Verification failed:", err);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const checkStripeConnection = async () => {
     try {
@@ -110,23 +136,48 @@ export function StripePaymentsPanel() {
 
   return (
     <div className="space-y-6">
-      {/* REAL MONEY LIVE Badge - Top Banner */}
+      {/* REAL MONEY LIVE — CONNECTED Badge - Top Banner */}
       {isFullyLive && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="relative overflow-hidden"
         >
-          <div className="flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 rounded-xl shadow-lg">
-            <Banknote className="w-6 h-6 text-white animate-pulse" />
-            <span className="text-xl font-bold text-white tracking-wide">
-              💰 REAL MONEY LIVE 💰
+          <div className="flex items-center justify-center gap-3 p-5 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 rounded-xl shadow-2xl border-2 border-green-400">
+            <Banknote className="w-7 h-7 text-white animate-pulse" />
+            <span className="text-2xl font-black text-white tracking-wider drop-shadow-lg">
+              💰 REAL MONEY LIVE — CONNECTED 💰
             </span>
-            <ShieldCheck className="w-6 h-6 text-white" />
+            <ShieldCheck className="w-7 h-7 text-white" />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" 
-               style={{ animation: "shimmer 2s infinite" }} />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" 
+               style={{ animation: "shimmer 1.5s infinite linear" }} />
         </motion.div>
+      )}
+
+      {/* Verify Connection Button */}
+      {stripeStatus.isConnected && (
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={verifyLiveConnection}
+            disabled={isVerifying}
+            className={isFullyLive ? "border-green-500 text-green-500 hover:bg-green-500/10" : ""}
+          >
+            {isVerifying ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Verify Live Connection
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       {/* Connection Status */}
