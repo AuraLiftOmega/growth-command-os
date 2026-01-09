@@ -64,8 +64,11 @@ export function ProductIntelligenceEngine() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [overallScore, setOverallScore] = useState(0);
 
-  // Fetch REAL Shopify products
-  const { products, isLoading, lastFetched, refetch } = useShopifyProducts({ autoLoad: true });
+  // Fetch ONLY AuraLift Beauty products (real skincare)
+  const { products, isLoading, lastFetched, refetch } = useShopifyProducts({ 
+    vendor: 'AuraLift Beauty',
+    autoLoad: true 
+  });
 
   // Analyze products when they load
   useEffect(() => {
