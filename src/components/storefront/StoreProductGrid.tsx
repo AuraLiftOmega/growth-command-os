@@ -30,16 +30,28 @@ export function StoreProductGrid({
       setError(null);
       
       try {
-        // Filter by AuraLift Beauty vendor, optionally also by category
+        // Build query - filter by AuraLift Beauty vendor OR category
         let query = 'vendor:"AuraLift Beauty"';
         if (category && category !== 'all') {
-          query += ` AND product_type:${category}`;
+          // If category is specified, use product_type filter
+          query = `product_type:"${category}"`;
         }
+        
+        console.log('Loading products with query:', query);
         const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: limit, query });
-        setProducts(data.data.products.edges || []);
+        
+        if (data?.data?.products?.edges) {
+          console.log('Products loaded:', data.data.products.edges.length);
+          setProducts(data.data.products.edges);
+        } else if (data?.error) {
+          console.warn('Shopify API returned error:', data.error);
+          setProducts([]);
+        } else {
+          setProducts([]);
+        }
       } catch (err) {
         console.error('Error loading products:', err);
-        setError('Failed to load products');
+        setError('Failed to load products. Please try again.');
       } finally {
         setIsLoading(false);
       }
