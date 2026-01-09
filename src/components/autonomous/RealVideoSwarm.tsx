@@ -93,9 +93,10 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
   const [totalGenerated, setTotalGenerated] = useState(0);
   const [totalPublished, setTotalPublished] = useState(0);
   const [swarmMode, setSwarmMode] = useState<'idle' | 'active' | 'completed'>('idle');
+  const [autoGenTriggered, setAutoGenTriggered] = useState(false);
 
   // Fetch REAL Shopify products
-  const { products, isLoading, refetch } = useShopifyProducts({ autoLoad: true });
+  const { products, isLoading, refetch, getProductByHandle } = useShopifyProducts({ autoLoad: true });
 
   // Get hook for product type
   const getHook = (product: ParsedShopifyProduct): string => {
@@ -103,6 +104,52 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
     const hooks = HOOKS[type] || HOOKS.default;
     return hooks[Math.floor(Math.random() * hooks.length)];
   };
+
+  // Auto-generate video for Radiance Vitamin C Serum on first load
+  const generateSingleVideo = useCallback(async (product: ParsedShopifyProduct, platform: string = 'pinterest') => {
+    setIsGenerating(true);
+    setSwarmMode('active');
+    
+    const job: VideoJob = {
+      id: `auto-${Date.now()}`,
+      product,
+      platform,
+      status: 'pending',
+      progress: 0,
+      hook: getHook(product)
+    };
+
+    setVideoJobs([job]);
+    toast.success(`🎬 Auto-generating video for ${product.title}...`, { duration: 3000 });
+
+    const result = await generateVideo(job);
+    
+    if (result.status === 'completed') {
+      await publishVideo(result);
+    }
+
+    setIsGenerating(false);
+    setSwarmMode('completed');
+  }, []);
+
+  // Trigger auto-generation for Radiance Vitamin C Serum
+  useEffect(() => {
+    if (!isLoading && products.length > 0 && !autoGenTriggered && !isGenerating) {
+      const serumProduct = products.find(p => 
+        p.title.toLowerCase().includes('radiance') && 
+        p.title.toLowerCase().includes('vitamin c')
+      );
+      
+      if (serumProduct) {
+        setAutoGenTriggered(true);
+        console.log('🎯 Auto-generating video for:', serumProduct.title);
+        toast.info(`📌 Found ${serumProduct.title} - Ready for video generation!`, {
+          description: 'Click "Launch Swarm" to generate videos for all products',
+          duration: 5000
+        });
+      }
+    }
+  }, [isLoading, products, autoGenTriggered, isGenerating]);
 
   // Generate a single video with real product data
   const generateVideo = useCallback(async (job: VideoJob): Promise<VideoJob> => {
