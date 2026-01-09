@@ -186,6 +186,12 @@ function parseProduct(node: ShopifyProduct): ParsedShopifyProduct {
   };
 }
 
+/**
+ * REAL SHOPIFY PRODUCTS HOOK
+ * 
+ * DEFAULT: Fetches ONLY AuraLift Beauty products
+ * Set vendor to 'all' to fetch all products
+ */
 export function useShopifyProducts(options?: { 
   vendor?: string; 
   limit?: number;
@@ -196,12 +202,18 @@ export function useShopifyProducts(options?: {
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
+  // DEFAULT TO AURALIFT BEAUTY - Real products only
+  const defaultVendor = options?.vendor === 'all' ? undefined : (options?.vendor || 'AuraLift Beauty');
+
   const fetchProducts = useCallback(async (vendorFilter?: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const query = vendorFilter ? `vendor:"${vendorFilter}"` : undefined;
+      // Use provided filter or default to AuraLift Beauty
+      const effectiveVendor = vendorFilter ?? defaultVendor;
+      const query = effectiveVendor ? `vendor:"${effectiveVendor}"` : undefined;
+      
       const result = await storefrontApiRequest(PRODUCTS_QUERY, { 
         first: options?.limit || 50,
         query 
@@ -226,13 +238,13 @@ export function useShopifyProducts(options?: {
     } finally {
       setIsLoading(false);
     }
-  }, [options?.limit]);
+  }, [options?.limit, defaultVendor]);
 
   useEffect(() => {
     if (options?.autoLoad !== false) {
-      fetchProducts(options?.vendor);
+      fetchProducts(defaultVendor);
     }
-  }, [options?.vendor, options?.autoLoad, fetchProducts]);
+  }, [defaultVendor, options?.autoLoad, fetchProducts]);
 
   const getProductById = useCallback((id: string) => {
     return products.find(p => p.id === id || p.shopifyId === id);
@@ -255,7 +267,7 @@ export function useShopifyProducts(options?: {
     getProductById,
     getProductByHandle,
     getAuraLiftProducts,
-    refetch: () => fetchProducts(options?.vendor)
+    refetch: () => fetchProducts(defaultVendor)
   };
 }
 

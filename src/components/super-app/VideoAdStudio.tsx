@@ -102,8 +102,11 @@ export function VideoAdStudio() {
   const [selectedProduct, setSelectedProduct] = useState<ParsedShopifyProduct | null>(null);
   const [isQuickGenerating, setIsQuickGenerating] = useState(false);
 
-  // Fetch REAL Shopify products
-  const { products, isLoading: loadingProducts, refetch } = useShopifyProducts({ autoLoad: true });
+  // Fetch ONLY AuraLift Beauty products (real skincare)
+  const { products, isLoading: loadingProducts, refetch } = useShopifyProducts({ 
+    vendor: 'AuraLift Beauty',
+    autoLoad: true 
+  });
 
   // Auto-select first AuraLift product
   useEffect(() => {
