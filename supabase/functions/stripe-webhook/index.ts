@@ -32,12 +32,26 @@ serve(async (req) => {
   }
 
   try {
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    // FORCE LIVE KEYS: Prioritize sk_live_ keys
+    const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+    const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    // Use live key first, fallback only if it's a live key
+    let stripeSecretKey = liveKey;
+    if (!stripeSecretKey && fallbackKey?.startsWith("sk_live_")) {
+      stripeSecretKey = fallbackKey;
+    } else if (!stripeSecretKey) {
+      stripeSecretKey = fallbackKey;
+    }
+    
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     if (!stripeSecretKey) {
       throw new Error("Stripe secret key not configured");
     }
+
+    const isLiveKey = stripeSecretKey.startsWith("sk_live_");
+    console.log(`🔄 Stripe webhook processing — ${isLiveKey ? "💰 LIVE MODE" : "⚠️ TEST MODE"}`);
 
     const stripe = new Stripe(stripeSecretKey, {
       apiVersion: "2023-10-16",
@@ -56,9 +70,10 @@ serve(async (req) => {
     if (webhookSecret && signature) {
       try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        console.log(`✅ Webhook signature verified — ${isLiveKey ? "LIVE" : "TEST"} mode`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("Webhook signature verification failed:", message);
+        console.error("❌ Webhook signature verification failed:", message);
         return new Response(JSON.stringify({ error: "Invalid signature" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -67,22 +82,22 @@ serve(async (req) => {
     } else {
       // For testing without webhook secret
       event = JSON.parse(body);
-      console.warn("Webhook received without signature verification - testing mode");
+      console.warn("⚠️ Webhook received without signature verification — testing mode");
     }
 
-    console.log(`Stripe webhook received: ${event.type}`);
+    console.log(`📩 Stripe webhook received: ${event.type} — ${isLiveKey ? "💰 REAL MONEY" : "TEST"}`);
 
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        await handleCheckoutCompleted(supabase, stripe, session);
+        await handleCheckoutCompleted(supabase, stripe, session, isLiveKey);
         break;
       }
       
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdate(supabase, subscription);
+        await handleSubscriptionUpdate(supabase, subscription, isLiveKey);
         break;
       }
       
@@ -94,7 +109,7 @@ serve(async (req) => {
       
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
-        await handleInvoicePaid(supabase, invoice);
+        await handleInvoicePaid(supabase, invoice, isLiveKey);
         break;
       }
       
@@ -104,16 +119,32 @@ serve(async (req) => {
         break;
       }
 
+      case "charge.succeeded": {
+        const charge = event.data.object as Stripe.Charge;
+        await logTransactionToAnalytics(supabase, charge, "charge_succeeded", isLiveKey);
+        break;
+      }
+
+      case "payment_intent.succeeded": {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await logPaymentIntentToAnalytics(supabase, paymentIntent, isLiveKey);
+        break;
+      }
+
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
 
-    return new Response(JSON.stringify({ received: true }), {
+    return new Response(JSON.stringify({ 
+      received: true,
+      isLiveMode: isLiveKey,
+      message: isLiveKey ? "💰 REAL MONEY PROCESSED" : "Test event processed",
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error("Webhook error:", error);
+    console.error("❌ Webhook error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
@@ -122,10 +153,75 @@ serve(async (req) => {
   }
 });
 
+async function logTransactionToAnalytics(
+  supabase: any,
+  charge: Stripe.Charge,
+  eventType: string,
+  isLive: boolean
+) {
+  if (!isLive) {
+    console.log("⚠️ Skipping analytics log for test transaction");
+    return;
+  }
+
+  const customerId = charge.customer as string;
+  const amountInDollars = charge.amount / 100;
+
+  console.log(`💰 REAL MONEY: $${amountInDollars} charged — logging to analytics`);
+
+  // Log to ai_decision_log as a revenue event
+  await supabase.from("ai_decision_log").insert({
+    user_id: charge.metadata?.supabase_user_id || "system",
+    decision_type: "revenue_event",
+    action_taken: `Real payment received: $${amountInDollars}`,
+    confidence: 1,
+    entity_type: "stripe_charge",
+    entity_id: charge.id,
+    execution_status: "completed",
+    impact_metrics: {
+      amount: amountInDollars,
+      currency: charge.currency,
+      customer_id: customerId,
+      is_live: true,
+      event_type: eventType,
+      receipt_url: charge.receipt_url,
+    },
+    reasoning: "Live Stripe payment processed successfully",
+  });
+}
+
+async function logPaymentIntentToAnalytics(
+  supabase: any,
+  paymentIntent: Stripe.PaymentIntent,
+  isLive: boolean
+) {
+  if (!isLive) return;
+
+  const amountInDollars = paymentIntent.amount / 100;
+  console.log(`💰 Payment intent succeeded: $${amountInDollars}`);
+
+  await supabase.from("ai_decision_log").insert({
+    user_id: paymentIntent.metadata?.supabase_user_id || "system",
+    decision_type: "payment_intent",
+    action_taken: `Payment intent succeeded: $${amountInDollars}`,
+    confidence: 1,
+    entity_type: "stripe_payment_intent",
+    entity_id: paymentIntent.id,
+    execution_status: "completed",
+    impact_metrics: {
+      amount: amountInDollars,
+      currency: paymentIntent.currency,
+      is_live: true,
+    },
+    reasoning: "Live payment intent completed",
+  });
+}
+
 async function handleCheckoutCompleted(
   supabase: any,
   stripe: Stripe,
-  session: Stripe.Checkout.Session
+  session: Stripe.Checkout.Session,
+  isLive: boolean
 ) {
   const userId = session.metadata?.supabase_user_id;
   const plan = session.metadata?.plan as keyof typeof PLAN_FEATURES;
@@ -134,6 +230,8 @@ async function handleCheckoutCompleted(
     console.error("Missing metadata in checkout session");
     return;
   }
+
+  console.log(`${isLive ? "💰 LIVE" : "⚠️ TEST"} checkout completed for user ${userId}, plan: ${plan}`);
 
   const subscriptionId = session.subscription as string;
   const customerId = session.customer as string;
@@ -172,18 +270,42 @@ async function handleCheckoutCompleted(
     throw error;
   }
 
-  console.log(`Subscription activated for user ${userId}, plan: ${plan}`);
+  // Log to analytics if live
+  if (isLive) {
+    const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+    await supabase.from("ai_decision_log").insert({
+      user_id: userId,
+      decision_type: "subscription_activated",
+      action_taken: `${plan} subscription activated — $${amountTotal}`,
+      confidence: 1,
+      entity_type: "subscription",
+      entity_id: subscriptionId,
+      execution_status: "completed",
+      impact_metrics: {
+        plan,
+        amount: amountTotal,
+        is_live: true,
+        customer_id: customerId,
+      },
+      reasoning: "Live subscription checkout completed",
+    });
+  }
+
+  console.log(`✅ Subscription activated for user ${userId}, plan: ${plan} — ${isLive ? "REAL MONEY" : "TEST"}`);
 }
 
 async function handleSubscriptionUpdate(
   supabase: any,
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
+  isLive: boolean
 ) {
   const userId = subscription.metadata?.supabase_user_id;
   if (!userId) {
     console.error("No user ID in subscription metadata");
     return;
   }
+
+  console.log(`${isLive ? "💰" : "⚠️"} Subscription update for user ${userId}`);
 
   const plan = subscription.metadata?.plan as keyof typeof PLAN_FEATURES;
   const planFeatures = plan ? PLAN_FEATURES[plan] : null;
@@ -212,7 +334,7 @@ async function handleSubscriptionUpdate(
     console.error("Error updating subscription:", error);
   }
 
-  console.log(`Subscription updated for user ${userId}`);
+  console.log(`✅ Subscription updated for user ${userId}`);
 }
 
 async function handleSubscriptionCanceled(
@@ -221,6 +343,8 @@ async function handleSubscriptionCanceled(
 ) {
   const userId = subscription.metadata?.supabase_user_id;
   if (!userId) return;
+
+  console.log(`⚠️ Subscription canceled for user ${userId}`);
 
   // Downgrade to free plan
   const { error } = await supabase
@@ -240,16 +364,20 @@ async function handleSubscriptionCanceled(
     console.error("Error canceling subscription:", error);
   }
 
-  console.log(`Subscription canceled for user ${userId}, downgraded to free`);
+  console.log(`✅ Subscription canceled for user ${userId}, downgraded to free`);
 }
 
 async function handleInvoicePaid(
   supabase: any,
-  invoice: Stripe.Invoice
+  invoice: Stripe.Invoice,
+  isLive: boolean
 ) {
   // Reset monthly credits on successful payment
   const subscriptionId = invoice.subscription as string;
   if (!subscriptionId) return;
+
+  const amountPaid = invoice.amount_paid / 100;
+  console.log(`${isLive ? "💰" : "⚠️"} Invoice paid: $${amountPaid}`);
 
   const { data: subs } = await supabase
     .from("subscriptions")
@@ -267,7 +395,25 @@ async function handleInvoicePaid(
       })
       .eq("user_id", subs.user_id);
 
-    console.log(`Credits reset for user ${subs.user_id}`);
+    // Log to analytics if live
+    if (isLive) {
+      await supabase.from("ai_decision_log").insert({
+        user_id: subs.user_id,
+        decision_type: "invoice_paid",
+        action_taken: `Invoice paid: $${amountPaid} — credits reset`,
+        confidence: 1,
+        entity_type: "stripe_invoice",
+        entity_id: invoice.id,
+        execution_status: "completed",
+        impact_metrics: {
+          amount: amountPaid,
+          is_live: true,
+        },
+        reasoning: "Live invoice payment received, monthly credits reset",
+      });
+    }
+
+    console.log(`✅ Credits reset for user ${subs.user_id}`);
   }
 }
 
@@ -277,6 +423,8 @@ async function handlePaymentFailed(
 ) {
   const subscriptionId = invoice.subscription as string;
   if (!subscriptionId) return;
+
+  console.log(`❌ Payment failed for invoice ${invoice.id}`);
 
   const { data: subs } = await supabase
     .from("subscriptions")
@@ -293,7 +441,7 @@ async function handlePaymentFailed(
       })
       .eq("user_id", subs.user_id);
 
-    console.log(`Payment failed for user ${subs.user_id}`);
+    console.log(`⚠️ Payment failed for user ${subs.user_id}`);
   }
 }
 
