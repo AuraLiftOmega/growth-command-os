@@ -42,8 +42,11 @@ const STRIPE_PLANS = {
 };
 
 serve(async (req) => {
+  console.log("🚀 [stripe-checkout] Function invoked at", new Date().toISOString());
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
+    console.log("📋 CORS preflight request handled");
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -54,11 +57,12 @@ serve(async (req) => {
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     // Log for debugging (redacted)
-    console.log("🔐 Stripe Key Check:", {
+    console.log("🔐 [stripe-checkout] Stripe Key Check:", {
       hasLiveSecretKey: !!liveSecretKey,
       liveKeyPrefix: liveSecretKey ? liveSecretKey.substring(0, 8) + "..." : "none",
       hasMainKey: !!mainSecretKey,
       mainKeyPrefix: mainSecretKey ? mainSecretKey.substring(0, 8) + "..." : "none",
+      hasWebhookSecret: !!webhookSecret,
     });
     
     // Determine which key to use - PRIORITIZE LIVE KEYS
@@ -98,6 +102,8 @@ serve(async (req) => {
     
     // Handle verify-live-mode action (no auth required for status check)
     if (body.action === "verify-live-mode") {
+      console.log("🔍 [stripe-checkout] Verifying live mode...");
+      
       // Provide detailed diagnostics
       const liveSecretKeyPrefix = liveSecretKey ? liveSecretKey.substring(0, 7) : "none";
       const mainKeyPrefix = mainSecretKey ? mainSecretKey.substring(0, 7) : "none";
@@ -108,17 +114,20 @@ serve(async (req) => {
       
       if (stripeSecretKey && isLiveKey) {
         try {
+          console.log("🔄 [stripe-checkout] Testing Stripe API connection...");
           const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-          await stripe.balance.retrieve();
+          const balance = await stripe.balance.retrieve();
           verified = true;
-          console.log("✅ Live key verified with Stripe API");
+          console.log("✅ [stripe-checkout] Live key verified with Stripe API - Balance retrieved successfully");
         } catch (err) {
           verificationError = err instanceof Error ? err.message : "Verification failed";
-          console.error("❌ Live key verification failed:", verificationError);
+          console.error("❌ [stripe-checkout] Live key verification failed:", verificationError);
         }
+      } else {
+        console.log("⚠️ [stripe-checkout] No live key available for verification. keyType:", keyType);
       }
       
-      return new Response(JSON.stringify({
+      const response = {
         isConnected: !!stripeSecretKey,
         isLiveMode: isLiveKey,
         hasWebhookSecret: !!webhookSecret,
@@ -137,8 +146,13 @@ serve(async (req) => {
           mainKeyPrefix: mainKeyPrefix,
           verified: verified,
           expectedFormat: "sk_live_xxxxx (from Stripe Dashboard → Developers → API Keys)",
+          timestamp: new Date().toISOString(),
         }
-      }), {
+      };
+      
+      console.log("📤 [stripe-checkout] verify-live-mode response:", JSON.stringify(response, null, 2));
+      
+      return new Response(JSON.stringify(response), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
