@@ -48,45 +48,78 @@ export interface ShopifyProduct {
   };
 }
 
-// Demo fallback products for when Shopify is unavailable
-export const DEMO_PRODUCTS = [
+// REAL PRODUCTS ONLY - No demo/fake fallbacks
+// AuraLift Beauty is the ONLY authorized vendor
+export const AURA_LIFT_PRODUCTS = [
   {
     node: {
-      id: 'demo-1',
-      title: 'Smart Fitness Watch Pro',
-      description: 'Advanced fitness tracking with AI-powered insights',
-      handle: 'smart-fitness-watch-pro',
-      priceRange: { minVariantPrice: { amount: '299.99', currencyCode: 'USD' } },
-      images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', altText: 'Smart Watch' } }] },
-      variants: { edges: [{ node: { id: 'demo-v1', title: 'Default', price: { amount: '299.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: []
+      id: 'auralift-1',
+      title: 'Radiance Vitamin C Serum',
+      description: 'Brightening serum with 20% Vitamin C for radiant, even-toned skin',
+      handle: 'radiance-vitamin-c-serum',
+      priceRange: { minVariantPrice: { amount: '49.99', currencyCode: 'USD' } },
+      images: { edges: [] },
+      variants: { edges: [{ node: { id: 'al-v1', title: 'Default', price: { amount: '49.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
+      options: [],
+      vendor: 'AuraLift Beauty'
     }
   },
   {
     node: {
-      id: 'demo-2',
-      title: 'Premium Wireless Headphones',
-      description: 'Immersive sound with active noise cancellation',
-      handle: 'premium-wireless-headphones',
-      priceRange: { minVariantPrice: { amount: '199.99', currencyCode: 'USD' } },
-      images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', altText: 'Headphones' } }] },
-      variants: { edges: [{ node: { id: 'demo-v2', title: 'Default', price: { amount: '199.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: []
+      id: 'auralift-2',
+      title: 'Hydra-Glow Retinol Night Cream',
+      description: 'Anti-aging night cream with retinol for youthful, glowing skin',
+      handle: 'retinol-night-cream',
+      priceRange: { minVariantPrice: { amount: '64.99', currencyCode: 'USD' } },
+      images: { edges: [] },
+      variants: { edges: [{ node: { id: 'al-v2', title: 'Default', price: { amount: '64.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
+      options: [],
+      vendor: 'AuraLift Beauty'
     }
   },
   {
     node: {
-      id: 'demo-3',
-      title: 'Carbon Fiber Training Sneakers',
-      description: 'Lightweight performance footwear for elite athletes',
-      handle: 'carbon-fiber-training-sneakers',
-      priceRange: { minVariantPrice: { amount: '249.99', currencyCode: 'USD' } },
-      images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', altText: 'Sneakers' } }] },
-      variants: { edges: [{ node: { id: 'demo-v3', title: 'Default', price: { amount: '249.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: []
+      id: 'auralift-3',
+      title: 'Ultra Hydration Hyaluronic Serum',
+      description: 'Deep hydration serum with hyaluronic acid for plump, moisturized skin',
+      handle: 'hyaluronic-serum',
+      priceRange: { minVariantPrice: { amount: '54.99', currencyCode: 'USD' } },
+      images: { edges: [] },
+      variants: { edges: [{ node: { id: 'al-v3', title: 'Default', price: { amount: '54.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
+      options: [],
+      vendor: 'AuraLift Beauty'
+    }
+  },
+  {
+    node: {
+      id: 'auralift-4',
+      title: 'Omega Glow Collagen Peptide Moisturizer',
+      description: 'Collagen-boosting moisturizer for firmer, more youthful skin',
+      handle: 'collagen-moisturizer',
+      priceRange: { minVariantPrice: { amount: '74.99', currencyCode: 'USD' } },
+      images: { edges: [] },
+      variants: { edges: [{ node: { id: 'al-v4', title: 'Default', price: { amount: '74.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
+      options: [],
+      vendor: 'AuraLift Beauty'
+    }
+  },
+  {
+    node: {
+      id: 'auralift-5',
+      title: 'Luxe Rose Quartz Face Roller Set',
+      description: 'Premium face roller set for lymphatic drainage and de-puffing',
+      handle: 'rose-quartz-roller',
+      priceRange: { minVariantPrice: { amount: '39.99', currencyCode: 'USD' } },
+      images: { edges: [] },
+      variants: { edges: [{ node: { id: 'al-v5', title: 'Default', price: { amount: '39.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
+      options: [],
+      vendor: 'AuraLift Beauty'
     }
   }
 ];
+
+// PURGED: No demo fallback - return empty if Shopify unavailable
+export const DEMO_PRODUCTS: never[] = [];
 
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
   try {
@@ -100,31 +133,31 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
     });
 
     if (response.status === 401) {
-      console.warn('Shopify 401: Token may be expired. Using demo fallback.');
-      return { data: { products: { edges: DEMO_PRODUCTS } }, usedFallback: true };
+      console.error('Shopify 401: Token expired - NO DEMO FALLBACK');
+      return { data: { products: { edges: [] } }, error: 'Token expired' };
     }
 
     if (response.status === 402) {
-      console.warn('Shopify 402: Payment required. Store needs billing plan.');
-      return { data: { products: { edges: DEMO_PRODUCTS } }, usedFallback: true };
+      console.error('Shopify 402: Payment required - NO DEMO FALLBACK');
+      return { data: { products: { edges: [] } }, error: 'Payment required' };
     }
 
     if (!response.ok) {
-      console.error(`Shopify HTTP error: ${response.status}`);
-      return { data: { products: { edges: DEMO_PRODUCTS } }, usedFallback: true };
+      console.error(`Shopify HTTP error: ${response.status} - NO DEMO FALLBACK`);
+      return { data: { products: { edges: [] } }, error: `HTTP ${response.status}` };
     }
 
     const data = await response.json();
     
     if (data.errors) {
       console.error('Shopify GraphQL errors:', data.errors);
-      return { data: { products: { edges: DEMO_PRODUCTS } }, usedFallback: true };
+      return { data: { products: { edges: [] } }, error: data.errors };
     }
 
     return data;
   } catch (error) {
-    console.error('Shopify API request failed:', error);
-    return { data: { products: { edges: DEMO_PRODUCTS } }, usedFallback: true };
+    console.error('Shopify API request failed - NO DEMO FALLBACK:', error);
+    return { data: { products: { edges: [] } }, error };
   }
 }
 

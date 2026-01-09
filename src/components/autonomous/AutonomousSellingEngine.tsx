@@ -158,8 +158,9 @@ export function AutonomousSellingEngine({ className }: AutonomousSellingEnginePr
   const [modules, setModules] = useState<AutonomousModule[]>(AUTONOMOUS_MODULES);
   const [isGlobalEnabled, setIsGlobalEnabled] = useState(true);
   const [systemStatus, setSystemStatus] = useState<'active' | 'paused' | 'learning'>('active');
-  const [totalRevenue, setTotalRevenue] = useState(847291);
-  const [actionsToday, setActionsToday] = useState(156);
+  // REAL DATA ONLY - NO INFLATED MOCK NUMBERS
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [actionsToday, setActionsToday] = useState(0);
 
   // Simulate real-time updates
   useEffect(() => {

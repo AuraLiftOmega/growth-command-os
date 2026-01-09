@@ -47,38 +47,33 @@ interface VideoJob {
 const PLATFORMS = ['pinterest', 'youtube_shorts', 'tiktok', 'instagram'];
 const STYLES = ['ugc', 'cinematic', 'product', 'testimonial', 'before-after'];
 
-// Viral hooks for different product types
+// AURALIFT BEAUTY VIRAL HOOKS ONLY - PURGED NON-SKINCARE
 const HOOKS: Record<string, string[]> = {
   'Skincare': [
     'This serum is giving glass skin ✨',
     'POV: You wake up glowing 🌙',
     'The skincare hack they don\'t want you to know 💎',
     'Watch my skin transform 😍',
-    'Finally found THE product...'
+    'Finally found THE product...',
+    'My dermatologist is shook 👩‍⚕️',
+    'The glow up is REAL ✨'
   ],
   'Beauty Tools': [
     'Self-care Sunday essential 🌹',
     'The tool that changed my routine ✨',
-    'This is actually magic 💫'
+    'This is actually magic 💫',
+    'Depuff in 2 minutes 💆‍♀️'
   ],
-  'Electronics': [
-    'This tech is next level 🔥',
-    'Why didn\'t I buy this sooner?',
-    'The upgrade you need 📱'
-  ],
-  'Fitness': [
-    'Recovery game just leveled up 💪',
-    'The fitness essential I can\'t live without',
-    'POV: You finally commit to your goals 🏋️'
-  ],
-  'Footwear': [
-    'These feel like clouds ☁️',
-    'The sneakers everyone\'s asking about 👟'
+  'AuraLift Beauty': [
+    'AuraLift changed my skin game ✨',
+    'The luxury skincare you deserve 💎',
+    'Clean beauty that actually works 🌿',
+    'Why everyone\'s talking about AuraLift 🔥'
   ],
   'default': [
-    'You need this in your life ✨',
-    'Best purchase I\'ve made 🔥',
-    'This changes everything 💫'
+    'Your skin will thank you ✨',
+    'The glow-up starts here 💫',
+    'Skincare that actually works 🌟'
   ]
 };
 

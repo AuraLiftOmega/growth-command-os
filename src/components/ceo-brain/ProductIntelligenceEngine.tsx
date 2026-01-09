@@ -410,15 +410,12 @@ function ProductCard({ product }: { product: AnalyzedProduct }) {
     return 'text-destructive';
   };
 
+  // AURALIFT BEAUTY ONLY - PURGED ALL OTHER VENDORS
   const getVendorBadge = (vendor: string) => {
     const colors: Record<string, string> = {
       'AuraLift Beauty': 'bg-pink-500/20 text-pink-500',
-      'TechBrand': 'bg-blue-500/20 text-blue-500',
-      'ZenLife': 'bg-green-500/20 text-green-500',
-      'FitTech': 'bg-orange-500/20 text-orange-500',
-      'SpeedRun': 'bg-purple-500/20 text-purple-500'
     };
-    return colors[vendor] || 'bg-muted text-muted-foreground';
+    return colors[vendor] || 'bg-pink-500/20 text-pink-500';
   };
 
   return (

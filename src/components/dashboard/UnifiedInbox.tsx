@@ -64,64 +64,8 @@ export const UnifiedInbox = () => {
   const [filter, setFilter] = useState<string>("all");
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
 
-  // Mock data for demo purposes when no real data exists
-  const mockComments: Comment[] = [
-    {
-      id: "1",
-      platform: "tiktok",
-      comment_text: "OMG this is amazing! Where can I buy this? 😍",
-      comment_author: "@fashionista_jane",
-      dm_status: "sent",
-      dm_text: "Hey Jane! Thanks for your interest! Here's your exclusive 15% off link: shop.brand.com/vip",
-      outcome: "pending",
-      revenue_attributed: null,
-      created_at: new Date(Date.now() - 300000).toISOString()
-    },
-    {
-      id: "2",
-      platform: "instagram",
-      comment_text: "Is this still available? I need this in my life!",
-      comment_author: "@lifestyle_mike",
-      dm_status: "delivered",
-      dm_text: "Hi Mike! Yes it's available! I just sent you a special discount link 🎉",
-      outcome: "converted",
-      revenue_attributed: 89.99,
-      created_at: new Date(Date.now() - 600000).toISOString()
-    },
-    {
-      id: "3",
-      platform: "facebook",
-      comment_text: "Does this come in other colors?",
-      comment_author: "Sarah Thompson",
-      dm_status: "pending",
-      dm_text: null,
-      outcome: "pending",
-      revenue_attributed: null,
-      created_at: new Date(Date.now() - 900000).toISOString()
-    },
-    {
-      id: "4",
-      platform: "tiktok",
-      comment_text: "Link please! 🙏",
-      comment_author: "@shopaholic_sam",
-      dm_status: "delivered",
-      dm_text: "Hey Sam! Here's your exclusive link with free shipping! 🚚",
-      outcome: "converted",
-      revenue_attributed: 149.99,
-      created_at: new Date(Date.now() - 1200000).toISOString()
-    },
-    {
-      id: "5",
-      platform: "youtube",
-      comment_text: "Just ordered! Can't wait! 🎉",
-      comment_author: "TechReviewPro",
-      dm_status: "delivered",
-      dm_text: "Amazing! Your order is confirmed. Welcome to the family! 🎊",
-      outcome: "converted",
-      revenue_attributed: 299.99,
-      created_at: new Date(Date.now() - 1800000).toISOString()
-    }
-  ];
+  // PURGED: No mock data - real comments only from database
+  const mockComments: Comment[] = [];
 
   useEffect(() => {
     const fetchComments = async () => {
