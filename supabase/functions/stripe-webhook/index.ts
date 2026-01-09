@@ -61,29 +61,66 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const body = await req.text();
-    const signature = req.headers.get("stripe-signature");
+  const body = await req.text();
+  const signature = req.headers.get("stripe-signature");
 
-    let event: Stripe.Event;
+  // Handle test/ping requests
+  let parsedBody: any = null;
+  try {
+    parsedBody = JSON.parse(body);
+  } catch {
+    // Not JSON, proceed with webhook verification
+  }
 
-    // Verify webhook signature if secret is configured
-    if (webhookSecret && signature) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-        console.log(`✅ Webhook signature verified — ${isLiveKey ? "LIVE" : "TEST"} mode`);
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Unknown error";
-        console.error("❌ Webhook signature verification failed:", message);
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    } else {
-      // For testing without webhook secret
-      event = JSON.parse(body);
-      console.warn("⚠️ Webhook received without signature verification — testing mode");
+  // Handle test action - respond 200 immediately
+  if (parsedBody?.action === "test-webhook") {
+    console.log("🔧 Webhook test ping received");
+    return new Response(JSON.stringify({ 
+      success: true,
+      isLive: isLiveKey,
+      hasWebhookSecret: !!webhookSecret,
+      message: "Webhook endpoint is active",
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  let event: Stripe.Event;
+
+  // Verify webhook signature if secret is configured
+  if (webhookSecret && signature) {
+    try {
+      // Use constructEventAsync for Deno compatibility
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+      console.log(`✅ Webhook signature verified — ${isLiveKey ? "LIVE" : "TEST"} mode`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      console.error("❌ Webhook signature verification failed:", message);
+      // Still return 200 to prevent Stripe retries on signature issues during setup
+      return new Response(JSON.stringify({ 
+        error: "Signature verification failed",
+        details: message,
+        tip: "Ensure STRIPE_WEBHOOK_SECRET matches your Stripe Dashboard webhook signing secret",
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+  } else if (parsedBody && parsedBody.type) {
+    // For testing without webhook secret - accept if it looks like a Stripe event
+    event = parsedBody as Stripe.Event;
+    console.warn("⚠️ Webhook received without signature verification — testing mode");
+  } else {
+    console.warn("⚠️ No signature and no valid event body");
+    return new Response(JSON.stringify({ 
+      error: "No signature provided",
+      tip: "Configure STRIPE_WEBHOOK_SECRET for production webhooks",
+    }), {
+      status: 200, // Return 200 to prevent retries
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
     console.log(`📩 Stripe webhook received: ${event.type} — ${isLiveKey ? "💰 REAL MONEY" : "TEST"}`);
 

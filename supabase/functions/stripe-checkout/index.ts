@@ -102,20 +102,40 @@ serve(async (req) => {
       const liveSecretKeyPrefix = liveSecretKey ? liveSecretKey.substring(0, 7) : "none";
       const mainKeyPrefix = mainSecretKey ? mainSecretKey.substring(0, 7) : "none";
       
+      // If we have a live key, also verify it works by making a test API call
+      let verified = false;
+      let verificationError: string | null = null;
+      
+      if (stripeSecretKey && isLiveKey) {
+        try {
+          const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
+          await stripe.balance.retrieve();
+          verified = true;
+          console.log("✅ Live key verified with Stripe API");
+        } catch (err) {
+          verificationError = err instanceof Error ? err.message : "Verification failed";
+          console.error("❌ Live key verification failed:", verificationError);
+        }
+      }
+      
       return new Response(JSON.stringify({
         isConnected: !!stripeSecretKey,
         isLiveMode: isLiveKey,
         hasWebhookSecret: !!webhookSecret,
         keyType: keyType,
         liveKeyConfigured: isLiveKey,
-        message: isLiveKey 
-          ? "REAL MONEY LIVE — CONNECTED" 
+        verified: verified,
+        message: verified 
+          ? "💰 LIVE CONNECTED — VERIFIED 💰" 
+          : isLiveKey && verificationError
+          ? `Live key found but verification failed: ${verificationError}`
           : `Live keys required. Current key prefix: ${liveSecretKeyPrefix}. Expected: sk_live_`,
         debug: {
           liveSecretKeyExists: !!liveSecretKey,
           liveSecretKeyPrefix: liveSecretKeyPrefix,
           mainKeyExists: !!mainSecretKey,
           mainKeyPrefix: mainKeyPrefix,
+          verified: verified,
           expectedFormat: "sk_live_xxxxx (from Stripe Dashboard → Developers → API Keys)",
         }
       }), {
