@@ -8,14 +8,14 @@ import { ShoppingCart, Mail, MessageSquare, DollarSign, Loader2, Send, RefreshCw
 
 interface AbandonedCart {
   id: string;
-  customer_email: string;
-  customer_phone: string;
-  cart_total: number;
-  items: Array<{ title: string; price: number; image?: string }>;
-  abandoned_at: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  cart_total: number | null;
+  items: unknown;
+  abandoned_at: string | null;
   recovery_sent_at: string | null;
-  recovered: boolean;
-  recovery_revenue: number;
+  recovered: boolean | null;
+  recovery_revenue: number | null;
 }
 
 export function CartRecoveryPanel() {
@@ -45,11 +45,11 @@ export function CartRecoveryPanel() {
       const { data } = await supabase
         .from('abandoned_carts')
         .select('*')
-        .eq('user_id', user.id) as { data: AbandonedCart[] | null }
+        .eq('user_id', user.id)
         .order('abandoned_at', { ascending: false })
         .limit(50);
 
-      setCarts(data || []);
+      setCarts((data as AbandonedCart[]) || []);
     } catch (error) {
       console.error('Failed to load carts:', error);
     } finally {
@@ -194,7 +194,7 @@ export function CartRecoveryPanel() {
                       {cart.customer_email || cart.customer_phone || 'Unknown'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {cart.items?.length || 0} items • Abandoned {formatTimeAgo(cart.abandoned_at)}
+                      {Array.isArray(cart.items) ? cart.items.length : 0} items • Abandoned {formatTimeAgo(cart.abandoned_at || '')}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
