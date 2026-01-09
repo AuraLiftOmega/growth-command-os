@@ -111,10 +111,10 @@ export const OnboardingForm = () => {
     navigate("/");
   };
 
-  // Enable demo mode with mock data
+  // REMOVED: No demo mode in production - skip to dashboard with defaults
   const handleDemoMode = () => {
-    enableDemoMode();
-    toast.success("Demo mode activated. Explore all features with sample data.");
+    applyIndustryDefaults();
+    toast.success("Production mode activated with industry defaults.");
     navigate("/");
   };
 

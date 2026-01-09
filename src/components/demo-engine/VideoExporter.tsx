@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { DEMO_PLAYBACK_SCENES } from '@/lib/demo-mode';
+import { DemoPlaybackScene } from '@/lib/demo-mode';
 
 interface VideoExporterProps {
   demoId: string;
@@ -90,7 +90,13 @@ export const VideoExporter = ({
   const chunksRef = useRef<Blob[]>([]);
   const animationFrameRef = useRef<number | null>(null);
 
-  const scenes = DEMO_PLAYBACK_SCENES;
+  // Generate scenes from narrative or use production defaults
+  const scenes: DemoPlaybackScene[] = narrative?.scenes || [
+    { title: 'DOMINION Overview', subtitle: 'Your autonomous revenue engine', gradient: 'from-primary/30 to-chart-2/30', duration: 30, metrics: [] },
+    { title: 'Revenue Performance', subtitle: 'Real-time metrics', gradient: 'from-green/30 to-chart-1/30', duration: 30, metrics: [] },
+    { title: 'Autonomous Operations', subtitle: 'Zero manual intervention', gradient: 'from-blue/30 to-chart-3/30', duration: 30, metrics: [] },
+    { title: 'Scale Without Limits', subtitle: 'Production-ready infrastructure', gradient: 'from-orange/30 to-primary/30', duration: 30, metrics: [] },
+  ];
 
   // Update dimensions when quality changes
   useEffect(() => {

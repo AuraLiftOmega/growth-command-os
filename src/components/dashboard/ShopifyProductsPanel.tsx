@@ -15,15 +15,8 @@ import {
 import { Link } from "react-router-dom";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
-import { isTestMode } from "@/lib/demo-mode";
 
-// Demo products for test mode
-const TEST_MODE_PRODUCTS: ShopifyProduct[] = [
-  { node: { id: 'demo-1', title: 'Aura Lift Serum', handle: 'aura-lift-serum', description: 'Anti-aging serum', priceRange: { minVariantPrice: { amount: '89.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400', altText: 'Aura Lift Serum' } }] }, variants: { edges: [{ node: { id: 'v1', title: 'Default', price: { amount: '89.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
-  { node: { id: 'demo-2', title: 'Radiance Moisturizer', handle: 'radiance-moisturizer', description: 'Daily hydration', priceRange: { minVariantPrice: { amount: '65.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400', altText: 'Radiance Moisturizer' } }] }, variants: { edges: [{ node: { id: 'v2', title: 'Default', price: { amount: '65.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
-  { node: { id: 'demo-3', title: 'Youth Renewal Eye Cream', handle: 'youth-renewal', description: 'Eye treatment', priceRange: { minVariantPrice: { amount: '78.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400', altText: 'Youth Renewal Eye Cream' } }] }, variants: { edges: [{ node: { id: 'v3', title: 'Default', price: { amount: '78.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
-  { node: { id: 'demo-4', title: 'Vitamin C Brightening Serum', handle: 'vitamin-c-serum', description: 'Brightening formula', priceRange: { minVariantPrice: { amount: '72.00', currencyCode: 'USD' } }, images: { edges: [{ node: { url: 'https://images.unsplash.com/photo-1617897903246-719242758050?w=400', altText: 'Vitamin C Serum' } }] }, variants: { edges: [{ node: { id: 'v4', title: 'Default', price: { amount: '72.00', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] }, options: [] } },
-];
+// NO TEST MODE PRODUCTS - PRODUCTION ONLY
 
 export const ShopifyProductsPanel = () => {
   const { primaryStore, hasConnectedStore, isLoading: storeLoading } = useUserStore();
@@ -32,18 +25,9 @@ export const ShopifyProductsPanel = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addItem } = useCartStore();
-  const testModeActive = isTestMode();
 
-  // Load products from the connected project store
+  // Load REAL products from connected Shopify store
   const loadProducts = async () => {
-    // In test mode, use demo products immediately
-    if (testModeActive) {
-      setProducts(TEST_MODE_PRODUCTS);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     try {
@@ -63,7 +47,7 @@ export const ShopifyProductsPanel = () => {
 
   useEffect(() => {
     loadProducts();
-  }, [testModeActive]);
+  }, []);
 
   const handleAddToCart = (product: ShopifyProduct) => {
     const variant = product.node.variants.edges[0]?.node;

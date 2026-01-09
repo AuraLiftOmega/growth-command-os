@@ -1,58 +1,42 @@
 /**
- * PRODUCTION MODE ONLY - ALL DEMO/TEST MODE DISABLED
+ * PRODUCTION MODE ONLY - DEMO/TEST FUNCTIONALITY PERMANENTLY REMOVED
  * 
- * This file is kept for backwards compatibility but ALL demo functionality is REMOVED.
- * DOMINION is now a REAL MONEY MACHINE - no simulations, no test data.
+ * DOMINION is a REAL MONEY MACHINE.
+ * ALL demo, test, and simulation code has been PERMANENTLY DELETED.
+ * Every metric is REAL. Every transaction is LIVE.
  */
 
-// Test mode is PERMANENTLY DISABLED - always returns false
+// NO TEST MODE - PERMANENTLY DISABLED
 export function enableTestMode(): void {
-  // NO-OP - Test mode is permanently disabled
-  console.warn('[DOMINION] Test mode is permanently disabled. Production only.');
+  throw new Error('[DOMINION] Test mode is permanently disabled. Production only.');
 }
 
 export function disableTestMode(): void {
-  // Ensure any lingering test mode flags are removed
+  // Clear any legacy flags
   if (typeof window !== 'undefined') {
     localStorage.removeItem('dominion_test_mode');
     localStorage.removeItem('dominion_dev_mode');
+    localStorage.removeItem('demo_mode');
   }
 }
 
-// ALWAYS returns false - no test mode in production
+// ALWAYS returns false - PRODUCTION ONLY
 export function isTestMode(): boolean {
-  // Force disable any lingering test mode
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('dominion_test_mode');
-  }
-  return false; // ALWAYS FALSE - PRODUCTION ONLY
+  disableTestMode();
+  return false;
 }
 
-// ALWAYS returns false - no demo mode in production
+// ALWAYS returns false - PRODUCTION ONLY
 export function isDemoMode(): boolean {
-  return false; // ALWAYS FALSE - PRODUCTION ONLY
+  return false;
 }
 
-// Get demo mode badge text - returns LIVE
+// Returns LIVE - always
 export function getDemoModeLabel(): string {
   return 'LIVE';
 }
 
-// Generate realistic timestamps (kept for compatibility)
-export function generateRealisticTimestamps(count: number): string[] {
-  const now = Date.now();
-  return Array.from({ length: count }, (_, i) => {
-    const hoursAgo = Math.floor(Math.random() * 168);
-    return new Date(now - hoursAgo * 60 * 60 * 1000).toISOString();
-  });
-}
-
-// Remove all demo data constants - these are no longer used
-export const DEMO_MODE_VIDEOS: any[] = [];
-export const DEMO_MODE_ANALYTICS: Record<string, any> = {};
-export const DEMO_PLAYBACK_SCENES: any[] = [];
-
-// Kept for backwards compatibility - returns empty/default config
+// Type definitions for backwards compatibility
 export interface DemoModeConfig {
   industry: string;
   industryName: string;
@@ -68,7 +52,28 @@ export interface DemoModeConfig {
   approvedPhrases: string[];
 }
 
-// Default config - used for initial setup, not demo mode
+export interface DemoPlaybackScene {
+  title: string;
+  subtitle: string;
+  gradient: string;
+  duration: number;
+  metrics: Array<{ label: string; value: string; change?: string }>;
+}
+
+export interface DemoModeVideo {
+  id: string;
+  variant: string;
+  industryName: string;
+  deal_size: string;
+  sales_stage: string;
+  narrative: Record<string, any>;
+  thumbnail_url: string | null;
+  video_url: string | null;
+  narration_url: string | null;
+  duration_seconds: number | null;
+}
+
+// Default production config - used for initial setup only
 const DEFAULT_CONFIG: DemoModeConfig = {
   industry: 'ecommerce',
   industryName: 'E-Commerce / DTC',
@@ -91,12 +96,12 @@ const DEFAULT_CONFIG: DemoModeConfig = {
   approvedPhrases: ['scale', 'ROAS', 'AOV', 'LTV']
 };
 
-// Get default config (NOT demo mode - just initial setup)
+// Returns production defaults (NOT demo mode - just initial config)
 export function getDemoModeConfig(_industry?: string): DemoModeConfig {
   return DEFAULT_CONFIG;
 }
 
-// Apply defaults for initial setup (NOT demo mode)
+// Apply production defaults for initial setup
 export function applyDemoModeDefaults(
   setIndustry: (industry: string, config: any) => void,
   setOfferType: (type: string) => void,
@@ -141,3 +146,8 @@ export function applyDemoModeDefaults(
   setDealSize(config.dealSize);
   setBuyingCycle(config.buyingCycle);
 }
+
+// REMOVED: All demo mode data - empty arrays with proper types
+export const DEMO_MODE_VIDEOS: DemoModeVideo[] = [];
+export const DEMO_MODE_ANALYTICS: Record<string, any> = {};
+export const DEMO_PLAYBACK_SCENES: DemoPlaybackScene[] = [];
