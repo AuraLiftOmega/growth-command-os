@@ -48,9 +48,56 @@ serve(async (req) => {
   }
 
   try {
-    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    
+    // Determine key type
+    const isLiveKey = stripeSecretKey?.startsWith("sk_live_") || false;
+    const isTestKey = stripeSecretKey?.startsWith("sk_test_") || false;
+    const keyType = isLiveKey ? "live" : isTestKey ? "test" : "none";
+    
+    const body = await req.json();
+    
+    // Handle verify-live-mode action (no auth required for status check)
+    if (body.action === "verify-live-mode") {
+      return new Response(JSON.stringify({
+        isConnected: !!stripeSecretKey,
+        isLiveMode: isLiveKey,
+        hasWebhookSecret: !!webhookSecret,
+        keyType: keyType,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    
+    // Handle ping action
+    if (body.action === "ping") {
+      return new Response(JSON.stringify({ 
+        status: "ok",
+        isLive: isLiveKey,
+        keyType: keyType,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // For actual checkout, enforce LIVE keys only
     if (!stripeSecretKey) {
       throw new Error("Stripe secret key not configured");
+    }
+    
+    // CRITICAL: Reject test keys for real checkout
+    if (!isLiveKey) {
+      console.error("REJECTED: Test key used for checkout. Live keys required.");
+      return new Response(JSON.stringify({ 
+        error: "Live Stripe keys required (sk_live_). Test keys cannot process real payments.",
+        keyType: keyType,
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const stripe = new Stripe(stripeSecretKey, {
@@ -80,7 +127,6 @@ serve(async (req) => {
       });
     }
 
-    const body = await req.json();
     const { plan, billingCycle, successUrl, cancelUrl } = body;
 
     if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
