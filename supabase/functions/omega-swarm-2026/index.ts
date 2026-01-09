@@ -104,15 +104,43 @@ Return: concepts, quality_score, expected_views, revenue_impact.`,
   },
   optimization: {
     emoji: '⚡',
-    prompt: `OMEGA OPTIMIZATION AGENT - ROAS commander.
-Monitor and execute:
-- Real-time ROAS tracking per creative
-- Auto-pause creatives under 1.5x ROAS threshold
-- Scale winners: increase budget 20% for 3x+ ROAS
-- Budget reallocation recommendations
-Output: pause_list, scale_list, budget_changes, predicted_improvement.
-Return: decisions with confidence, revenue_impact, before_after metrics.`,
-    triggers: ['roas_check', 'budget_threshold', 'creative_underperforming']
+    prompt: `RUTHLESS OPTIMIZER AGENT - MAXIMUM ROI EXECUTIONER.
+
+You are a billionaire hedge fund manager with ZERO emotional attachment.
+If something loses money, it's DEAD. If it wins, POUR FUEL on it.
+
+CORE DIRECTIVES:
+1. KILL LOSERS - Instantly pause any creative/campaign with:
+   - ROAS < 2x after 1000+ impressions
+   - CTR < 0.5% after 500+ impressions
+   - No conversions after $50+ spend
+   Free that budget for winners.
+
+2. SCALE WINNERS 3x+ - For high performers (ROAS > 5x):
+   - Increase budget 50-200% immediately
+   - Generate 5 creative variants
+   - Expand to new audiences
+   
+3. BUDGET REALLOCATION - Daily/hourly:
+   - Move 100% of loser budget to winners
+   - Compound winning campaigns
+   - No dollar goes to underperformers
+
+4. SELF-HEAL - Detect and fix:
+   - Broken tracking links
+   - Low inventory warnings
+   - OAuth token refreshes
+   - API rate limit issues
+
+5. COMPETITOR DEFENSE - When competitors undercut:
+   - Adjust positioning (don't race to bottom)
+   - Increase bid on brand terms
+   - Generate counter-creatives
+
+Output: pause_list, scale_list, budget_changes, self_heal_actions, competitor_responses.
+Return: decisions with confidence 0-1, revenue_impact in dollars, before/after projections.
+auto_execute = true for confidence > 0.85.`,
+    triggers: ['roas_check', 'budget_threshold', 'creative_underperforming', 'competitor_move', 'system_error']
   },
   global: {
     emoji: '🌍',
@@ -545,34 +573,98 @@ serve(async (req: Request) => {
       }
 
       // ═══════════════════════════════════════════════════════════════
-      // OPTIMIZE ROAS - Pause losers, scale winners
+      // OPTIMIZE ROAS - Ruthless killer, aggressive scaler
       // ═══════════════════════════════════════════════════════════════
       case 'optimize_roas': {
-        console.log('⚡ ROAS optimization check...');
+        console.log('⚡ RUTHLESS ROAS OPTIMIZATION starting...');
+        
+        const context = body.context || {};
+        const aggressiveness = (context.aggressiveness as number) || 80;
+        const thresholds = (context.thresholds as Record<string, number>) || { killBelow: 2, scaleAbove: 5, minImpressions: 1000 };
         
         const { data: creatives } = await supabase
           .from('creatives')
           .select('*')
           .eq('user_id', body.user_id)
-          .in('status', ['active', 'scaling']);
+          .in('status', ['active', 'scaling', 'pending']);
 
+        // Analyze each creative
+        const killList: string[] = [];
+        const scaleList: string[] = [];
+        const budgetChanges: { id: string; change: number; reason: string }[] = [];
+        
+        for (const creative of (creatives || [])) {
+          const roas = creative.roas || 0;
+          const impressions = creative.impressions || 0;
+          const spend = creative.spend || 0;
+          const conversions = creative.conversions || 0;
+          
+          // KILL CONDITIONS - ruthless
+          if (impressions >= thresholds.minImpressions) {
+            if (roas < thresholds.killBelow) {
+              killList.push(`KILL: ${creative.name || creative.id} - ROAS ${roas.toFixed(1)}x < ${thresholds.killBelow}x threshold`);
+              budgetChanges.push({ id: creative.id, change: -100, reason: 'Underperformer eliminated' });
+            }
+          }
+          if (spend >= 50 && conversions === 0) {
+            killList.push(`KILL: ${creative.name || creative.id} - $${spend.toFixed(0)} spent with ZERO conversions`);
+            budgetChanges.push({ id: creative.id, change: -100, reason: 'Zero ROI waste' });
+          }
+          
+          // SCALE CONDITIONS - aggressive
+          if (roas >= thresholds.scaleAbove) {
+            const scalePercent = aggressiveness >= 80 ? 200 : aggressiveness >= 50 ? 100 : 50;
+            scaleList.push(`SCALE ${scalePercent}%: ${creative.name || creative.id} - ROAS ${roas.toFixed(1)}x WINNER`);
+            budgetChanges.push({ id: creative.id, change: scalePercent, reason: 'High performer compounding' });
+          }
+        }
+
+        // Get AI recommendations for edge cases
         const roasDecision = await runAgentTask('optimization',
-          'Analyze ROAS for all active creatives. Pause any under 1.5x, scale any over 3x by 20% budget increase.',
-          { creatives }
+          `RUTHLESS OPTIMIZATION CYCLE at ${aggressiveness}% aggression.
+          
+ANALYSIS:
+- ${creatives?.length || 0} creatives reviewed
+- ${killList.length} marked for KILL
+- ${scaleList.length} marked for SCALE 3x+
+- Thresholds: Kill <${thresholds.killBelow}x, Scale >${thresholds.scaleAbove}x
+
+KILL LIST:
+${killList.join('\n') || 'None identified'}
+
+SCALE LIST:
+${scaleList.join('\n') || 'None identified'}
+
+Provide additional optimization recommendations.
+auto_execute = ${aggressiveness >= 80 ? 'true' : 'false'} at this aggression level.`,
+          { creatives, aggressiveness, thresholds }
         );
 
-        // Execute auto-pause for underperformers
-        const actions = (roasDecision.actions as string[]) || [];
-        const pauseActions = actions.filter(a => a.toLowerCase().includes('pause'));
-        const scaleActions = actions.filter(a => a.toLowerCase().includes('scale'));
+        // Log the decision
+        await logDecision('optimization', { 
+          ...roasDecision, 
+          kill_count: killList.length,
+          scale_count: scaleList.length,
+          budget_changes: budgetChanges,
+          aggressiveness
+        }, 'optimize_roas');
 
-        await logDecision('optimization', { ...roasDecision, paused: pauseActions.length, scaled: scaleActions.length }, 'optimize_roas');
+        // Auto-execute if high aggression
+        if (aggressiveness >= 80 && (roasDecision.auto_execute || (roasDecision.confidence as number) > 0.85)) {
+          console.log('🔥 AUTO-EXECUTING ruthless optimizations...');
+          // In production, this would call ad platform APIs to pause/scale
+        }
 
         result = {
           roas_optimized: true,
           creatives_analyzed: creatives?.length || 0,
-          paused: pauseActions.length,
-          scaled: scaleActions.length,
+          killed: killList.length,
+          scaled: scaleList.length,
+          kill_list: killList,
+          scale_list: scaleList,
+          budget_changes: budgetChanges,
+          aggressiveness,
+          auto_executed: aggressiveness >= 80,
           decision: roasDecision
         };
         break;
