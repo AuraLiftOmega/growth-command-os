@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import heroBanner from "@/assets/hero-banner.jpg";
+import heroBanner from "@/assets/skincare-hero.jpg";
 
 export function StoreHero() {
   return (
@@ -11,7 +11,7 @@ export function StoreHero() {
       <div className="absolute inset-0 -z-10">
         <img 
           src={heroBanner} 
-          alt="Premium electronics, fitness gear and footwear"
+          alt="Luxury skincare products"
           className="w-full h-full object-cover opacity-40"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
@@ -25,8 +25,8 @@ export function StoreHero() {
             transition={{ duration: 0.5 }}
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Premium Collection</span>
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Premium Skincare</span>
             </div>
           </motion.div>
 
@@ -36,8 +36,8 @@ export function StoreHero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
           >
-            Gear That
-            <span className="gradient-text"> Dominates</span>
+            Radiance
+            <span className="gradient-text"> Redefined</span>
           </motion.h1>
 
           <motion.p
@@ -46,8 +46,8 @@ export function StoreHero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
           >
-            Premium electronics, fitness equipment, and footwear engineered for peak performance.
-            Upgrade your life with products that match your ambition.
+            Discover our collection of luxurious serums, moisturizers, and beauty tools. 
+            Science-backed formulas for your most luminous skin ever.
           </motion.p>
 
           <motion.div
@@ -63,8 +63,8 @@ export function StoreHero() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/store?category=electronics">
-                Browse Electronics
+              <Link to="/store?category=skincare">
+                Explore Serums
               </Link>
             </Button>
           </motion.div>

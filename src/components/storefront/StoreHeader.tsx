@@ -16,9 +16,8 @@ export function StoreHeader() {
 
   const navLinks = [
     { href: "/store", label: "Shop All" },
-    { href: "/store?category=electronics", label: "Electronics" },
-    { href: "/store?category=fitness", label: "Fitness" },
-    { href: "/store?category=footwear", label: "Footwear" },
+    { href: "/store?category=skincare", label: "Skincare" },
+    { href: "/store?category=beauty tools", label: "Beauty Tools" },
   ];
 
   return (
@@ -27,7 +26,7 @@ export function StoreHeader() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/store" className="flex items-center space-x-2 flex-shrink-0">
-            <span className="text-2xl font-bold gradient-text">DOMINION</span>
+            <span className="text-2xl font-bold gradient-text">AuraLift</span>
           </Link>
 
           {/* Desktop Navigation */}

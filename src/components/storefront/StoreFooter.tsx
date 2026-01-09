@@ -9,10 +9,10 @@ export function StoreFooter() {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/store" className="inline-block">
-              <span className="text-2xl font-bold gradient-text">DOMINION</span>
+              <span className="text-2xl font-bold gradient-text">AuraLift</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Premium products for peak performance. Elevate your game with gear that matches your ambition.
+              Premium skincare essentials for radiant, luminous skin. Science-backed formulas for your daily glow.
             </p>
           </div>
 
@@ -23,14 +23,11 @@ export function StoreFooter() {
               <Link to="/store" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 All Products
               </Link>
-              <Link to="/store?category=electronics" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Electronics
+              <Link to="/store?category=skincare" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Skincare
               </Link>
-              <Link to="/store?category=fitness" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Fitness
-              </Link>
-              <Link to="/store?category=footwear" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Footwear
+              <Link to="/store?category=beauty tools" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Beauty Tools
               </Link>
             </nav>
           </div>
@@ -60,11 +57,11 @@ export function StoreFooter() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>support@dominion.store</span>
+                <span>hello@auraliftessentials.com</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>1-800-DOMINION</span>
+                <span>1-800-AURALIFT</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
@@ -75,7 +72,7 @@ export function StoreFooter() {
         </div>
 
         <div className="border-t border-border/40 mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} DOMINION. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AuraLift Essentials. All rights reserved.</p>
         </div>
       </div>
     </footer>
