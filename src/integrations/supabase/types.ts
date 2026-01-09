@@ -3175,6 +3175,24 @@ export type Database = {
           },
         ]
       }
+      view_rate_limits: {
+        Row: {
+          insert_count: number | null
+          viewer_fingerprint: string
+          window_start: string | null
+        }
+        Insert: {
+          insert_count?: number | null
+          viewer_fingerprint: string
+          window_start?: string | null
+        }
+        Update: {
+          insert_count?: number | null
+          viewer_fingerprint?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       war_room_alerts: {
         Row: {
           action_url: string | null
@@ -3220,6 +3238,24 @@ export type Database = {
           severity?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_rate_limits: {
+        Row: {
+          identifier: string
+          request_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          identifier: string
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          identifier?: string
+          request_count?: number | null
+          window_start?: string | null
         }
         Relationships: []
       }

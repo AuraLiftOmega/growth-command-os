@@ -51,6 +51,36 @@ async function verifyWebhookSignature(payload: string, signature: string, secret
   }
 }
 
+// Rate limiting helper
+async function checkRateLimit(supabase: any, identifier: string, maxRequests: number = 10, windowMs: number = 60000): Promise<boolean> {
+  const now = Date.now();
+  
+  const { data } = await supabase
+    .from('webhook_rate_limits')
+    .select('request_count, window_start')
+    .eq('identifier', identifier)
+    .single();
+  
+  if (!data || (now - new Date(data.window_start).getTime()) > windowMs) {
+    await supabase.from('webhook_rate_limits').upsert({
+      identifier,
+      request_count: 1,
+      window_start: new Date(now).toISOString()
+    });
+    return true;
+  }
+  
+  if (data.request_count >= maxRequests) {
+    return false;
+  }
+  
+  await supabase.from('webhook_rate_limits')
+    .update({ request_count: data.request_count + 1 })
+    .eq('identifier', identifier);
+  
+  return true;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -92,6 +122,17 @@ serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
+
+  // Rate limiting check
+  const webhookSource = req.headers.get('x-webhook-source') || 'default';
+  const isAllowed = await checkRateLimit(supabase, `crm-webhook:${webhookSource}`, 20, 60000);
+  if (!isAllowed) {
+    console.warn(`Rate limit exceeded for source: ${webhookSource}`);
+    return new Response(
+      JSON.stringify({ error: "Rate limit exceeded. Max 20 requests per minute." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
 
   try {
     const payload: CrmWebhookPayload = JSON.parse(rawBody);
