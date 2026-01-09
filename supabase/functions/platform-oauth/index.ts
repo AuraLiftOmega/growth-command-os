@@ -31,6 +31,13 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     clientIdEnv: 'TIKTOK_CLIENT_KEY',
     clientSecretEnv: 'TIKTOK_CLIENT_SECRET',
   },
+  tiktok_ads: {
+    authUrl: 'https://business-api.tiktok.com/portal/auth',
+    tokenUrl: 'https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/',
+    scopes: ['ads_management', 'ads_reporting'],
+    clientIdEnv: 'TIKTOK_ADS_APP_ID',
+    clientSecretEnv: 'TIKTOK_ADS_APP_SECRET',
+  },
   instagram: {
     authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
     tokenUrl: 'https://graph.facebook.com/v18.0/oauth/access_token',
