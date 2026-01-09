@@ -35,6 +35,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -50,6 +51,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { TikTokAdsPanel } from '@/components/ads/TikTokAdsPanel';
 
 interface Campaign {
   id: string;
@@ -219,189 +221,218 @@ export function AdCampaignsPanel() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-4 h-4 text-warning" />
-            <span className="text-sm text-muted-foreground">Total Spend</span>
-          </div>
-          <p className="text-2xl font-bold">${totalSpend.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">Across {campaigns.length} campaigns</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-success" />
-            <span className="text-sm text-muted-foreground">Total Revenue</span>
-          </div>
-          <p className="text-2xl font-bold text-success">${totalRevenue.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">+{((totalRevenue / totalSpend - 1) * 100).toFixed(0)}% ROI</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <BarChart3 className="w-4 h-4 text-primary" />
-            <span className="text-sm text-muted-foreground">Avg ROAS</span>
-          </div>
-          <p className="text-2xl font-bold">{avgRoas.toFixed(1)}x</p>
-          <p className="text-xs text-muted-foreground">Blended across all</p>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <ShoppingCart className="w-4 h-4 text-chart-2" />
-            <span className="text-sm text-muted-foreground">Conversions</span>
-          </div>
-          <p className="text-2xl font-bold">{totalConversions}</p>
-          <p className="text-xs text-muted-foreground">${(totalSpend / totalConversions).toFixed(2)} CPA</p>
-        </Card>
-      </div>
+    <Tabs defaultValue="all" className="space-y-6">
+      <TabsList className="grid grid-cols-3 w-fit">
+        <TabsTrigger value="all" className="gap-2">
+          <Megaphone className="w-4 h-4" />
+          All Campaigns
+        </TabsTrigger>
+        <TabsTrigger value="tiktok" className="gap-2">
+          🎵 TikTok Ads
+        </TabsTrigger>
+        <TabsTrigger value="meta" className="gap-2">
+          📱 Meta Ads
+        </TabsTrigger>
+      </TabsList>
 
-      {/* Controls */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search campaigns..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
-          />
-          <div className="flex gap-1 p-1 bg-muted rounded-lg">
-            {(['all', 'active', 'paused'] as const).map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilter(f)}
-                className="capitalize"
-              >
-                {f}
-              </Button>
-            ))}
-          </div>
+      <TabsContent value="all" className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign className="w-4 h-4 text-warning" />
+              <span className="text-sm text-muted-foreground">Total Spend</span>
+            </div>
+            <p className="text-2xl font-bold">${totalSpend.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">Across {campaigns.length} campaigns</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-success" />
+              <span className="text-sm text-muted-foreground">Total Revenue</span>
+            </div>
+            <p className="text-2xl font-bold text-success">${totalRevenue.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">+{((totalRevenue / totalSpend - 1) * 100).toFixed(0)}% ROI</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Avg ROAS</span>
+            </div>
+            <p className="text-2xl font-bold">{avgRoas.toFixed(1)}x</p>
+            <p className="text-xs text-muted-foreground">Blended across all</p>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingCart className="w-4 h-4 text-chart-2" />
+              <span className="text-sm text-muted-foreground">Conversions</span>
+            </div>
+            <p className="text-2xl font-bold">{totalConversions}</p>
+            <p className="text-xs text-muted-foreground">${(totalSpend / totalConversions).toFixed(2)} CPA</p>
+          </Card>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button size="sm" className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Campaign
-          </Button>
-        </div>
-      </div>
 
-      {/* Campaigns Table */}
-      <Card className="overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Campaign</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Spend</TableHead>
-              <TableHead className="text-right">Revenue</TableHead>
-              <TableHead className="text-right">ROAS</TableHead>
-              <TableHead className="text-right">Conv.</TableHead>
-              <TableHead className="text-right">CTR</TableHead>
-              <TableHead className="text-right">CPA</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <AnimatePresence>
-              {filteredCampaigns.map((campaign) => (
-                <motion.tr
-                  key={campaign.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="group"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{platformIcons[campaign.platform]}</span>
-                      <div>
-                        <p className="font-medium">{campaign.name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{campaign.platform}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={
-                      campaign.status === 'active' ? 'bg-success/20 text-success' :
-                      campaign.status === 'paused' ? 'bg-warning/20 text-warning' :
-                      'bg-muted text-muted-foreground'
-                    }>
-                      {campaign.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div>
-                      <p className="font-medium">${campaign.spend}</p>
-                      <Progress value={(campaign.spend / campaign.budget) * 100} className="h-1 w-16 ml-auto" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right text-success font-medium">
-                    ${campaign.revenue.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className={campaign.roas >= 20 ? 'text-success' : campaign.roas >= 10 ? 'text-primary' : 'text-warning'}>
-                      {campaign.roas.toFixed(1)}x
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">{campaign.conversions}</TableCell>
-                  <TableCell className="text-right">{campaign.ctr.toFixed(1)}%</TableCell>
-                  <TableCell className="text-right">${campaign.cpa.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => toggleCampaign(campaign.id)}
-                      >
-                        {campaign.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => duplicateCampaign(campaign)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => deleteCampaign(campaign.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </TableBody>
-        </Table>
-      </Card>
-
-      {/* Auto-Optimization Status */}
-      <Card className="p-4 bg-gradient-to-r from-primary/10 to-success/10 border-primary/30">
-        <div className="flex items-center justify-between">
+        {/* Controls */}
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex items-center gap-3">
-            <Zap className="w-5 h-5 text-primary" />
-            <div>
-              <p className="font-semibold">CEO Agent Auto-Optimization</p>
-              <p className="text-sm text-muted-foreground">
-                Automatically scaling winners, pausing underperformers, adjusting bids
-              </p>
+            <Input
+              placeholder="Search campaigns..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-64"
+            />
+            <div className="flex gap-1 p-1 bg-muted rounded-lg">
+              {(['all', 'active', 'paused'] as const).map((f) => (
+                <Button
+                  key={f}
+                  variant={filter === f ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setFilter(f)}
+                  className="capitalize"
+                >
+                  {f}
+                </Button>
+              ))}
             </div>
           </div>
-          <Badge className="bg-success/20 text-success animate-pulse">ACTIVE</Badge>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={refresh} disabled={isRefreshing}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button size="sm" className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Campaign
+            </Button>
+          </div>
         </div>
-      </Card>
-    </div>
+
+        {/* Campaigns Table */}
+        <Card className="overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Campaign</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Spend</TableHead>
+                <TableHead className="text-right">Revenue</TableHead>
+                <TableHead className="text-right">ROAS</TableHead>
+                <TableHead className="text-right">Conv.</TableHead>
+                <TableHead className="text-right">CTR</TableHead>
+                <TableHead className="text-right">CPA</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <AnimatePresence>
+                {filteredCampaigns.map((campaign) => (
+                  <motion.tr
+                    key={campaign.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="group"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{platformIcons[campaign.platform]}</span>
+                        <div>
+                          <p className="font-medium">{campaign.name}</p>
+                          <p className="text-xs text-muted-foreground capitalize">{campaign.platform}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={
+                        campaign.status === 'active' ? 'bg-success/20 text-success' :
+                        campaign.status === 'paused' ? 'bg-warning/20 text-warning' :
+                        'bg-muted text-muted-foreground'
+                      }>
+                        {campaign.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div>
+                        <p className="font-medium">${campaign.spend}</p>
+                        <Progress value={(campaign.spend / campaign.budget) * 100} className="h-1 w-16 ml-auto" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-success font-medium">
+                      ${campaign.revenue.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className={campaign.roas >= 20 ? 'text-success' : campaign.roas >= 10 ? 'text-primary' : 'text-warning'}>
+                        {campaign.roas.toFixed(1)}x
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">{campaign.conversions}</TableCell>
+                    <TableCell className="text-right">{campaign.ctr.toFixed(1)}%</TableCell>
+                    <TableCell className="text-right">${campaign.cpa.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => toggleCampaign(campaign.id)}
+                        >
+                          {campaign.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => duplicateCampaign(campaign)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => deleteCampaign(campaign.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </motion.tr>
+                ))}
+              </AnimatePresence>
+            </TableBody>
+          </Table>
+        </Card>
+
+        {/* Auto-Optimization Status */}
+        <Card className="p-4 bg-gradient-to-r from-primary/10 to-success/10 border-primary/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Zap className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-semibold">CEO Agent Auto-Optimization</p>
+                <p className="text-sm text-muted-foreground">
+                  Automatically scaling winners, pausing underperformers, adjusting bids
+                </p>
+              </div>
+            </div>
+            <Badge className="bg-success/20 text-success animate-pulse">ACTIVE</Badge>
+          </div>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="tiktok">
+        <TikTokAdsPanel />
+      </TabsContent>
+
+      <TabsContent value="meta">
+        <Card className="p-8 text-center">
+          <div className="text-4xl mb-4">📱</div>
+          <h3 className="text-xl font-semibold mb-2">Meta Ads Coming Soon</h3>
+          <p className="text-muted-foreground">
+            Facebook & Instagram ad integration is in development.
+          </p>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
