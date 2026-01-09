@@ -81,6 +81,16 @@ const MUSIC_MOODS = [
   'Luxury & Premium',
 ];
 
+// Quick variant hooks for rapid generation
+const QUICK_HOOKS = [
+  { id: 'glow30', hook: 'Glow in 30 days ✨', style: 'before-after' },
+  { id: 'cleanbeauty', hook: 'Clean beauty routine', style: 'ugc' },
+  { id: 'beforeafter', hook: 'My 2-week transformation', style: 'before-after' },
+  { id: 'secret', hook: 'The skincare secret they don\'t want you to know', style: 'testimonial' },
+  { id: 'pov', hook: 'POV: Your skin finally cleared up', style: 'ugc' },
+  { id: 'derms', hook: 'What dermatologists actually use', style: 'testimonial' },
+];
+
 export function VideoAdStudio() {
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('pinterest');
@@ -90,6 +100,7 @@ export function VideoAdStudio() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<ParsedShopifyProduct | null>(null);
+  const [isQuickGenerating, setIsQuickGenerating] = useState(false);
 
   // Fetch REAL Shopify products
   const { products, isLoading: loadingProducts, refetch } = useShopifyProducts({ autoLoad: true });
@@ -103,6 +114,64 @@ export function VideoAdStudio() {
       }
     }
   }, [products, selectedProduct]);
+
+  // Quick generate 2 variants per product
+  const quickGenerate2Variants = useCallback(async () => {
+    if (!selectedProduct) {
+      toast.error('Please select a product first');
+      return;
+    }
+
+    setIsQuickGenerating(true);
+    
+    // Select 2 different hooks for this product
+    const hooks = QUICK_HOOKS.slice(0, 2);
+    
+    for (const hookConfig of hooks) {
+      const jobId = `quick-${Date.now()}-${hookConfig.id}`;
+      const productPrompt = `${hookConfig.hook} | ${selectedProduct.title}`;
+
+      const newJob: GeneratedVideo = {
+        id: jobId,
+        prompt: productPrompt,
+        status: 'generating',
+        progress: 0,
+        platform: 'pinterest',
+        duration: 15,
+        style: hookConfig.style,
+        product: selectedProduct,
+      };
+
+      setGeneratedVideos(prev => [newJob, ...prev]);
+
+      // Simulate quick generation
+      const progressInterval = setInterval(() => {
+        setGeneratedVideos(prev => prev.map(v =>
+          v.id === jobId && v.progress < 90
+            ? { ...v, progress: v.progress + 15 }
+            : v
+        ));
+      }, 300);
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      clearInterval(progressInterval);
+
+      setGeneratedVideos(prev => prev.map(v =>
+        v.id === jobId
+          ? {
+              ...v,
+              status: 'completed',
+              progress: 100,
+              videoUrl: 'demo',
+              thumbnailUrl: selectedProduct.imageUrl
+            }
+          : v
+      ));
+    }
+
+    setIsQuickGenerating(false);
+    toast.success(`Generated 2 variants for ${selectedProduct.title}!`);
+  }, [selectedProduct]);
 
   const generateVideo = useCallback(async () => {
     if (!selectedProduct) {
@@ -451,6 +520,34 @@ export function VideoAdStudio() {
               />
             </div>
 
+            {/* Quick Generate 2 Variants */}
+            <div className="p-3 rounded-lg bg-gradient-to-r from-chart-3/10 to-primary/10 border border-chart-3/20">
+              <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-chart-3" />
+                Quick Generate 2 Variants
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Instantly create 2 video variants with different viral hooks
+              </p>
+              <Button
+                onClick={quickGenerate2Variants}
+                disabled={isQuickGenerating || !selectedProduct}
+                className="w-full gap-2 bg-gradient-to-r from-chart-3 to-primary"
+              >
+                {isQuickGenerating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Generating 2 variants...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    Quick Generate (2 variants)
+                  </>
+                )}
+              </Button>
+            </div>
+
             <Button
               onClick={generateVideo}
               disabled={isGenerating || !selectedProduct}
@@ -465,7 +562,7 @@ export function VideoAdStudio() {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Generate Video for {selectedProduct?.title?.split(' ')[0] || 'Product'}
+                  Generate Custom Video
                 </>
               )}
             </Button>

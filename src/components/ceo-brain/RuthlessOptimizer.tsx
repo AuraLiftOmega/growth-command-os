@@ -69,6 +69,7 @@ export function RuthlessOptimizer() {
   const [actions, setActions] = useState<OptimizationAction[]>([]);
   const [health, setHealth] = useState<SystemHealth[]>([]);
   const [competitors, setCompetitors] = useState<CompetitorAlert[]>([]);
+  const [isAutoScaling, setIsAutoScaling] = useState(false);
   const [stats, setStats] = useState({
     killed: 12,
     scaled: 8,
@@ -77,6 +78,28 @@ export function RuthlessOptimizer() {
     revenueSaved: 24500,
     revenueGained: 89000
   });
+
+  useEffect(() => {
+    loadOptimizationData();
+    // Auto-check for scaling opportunities every 30 seconds
+    const interval = setInterval(checkScalingOpportunities, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkScalingOpportunities = async () => {
+    if (!isActive) return;
+    
+    // Auto-scale winners: find high-performing content and scale
+    const highPerformers = actions.filter(a => 
+      a.type === 'scale' && a.status === 'pending' && a.confidence >= 85
+    );
+    
+    if (highPerformers.length > 0 && aggressiveness >= 70) {
+      for (const action of highPerformers) {
+        await executeAction(action.id);
+      }
+    }
+  };
 
   useEffect(() => {
     loadOptimizationData();
@@ -208,16 +231,70 @@ setHealth([
     }
   };
 
-  const executeAction = (actionId: string) => {
-    setActions(prev => prev.map(a => 
-      a.id === actionId ? { ...a, status: 'executed' } : a
-    ));
-    toast.success('Action executed ruthlessly! 💀');
+  const executeAction = async (actionId: string) => {
+    setIsAutoScaling(true);
     
-    setStats(prev => ({
-      ...prev,
-      revenueGained: prev.revenueGained + Math.floor(Math.random() * 2000)
-    }));
+    // Simulate execution delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    setActions(prev => prev.map(a => 
+      a.id === actionId ? { ...a, status: 'executed' as const } : a
+    ));
+    
+    const action = actions.find(a => a.id === actionId);
+    if (action?.type === 'scale') {
+      toast.success(`🚀 Auto-scaled: ${action.target}`);
+      setStats(prev => ({
+        ...prev,
+        scaled: prev.scaled + 1,
+        revenueGained: prev.revenueGained + Math.floor(Math.random() * 3000 + 1000)
+      }));
+    } else if (action?.type === 'kill') {
+      toast.success(`💀 Killed underperformer: ${action.target}`);
+      setStats(prev => ({
+        ...prev,
+        killed: prev.killed + 1,
+        revenueSaved: prev.revenueSaved + Math.floor(Math.random() * 500 + 200)
+      }));
+    } else {
+      toast.success('Action executed ruthlessly! 💀');
+      setStats(prev => ({
+        ...prev,
+        revenueGained: prev.revenueGained + Math.floor(Math.random() * 2000)
+      }));
+    }
+    
+    setIsAutoScaling(false);
+  };
+
+  const forceScaleWinners = async () => {
+    setIsAutoScaling(true);
+    toast.info('🔥 Force-scaling all winners...');
+    
+    const pendingScales = actions.filter(a => a.type === 'scale' && a.status === 'pending');
+    
+    for (const action of pendingScales) {
+      await executeAction(action.id);
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    setIsAutoScaling(false);
+    toast.success(`Scaled ${pendingScales.length} winners!`);
+  };
+
+  const forceKillLosers = async () => {
+    setIsAutoScaling(true);
+    toast.info('💀 Force-killing all underperformers...');
+    
+    const pendingKills = actions.filter(a => a.type === 'kill' && a.status === 'pending');
+    
+    for (const action of pendingKills) {
+      await executeAction(action.id);
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+    
+    setIsAutoScaling(false);
+    toast.success(`Killed ${pendingKills.length} losers!`);
   };
 
   const runDiagnostics = () => {
@@ -258,9 +335,28 @@ setHealth([
           </div>
           <div className="flex items-center gap-3">
             <Switch checked={isActive} onCheckedChange={setIsActive} />
-            <Button onClick={runDiagnostics} variant="outline" size="sm" className="gap-2">
+            <Button 
+              onClick={forceScaleWinners} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              disabled={isAutoScaling}
+            >
+              <Rocket className="w-4 h-4" />
+              Scale Winners
+            </Button>
+            <Button 
+              onClick={forceKillLosers} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 text-destructive"
+              disabled={isAutoScaling}
+            >
+              <Skull className="w-4 h-4" />
+              Kill Losers
+            </Button>
+            <Button onClick={runDiagnostics} variant="ghost" size="sm" className="gap-2">
               <RefreshCw className="w-4 h-4" />
-              Diagnose
             </Button>
           </div>
         </div>
