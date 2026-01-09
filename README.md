@@ -1,74 +1,84 @@
-## Dominion AI – AuraLift Essentials Viral Ad Empire
+# Welcome to your Lovable project
 
-All-in-one AI-powered sales platform for **AuraLift Essentials** skincare.  
-Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
+## Project info
 
-Built with **Lovable** (React + Supabase) and **2-way GitHub sync** for unbreakable version control and collaboration.
+**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
-[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-6366f1?style=for-the-badge&logo=lovable)](https://lovable.dev)
-[![GitHub Sync](https://img.shields.io/badge/GitHub%20Sync-Active-success?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command/blob/main/LICENSE)
+## How can I edit this code?
 
-## Where We Are: Empire Foundation Locked In
-✅ GitHub 2-way sync with Lovable (live)  
-✅ Master README (professional, branded)  
-✅ Real AuraLift products in Shopify (5 products)  
-✅ HeyGen + ElevenLabs API keys (secrets ready)  
-✅ Stripe checkout + Shopify sync (verified)  
-✅ Basic dashboard structure (from prompts)
+There are several ways of editing your application.
 
-## Key Features
-- **Real AuraLift Products** (synced from Shopify):  
-  - Radiance Vitamin C Serum  
-  - Hydra-Glow Retinol Night Cream  
-  - Ultra Hydration Hyaluronic Serum  
-  - Omega Glow Collagen Peptide Moisturizer  
-  - Luxe Rose Quartz Face Roller Set
-- **AI Ad Generation**: One-click vivid vertical videos with custom avatars, hyper-realistic voices, and channel-optimized captions
-- **Social Channels**: OAuth login + autonomous posting to TikTok, Meta (Facebook/Instagram), X, YouTube, LinkedIn, Pinterest — with Omega-tailored language (punchy for TikTok, polished for IG, concise for X)
-- **Analytics Dashboard**: ROAS, engagement, sales tracking with pixels
-- **Autonomous Mode**: n8n workflows for low-inventory → generate ad → post to best-performing channel
+**Use Lovable**
 
-[...rest of your README continues here...] Dominion AI – AuraLift Essentials Viral Ad Empire
+Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
 
-All-in-one AI-powered sales platform for **AuraLift Essentials** skincare.  
-Real Shopify product sync + Omega AI brain + HeyGen talking avatar videos + ElevenLabs hyper-realistic voices + autonomous social media & sales channel marketing.
+Changes made via Lovable will be committed automatically to this repo.
 
-Built with **Lovable** (React + Supabase) and **2-way GitHub sync** for unbreakable version control and collaboration.
+**Use your preferred IDE**
 
-[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-6366f1?style=for-the-badge&logo=lovable)](https://lovable.dev)
-[![GitHub Sync](https://img.shields.io/badge/GitHub%20Sync-Active-success?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](https://github.com/rfloweroflife-ui/commerce-command/blob/main/LICENSE)
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-## Key Features
-- **Real AuraLift Products** (synced from Shopify):
-  - Radiance Vitamin C Serum
-  - Hydra-Glow Retinol Night Cream
-  - Ultra Hydration Hyaluronic Serum
-  - Omega Glow Collagen Peptide Moisturizer
-  - Luxe Rose Quartz Face Roller Set
-- **AI Ad Generation**: One-click vivid vertical videos with custom avatars, hyper-realistic voices, and channel-optimized captions
-- **Social Channels**: OAuth login + autonomous posting to TikTok, Meta (Facebook/Instagram), X, YouTube, LinkedIn, Pinterest — with Omega-tailored language (punchy for TikTok, polished for IG, concise for X)
-- **Analytics Dashboard**: ROAS, engagement, sales tracking with pixels
-- **Autonomous Mode**: n8n workflows for low-inventory → generate ad → post to best-performing channel
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-## Tech Stack
-- **Frontend**: React, Tailwind CSS, Framer Motion, shadcn-ui
-- **Backend**: Supabase (auth, storage, RLS, edge functions)
-- **AI Integrations**: HeyGen (video + avatars), ElevenLabs (voice + cloning), Omega (AI brain)
-- **Automation**: n8n workflows + GitHub Actions for CI/CD
-- **Deployment**: Vercel (auto-deploy on push) + Lovable preview
+Follow these steps:
 
-## Quick Start (Local Development)
 ```sh
-# Clone the repo
-git clone https://github.com/rfloweroflife-ui/commerce-command.git
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-# Navigate to project
-cd commerce-command
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-# Install dependencies
-npm install
+# Step 3: Install the necessary dependencies.
+npm i
 
-# Run locally
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+```
+
+**Edit a file directly in GitHub**
+
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with:
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
+
+## How can I deploy this project?
+
+Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+
+## Can I connect a custom domain to my Lovable project?
+
+Yes, you can!
+
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Screenshots
+
+![Dashboard](/screenshots/dashboard.png)
+![Video Ad Studio](/screenshots/video-ad-studio.png)
+![Social Channels](/screenshots/social-channels.png)
+![CEO Brain](/screenshots/ceo-brain.png)
+
+---
+
+> **Note:** Changes made in Lovable auto-sync to this GitHub repo via 2-way integration.
