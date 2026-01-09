@@ -16,6 +16,7 @@ import { PipelineTable } from "@/components/dashboard/PipelineTable";
 import { LeadsTable } from "@/components/dashboard/LeadsTable";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { ProductionStatusBanner } from "@/components/dashboard/ProductionStatusBanner";
+import { ShareStoreButton } from "@/components/dashboard/ShareStoreButton";
 import { Button } from "@/components/ui/button";
 import { useLiveMetrics } from "@/hooks/useLiveMetrics";
 
@@ -42,16 +43,19 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold">Revenue Command Center</h1>
               <p className="text-sm text-muted-foreground">Real-time metrics, pipeline, and leads</p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={refresh}
-              disabled={isLoading}
-              className="gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <ShareStoreButton />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refresh}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Production Status Banner */}
