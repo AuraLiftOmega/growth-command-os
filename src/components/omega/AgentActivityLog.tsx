@@ -204,11 +204,18 @@ export function AgentActivityLog({ className, maxHeight = '500px' }: AgentActivi
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-8 text-muted-foreground"
+                className="text-center py-8"
               >
-                <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No recent actions</p>
-                <p className="text-xs mt-1">Run agents or enable hourly loop</p>
+                <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 mb-3">
+                  <Activity className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                  <p className="font-medium text-foreground">Agents Ready</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Launch swarm for real money decisions
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sync Shopify products to activate proactive agent actions
+                </p>
               </motion.div>
             ) : (
               <div className="space-y-3">
