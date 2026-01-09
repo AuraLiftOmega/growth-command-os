@@ -130,6 +130,57 @@ export type Database = {
         }
         Relationships: []
       }
+      abandoned_carts: {
+        Row: {
+          abandoned_at: string | null
+          cart_total: number | null
+          created_at: string | null
+          customer_email: string | null
+          customer_phone: string | null
+          id: string
+          items: Json | null
+          recovered: boolean | null
+          recovered_at: string | null
+          recovery_channel: string | null
+          recovery_revenue: number | null
+          recovery_sent_at: string | null
+          shopify_checkout_id: string | null
+          user_id: string
+        }
+        Insert: {
+          abandoned_at?: string | null
+          cart_total?: number | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_phone?: string | null
+          id?: string
+          items?: Json | null
+          recovered?: boolean | null
+          recovered_at?: string | null
+          recovery_channel?: string | null
+          recovery_revenue?: number | null
+          recovery_sent_at?: string | null
+          shopify_checkout_id?: string | null
+          user_id: string
+        }
+        Update: {
+          abandoned_at?: string | null
+          cart_total?: number | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_phone?: string | null
+          id?: string
+          items?: Json | null
+          recovered?: boolean | null
+          recovered_at?: string | null
+          recovery_channel?: string | null
+          recovery_revenue?: number | null
+          recovery_sent_at?: string | null
+          shopify_checkout_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_entitlements: {
         Row: {
           bypass_all_credit_checks: boolean
@@ -580,6 +631,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      content_performance_webhooks: {
+        Row: {
+          clicks: number | null
+          conversions: number | null
+          creative_id: string | null
+          event_type: string
+          external_id: string
+          id: string
+          impressions: number | null
+          platform: string
+          processed: boolean | null
+          raw_data: Json | null
+          received_at: string | null
+          revenue: number | null
+          user_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          conversions?: number | null
+          creative_id?: string | null
+          event_type: string
+          external_id: string
+          id?: string
+          impressions?: number | null
+          platform: string
+          processed?: boolean | null
+          raw_data?: Json | null
+          received_at?: string | null
+          revenue?: number | null
+          user_id: string
+        }
+        Update: {
+          clicks?: number | null
+          conversions?: number | null
+          creative_id?: string | null
+          event_type?: string
+          external_id?: string
+          id?: string
+          impressions?: number | null
+          platform?: string
+          processed?: boolean | null
+          raw_data?: Json | null
+          received_at?: string | null
+          revenue?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_performance_webhooks_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       creative_metrics: {
         Row: {
@@ -1858,6 +1965,36 @@ export type Database = {
           },
         ]
       }
+      oauth_states: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          platform: string
+          redirect_uri: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          platform: string
+          redirect_uri: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          platform?: string
+          redirect_uri?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_data: {
         Row: {
           ad_styles: string[] | null
@@ -2263,6 +2400,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      product_bundles: {
+        Row: {
+          bundle_price: number | null
+          created_at: string | null
+          description: string | null
+          discount_percentage: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          original_price: number | null
+          products: Json
+          revenue: number | null
+          sales_count: number | null
+          shopify_variant_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bundle_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          original_price?: number | null
+          products?: Json
+          revenue?: number | null
+          sales_count?: number | null
+          shopify_variant_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bundle_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          original_price?: number | null
+          products?: Json
+          revenue?: number | null
+          sales_count?: number | null
+          shopify_variant_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
