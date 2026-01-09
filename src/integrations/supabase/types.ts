@@ -223,6 +223,87 @@ export type Database = {
         }
         Relationships: []
       }
+      ads: {
+        Row: {
+          aspect_ratio: string | null
+          avatar_id: string | null
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          duration_seconds: number | null
+          heygen_video_id: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          product_image: string | null
+          product_name: string
+          provider: string | null
+          revenue: number | null
+          script: string
+          status: string | null
+          test_mode: boolean | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string | null
+          views: number | null
+          voice_id: string | null
+          voiceover_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          avatar_id?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          heygen_video_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          product_image?: string | null
+          product_name: string
+          provider?: string | null
+          revenue?: number | null
+          script: string
+          status?: string | null
+          test_mode?: boolean | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+          views?: number | null
+          voice_id?: string | null
+          voiceover_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          avatar_id?: string | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          heygen_video_id?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          product_image?: string | null
+          product_name?: string
+          provider?: string | null
+          revenue?: number | null
+          script?: string
+          status?: string | null
+          test_mode?: boolean | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+          views?: number | null
+          voice_id?: string | null
+          voiceover_url?: string | null
+        }
+        Relationships: []
+      }
       ai_decision_log: {
         Row: {
           action_taken: string
