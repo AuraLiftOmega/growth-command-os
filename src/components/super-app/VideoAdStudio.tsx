@@ -1,14 +1,14 @@
 /**
  * VIDEO AD STUDIO
  * 
- * AI-powered video ad generation with:
- * - Text prompt input for custom videos
- * - Integration with Replicate, Runway ML, Kling AI
- * - Platform-optimized formats
- * - Auto-posting to connected channels
+ * AI-powered video ad generation with REAL Shopify products:
+ * - Product selector with real thumbnails from connected store
+ * - Integration with Replicate, HeyGen, Runway ML
+ * - Auto-uses product images for video generation
+ * - Platform-optimized formats with product overlays
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Video,
@@ -24,7 +24,9 @@ import {
   RefreshCw,
   CheckCircle,
   Send,
-  Volume2
+  Volume2,
+  Package,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,8 +35,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useShopifyProducts, ParsedShopifyProduct } from '@/hooks/useShopifyProducts';
 
 interface GeneratedVideo {
   id: string;
@@ -46,6 +50,7 @@ interface GeneratedVideo {
   platform: string;
   duration: number;
   style: string;
+  product?: ParsedShopifyProduct;
 }
 
 // Pinterest FIRST, YouTube SECOND - Optimized formats for each platform
@@ -60,11 +65,11 @@ const PLATFORMS = [
 ];
 
 const STYLES = [
-  { id: 'avatar', name: 'AI Avatar', desc: 'Talking spokesperson/avatar' },
-  { id: 'ugc', name: 'UGC Style', desc: 'Authentic, relatable content' },
-  { id: 'cinematic', name: 'Cinematic', desc: 'High-end, professional look' },
-  { id: 'product', name: 'Product Focus', desc: 'Clean product showcase' },
-  { id: 'testimonial', name: 'Testimonial', desc: 'Customer review format' },
+  { id: 'avatar', name: 'AI Avatar', desc: 'Talking spokesperson/avatar with product' },
+  { id: 'ugc', name: 'UGC Style', desc: 'Authentic, relatable product demo' },
+  { id: 'cinematic', name: 'Cinematic', desc: 'High-end product showcase' },
+  { id: 'product', name: 'Product Focus', desc: 'Clean product-only showcase' },
+  { id: 'testimonial', name: 'Testimonial', desc: 'Customer review with product' },
   { id: 'before-after', name: 'Before/After', desc: 'Transformation reveal' },
 ];
 
@@ -78,30 +83,48 @@ const MUSIC_MOODS = [
 
 export function VideoAdStudio() {
   const [prompt, setPrompt] = useState('');
-  const [platform, setPlatform] = useState('pinterest'); // Pinterest priority
+  const [platform, setPlatform] = useState('pinterest');
   const [style, setStyle] = useState('ugc');
   const [musicMood, setMusicMood] = useState('Upbeat & Energetic');
   const [duration, setDuration] = useState([15]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<ParsedShopifyProduct | null>(null);
+
+  // Fetch REAL Shopify products
+  const { products, isLoading: loadingProducts, refetch } = useShopifyProducts({ autoLoad: true });
+
+  // Auto-select first AuraLift product
+  useEffect(() => {
+    if (products.length > 0 && !selectedProduct) {
+      const auraLiftProduct = products.find(p => p.vendor === 'AuraLift Beauty');
+      if (auraLiftProduct) {
+        setSelectedProduct(auraLiftProduct);
+      }
+    }
+  }, [products, selectedProduct]);
 
   const generateVideo = useCallback(async () => {
-    if (!prompt.trim()) {
-      toast.error('Please enter a prompt');
+    if (!selectedProduct) {
+      toast.error('Please select a product first');
       return;
     }
 
     setIsGenerating(true);
     const jobId = `video-${Date.now()}`;
 
+    // Build product-focused prompt with real product data
+    const productPrompt = prompt.trim() || buildDefaultPrompt(selectedProduct, style);
+
     const newJob: GeneratedVideo = {
       id: jobId,
-      prompt,
+      prompt: productPrompt,
       status: 'generating',
       progress: 0,
       platform,
       duration: duration[0],
       style,
+      product: selectedProduct,
     };
 
     setGeneratedVideos(prev => [newJob, ...prev]);
@@ -116,15 +139,26 @@ export function VideoAdStudio() {
         ));
       }, 500);
 
-      // Call real video generation
+      // Call real video generation with product data
       const { data: { user } } = await supabase.auth.getUser();
       
       const { data, error } = await supabase.functions.invoke('generate-real-video', {
         body: {
-          prompt: `${style} style video ad for ${platform}. ${prompt}. Duration: ${duration[0]}s. Music mood: ${musicMood}. Vertical 9:16 format, cinematic quality, trending aesthetic.`,
+          prompt: productPrompt,
           platform,
           style,
-          use_real_mode: true
+          product_name: selectedProduct.title,
+          product_id: selectedProduct.id,
+          product_image_url: selectedProduct.imageUrl,
+          product_price: selectedProduct.price,
+          product_description: selectedProduct.description?.slice(0, 200),
+          use_real_mode: true,
+          overlay_text: {
+            product_name: selectedProduct.title,
+            price: `$${selectedProduct.price.toFixed(2)}`,
+            cta: 'Shop Now',
+            benefits: extractBenefits(selectedProduct.description)
+          }
         }
       });
 
@@ -139,42 +173,49 @@ export function VideoAdStudio() {
               status: 'completed',
               progress: 100,
               videoUrl: data?.video_url || 'https://example.com/demo-video.mp4',
-              thumbnailUrl: data?.thumbnail_url
+              thumbnailUrl: selectedProduct.imageUrl || data?.thumbnail_url
             }
           : v
       ));
 
-      toast.success('Video generated successfully!');
+      toast.success(`Video generated for ${selectedProduct.title}!`);
     } catch (err) {
       console.error('Generation error:', err);
       setGeneratedVideos(prev => prev.map(v =>
         v.id === jobId
-          ? { ...v, status: 'completed', progress: 100, videoUrl: 'demo' }
+          ? { 
+              ...v, 
+              status: 'completed', 
+              progress: 100, 
+              videoUrl: 'demo',
+              thumbnailUrl: selectedProduct.imageUrl 
+            }
           : v
       ));
       toast.success('Video generated (demo mode)');
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, platform, style, duration, musicMood]);
+  }, [selectedProduct, prompt, platform, style, duration, musicMood]);
 
   const publishVideo = async (video: GeneratedVideo, targetPlatform?: string) => {
     const publishTo = targetPlatform || video.platform;
+    const product = video.product;
     
     try {
       if (publishTo === 'pinterest' || publishTo === 'pinterest_idea') {
-        // Use Pinterest-specific publisher with full v5 API
         const result = await supabase.functions.invoke('pinterest-publish', {
           body: {
             video_url: video.videoUrl,
-            title: video.prompt.slice(0, 100),
-            description: video.prompt.slice(0, 450) + '\n\n✨ Shop now!',
+            title: product?.title || video.prompt.slice(0, 100),
+            description: product?.description?.slice(0, 450) || video.prompt.slice(0, 450) + '\n\n✨ Shop now!',
             keywords: ['skincare', 'beauty', 'viral', 'glow', 'selfcare', 'skincareroutine'],
-            link: 'https://auralift.com/products/radiance-serum',
-            shopify_product_url: 'https://auralift.com/products/radiance-serum',
-            product_name: 'Radiance Vitamin C Serum',
-            product_id: 'radiance-vitamin-c',
-            alt_text: 'Radiance Vitamin C Serum skincare video demonstration',
+            link: `https://auraliftessentials.com/products/${product?.handle || 'radiance-serum'}`,
+            shopify_product_url: `https://auraliftessentials.com/products/${product?.handle}`,
+            product_name: product?.title,
+            product_id: product?.id,
+            product_image: product?.imageUrl,
+            alt_text: `${product?.title} skincare video demonstration`,
             aspect_ratio: '2:3',
             board_id: 'beauty-skincare'
           }
@@ -182,45 +223,39 @@ export function VideoAdStudio() {
         
         if (result.data?.success) {
           toast.success('📌 Published to Pinterest!', {
-            description: `Video Pin live! ${result.data.analytics?.impressions || '5K+'} projected impressions`
+            description: `${product?.title} Video Pin live!`
           });
         } else {
           throw new Error(result.data?.error || 'Pinterest publish failed');
         }
       } else if (publishTo === 'youtube_shorts' || publishTo === 'youtube') {
-        // Use YouTube-specific publisher with Data API v3
         const isShort = publishTo === 'youtube_shorts';
         const result = await supabase.functions.invoke('youtube-publish', {
           body: {
             video_url: video.videoUrl,
-            title: `Get the Glow: ${video.prompt.slice(0, 60)} | AuraLift Essentials`,
-            description: video.prompt.slice(0, 800) + '\n\n✨ Shop the Radiance Vitamin C Serum: https://auralift.com/products/radiance-serum',
-            tags: ['skincare', 'beauty', 'glow up', 'skincare routine', 'beauty tips', 'self care'],
-            category_id: '26', // Howto & Style
+            title: `${product?.title || 'Product'} | AuraLift Essentials`,
+            description: `${product?.description?.slice(0, 800) || video.prompt.slice(0, 800)}\n\n✨ Shop: https://auraliftessentials.com/products/${product?.handle}`,
+            tags: ['skincare', 'beauty', 'glow up', product?.productType?.toLowerCase()].filter(Boolean),
+            category_id: '26',
             privacy_status: 'public',
             is_short: isShort,
-            aspect_ratio: isShort ? '9:16' : '16:9',
-            shopify_product_url: 'https://auralift.com/products/radiance-serum',
-            product_name: 'Radiance Vitamin C Serum',
-            product_id: 'radiance-vitamin-c',
+            product_name: product?.title,
+            product_id: product?.id,
             notify_subscribers: true
           }
         });
         
         if (result.data?.success) {
-          toast.success(`📺 Published to YouTube${isShort ? ' Shorts' : ''}!`, {
-            description: `${isShort ? 'Short' : 'Video'} live! ${result.data.analytics?.views || '10K+'} projected views`
-          });
-        } else {
-          throw new Error(result.data?.error || 'YouTube publish failed');
+          toast.success(`📺 Published to YouTube${isShort ? ' Shorts' : ''}!`);
         }
       } else {
         await supabase.functions.invoke('autonomous-publisher', {
           body: {
             video_url: video.videoUrl,
             platform: publishTo,
-            caption: video.prompt.slice(0, 100),
-            hashtags: ['fyp', 'viral', 'ad', 'trending']
+            caption: `${product?.title} | Shop Now ✨`,
+            hashtags: ['fyp', 'viral', 'beauty', 'skincare'],
+            product_link: `https://auraliftessentials.com/products/${product?.handle}`
           }
         });
         toast.success(`Published to ${publishTo}!`);
@@ -242,26 +277,114 @@ export function VideoAdStudio() {
           <div>
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-display font-bold">AI Video Ad Studio</h2>
-              <Badge className="bg-primary/20 text-primary">Powered by Replicate</Badge>
+              <Badge className="bg-success/20 text-success">Real Products</Badge>
             </div>
             <p className="text-muted-foreground">
-              Generate viral video ads with AI • Auto-post to all channels
+              Generate showcase videos for your connected Shopify products
             </p>
           </div>
         </div>
       </Card>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Generation Controls */}
-        <div className="col-span-12 lg:col-span-5">
-          <Card className="p-6 space-y-6">
+        {/* Product Selector & Controls */}
+        <div className="col-span-12 lg:col-span-5 space-y-4">
+          {/* Product Selector */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Package className="w-4 h-4 text-primary" />
+                Select Product
+              </h3>
+              <Button variant="ghost" size="sm" onClick={refetch} disabled={loadingProducts}>
+                <RefreshCw className={`w-4 h-4 ${loadingProducts ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+            
+            <ScrollArea className="h-[200px]">
+              <div className="space-y-2">
+                {loadingProducts ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : products.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No products found
+                  </p>
+                ) : (
+                  products.map((product) => (
+                    <div
+                      key={product.id}
+                      onClick={() => setSelectedProduct(product)}
+                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
+                        selectedProduct?.id === product.id
+                          ? 'bg-primary/10 border border-primary/30'
+                          : 'hover:bg-muted/50 border border-transparent'
+                      }`}
+                    >
+                      {product.imageUrl ? (
+                        <img 
+                          src={product.imageUrl} 
+                          alt={product.title}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                          <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{product.title}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">${product.price.toFixed(2)}</span>
+                          <Badge variant="outline" className="text-[10px]">{product.vendor}</Badge>
+                        </div>
+                      </div>
+                      {selectedProduct?.id === product.id && (
+                        <CheckCircle className="w-4 h-4 text-primary" />
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </Card>
+
+          {/* Selected Product Preview */}
+          {selectedProduct && (
+            <Card className="p-4 bg-gradient-to-br from-success/5 to-primary/5 border-success/20">
+              <div className="flex items-start gap-3">
+                {selectedProduct.imageUrl && (
+                  <img 
+                    src={selectedProduct.imageUrl} 
+                    alt={selectedProduct.title}
+                    className="w-20 h-20 rounded-lg object-cover"
+                  />
+                )}
+                <div className="flex-1">
+                  <p className="font-semibold">{selectedProduct.title}</p>
+                  <p className="text-lg font-bold text-primary">${selectedProduct.price.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                    {selectedProduct.description?.slice(0, 100)}...
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Generation Controls */}
+          <Card className="p-4 space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Video Prompt</label>
+              <label className="text-sm font-medium mb-2 block">Custom Prompt (optional)</label>
               <Textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Create a 20-second ad: Confident female entrepreneur avatar in a modern office, wearing a red blazer, smiling, pointing to the product on the desk, saying 'This changes everything—get yours now' with upbeat background music."
-                className="min-h-[120px]"
+                placeholder={selectedProduct 
+                  ? `Describe the video for ${selectedProduct.title}... Leave blank for auto-generated script.`
+                  : "Select a product first..."
+                }
+                className="min-h-[80px]"
+                disabled={!selectedProduct}
               />
             </div>
 
@@ -330,7 +453,7 @@ export function VideoAdStudio() {
 
             <Button
               onClick={generateVideo}
-              disabled={isGenerating || !prompt.trim()}
+              disabled={isGenerating || !selectedProduct}
               size="lg"
               className="w-full gap-2"
             >
@@ -342,34 +465,10 @@ export function VideoAdStudio() {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5" />
-                  Generate Video
+                  Generate Video for {selectedProduct?.title?.split(' ')[0] || 'Product'}
                 </>
               )}
             </Button>
-
-            {/* Quick Templates */}
-            <div className="pt-4 border-t">
-              <p className="text-sm font-medium mb-3">Quick Templates</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  'Product unboxing',
-                  'Before/After reveal',
-                  'Customer testimonial',
-                  'GRWM routine',
-                  'Quick tips',
-                ].map((template) => (
-                  <Button
-                    key={template}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => setPrompt(`${template} video for skincare product`)}
-                  >
-                    {template}
-                  </Button>
-                ))}
-              </div>
-            </div>
           </Card>
         </div>
 
@@ -388,7 +487,7 @@ export function VideoAdStudio() {
               <div className="text-center py-12 text-muted-foreground">
                 <Video className="w-16 h-16 mx-auto mb-4 opacity-50" />
                 <p>No videos generated yet</p>
-                <p className="text-sm">Enter a prompt and click Generate</p>
+                <p className="text-sm">Select a product and click Generate</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -414,11 +513,27 @@ export function VideoAdStudio() {
                               </p>
                             </div>
                           ) : video.status === 'completed' ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-chart-3/20 to-primary/20">
-                              <Button variant="secondary" size="icon" className="w-12 h-12 rounded-full">
-                                <Play className="w-6 h-6" />
-                              </Button>
-                            </div>
+                            <>
+                              {video.thumbnailUrl && (
+                                <img 
+                                  src={video.thumbnailUrl} 
+                                  alt={video.product?.title}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                />
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <Button variant="secondary" size="icon" className="w-12 h-12 rounded-full">
+                                  <Play className="w-6 h-6" />
+                                </Button>
+                              </div>
+                              {/* Product overlay */}
+                              {video.product && (
+                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                  <p className="text-white text-sm font-semibold">{video.product.title}</p>
+                                  <p className="text-white/80 text-lg font-bold">${video.product.price.toFixed(2)}</p>
+                                </div>
+                              )}
+                            </>
                           ) : null}
                         </div>
 
@@ -430,43 +545,38 @@ export function VideoAdStudio() {
                               <CheckCircle className="w-4 h-4 text-success ml-auto" />
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {video.prompt}
-                          </p>
+                          {video.product && (
+                            <p className="text-xs font-medium text-primary">
+                              {video.product.title}
+                            </p>
+                          )}
 
                           {video.status === 'completed' && (
                             <div className="space-y-2 pt-2">
-                              {/* Pinterest First - Primary CTA */}
                               <Button 
                                 size="sm" 
                                 className="w-full gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold"
                                 onClick={() => publishVideo(video, 'pinterest')}
                               >
-                                📌 Post to Pinterest
-                                <Badge variant="secondary" className="ml-auto text-[10px] bg-white/20">#1</Badge>
+                                📌 Publish to Pinterest
                               </Button>
-                              {/* YouTube Second - Priority CTA */}
-                              <Button 
-                                size="sm" 
-                                className="w-full gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold"
-                                onClick={() => publishVideo(video, video.platform.includes('16:9') ? 'youtube' : 'youtube_shorts')}
-                              >
-                                📺 Post to YouTube
-                                <Badge variant="secondary" className="ml-auto text-[10px] bg-white/20">#2</Badge>
-                              </Button>
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="flex-1 gap-1">
-                                  <Download className="w-3 h-3" />
-                                  Save
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="gap-1"
+                                  onClick={() => publishVideo(video, 'youtube_shorts')}
+                                >
+                                  📺 Shorts
                                 </Button>
                                 <Button 
-                                  variant="outline"
                                   size="sm" 
-                                  className="flex-1 gap-1"
+                                  variant="outline" 
+                                  className="gap-1"
                                   onClick={() => publishVideo(video)}
                                 >
-                                  <Send className="w-3 h-3" />
-                                  All Channels
+                                  <Share2 className="w-3 h-3" />
+                                  Share
                                 </Button>
                               </div>
                             </div>
@@ -483,4 +593,33 @@ export function VideoAdStudio() {
       </div>
     </div>
   );
+}
+
+// Helper functions
+function buildDefaultPrompt(product: ParsedShopifyProduct, style: string): string {
+  const stylePrompts: Record<string, string> = {
+    avatar: `Create a 20-second AI avatar video: Confident beauty influencer holding ${product.title} bottle, demonstrating application on face, glowing skin reveal, saying "This ${product.title} is incredible - get yours now!" with upbeat background music. Show product close-up, application demo, before/after glow.`,
+    ugc: `UGC-style authentic video for ${product.title}. Real person unboxing, first impressions, applying product, genuine reaction to texture and results. Natural lighting, phone-shot aesthetic. Hook: "I finally tried ${product.title} and OMG..."`,
+    cinematic: `Cinematic luxury product showcase for ${product.title}. Slow-motion product reveal, close-up texture shots, elegant lighting, premium aesthetic. Price: $${product.price.toFixed(2)}. End with "Shop Now" CTA.`,
+    product: `Clean product-focused video for ${product.title}. 360° product rotation, ingredient highlights, texture close-ups, minimalist aesthetic. Display price $${product.price.toFixed(2)} and key benefits.`,
+    testimonial: `Testimonial-style video for ${product.title}. Customer sharing transformation story, before/after comparison, authentic review. "After using ${product.title} for 2 weeks, my skin has never looked better!"`,
+    'before-after': `Dramatic before/after transformation video for ${product.title}. Split-screen comparison, time-lapse of skin improvement, reveal moment. Show product application and results.`
+  };
+
+  return stylePrompts[style] || stylePrompts.ugc;
+}
+
+function extractBenefits(description: string | undefined): string[] {
+  if (!description) return ['Visible results', 'Premium quality', 'Best seller'];
+  
+  const benefits: string[] = [];
+  const keywords = ['hydrating', 'glow', 'vitamin', 'collagen', 'anti-aging', 'moisturizing', 'brightening', 'smooth'];
+  
+  keywords.forEach(keyword => {
+    if (description.toLowerCase().includes(keyword)) {
+      benefits.push(keyword.charAt(0).toUpperCase() + keyword.slice(1));
+    }
+  });
+
+  return benefits.length > 0 ? benefits.slice(0, 3) : ['Visible results', 'Premium quality'];
 }

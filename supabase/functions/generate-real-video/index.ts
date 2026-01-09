@@ -69,11 +69,24 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { creative_id, prompt, platform = "tiktok", style = "ugc", product_name, use_real_mode = true } = body;
+    const { 
+      creative_id, 
+      prompt, 
+      platform = "tiktok", 
+      style = "ugc", 
+      product_name,
+      product_id,
+      product_image_url,
+      product_price,
+      product_description,
+      overlay_text,
+      use_real_mode = true 
+    } = body;
 
     console.log(`[${user.id}] Starting REAL video generation for creative: ${creative_id}`);
     console.log(`[${user.id}] Prompt: ${prompt}`);
-    console.log(`[${user.id}] Product: ${product_name}`);
+    console.log(`[${user.id}] Product: ${product_name} (ID: ${product_id})`);
+    console.log(`[${user.id}] Product Image: ${product_image_url}`);
     console.log(`[${user.id}] Use Real Mode: ${use_real_mode}`);
     console.log(`[${user.id}] Replicate Token Available: ${!!REPLICATE_API_TOKEN}`);
 
