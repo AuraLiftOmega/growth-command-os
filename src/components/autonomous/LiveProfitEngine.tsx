@@ -54,17 +54,13 @@ interface ProductPerformance {
   creatives: number;
 }
 
+// REAL AURALIFT PRODUCTS ONLY - ALL DEMO/FAKE PURGED
 const PRODUCTS = [
   { id: '1', title: 'Radiance Vitamin C Serum', price: 49.99, vendor: 'AuraLift Beauty' },
   { id: '2', title: 'Hydra-Glow Retinol Night Cream', price: 64.99, vendor: 'AuraLift Beauty' },
   { id: '3', title: 'Ultra Hydration Hyaluronic Serum', price: 54.99, vendor: 'AuraLift Beauty' },
   { id: '4', title: 'Luxe Rose Quartz Face Roller Set', price: 39.99, vendor: 'AuraLift Beauty' },
   { id: '5', title: 'Omega Glow Collagen Peptide Moisturizer', price: 74.99, vendor: 'AuraLift Beauty' },
-  { id: '6', title: 'Smart Fitness Watch Pro', price: 199.99, vendor: 'FitTech' },
-  { id: '7', title: 'AirMax Pro Wireless Headphones', price: 149.99, vendor: 'TechBrand' },
-  { id: '8', title: 'Deep Tissue Massage Gun Pro', price: 129.99, vendor: 'ZenLife' },
-  { id: '9', title: 'Carbon Fiber Training Sneakers', price: 159.99, vendor: 'SpeedRun' },
-  { id: '10', title: 'Ultra Performance Running Shoes', price: 139.99, vendor: 'SpeedRun' },
 ];
 
 const CHANNELS = ['TikTok', 'Instagram', 'Facebook', 'YouTube', 'Pinterest', 'Email'];
@@ -120,24 +116,26 @@ const generateEvent = (): LiveMetric => {
 };
 
 export function LiveProfitEngine() {
+  // REAL DATA STARTING POINT - NO INFLATED MOCK NUMBERS
   const [isRunning, setIsRunning] = useState(true);
   const [events, setEvents] = useState<LiveMetric[]>([]);
-  const [totalRevenue, setTotalRevenue] = useState(2847.50);
-  const [totalOrders, setTotalOrders] = useState(43);
-  const [totalImpressions, setTotalImpressions] = useState(284750);
-  const [totalClicks, setTotalClicks] = useState(12847);
-  const [creativesGenerated, setCreativesGenerated] = useState(12);
-  const [abTests, setAbTests] = useState(8);
-  const [dmResponses, setDmResponses] = useState(156);
-  const [roas, setRoas] = useState(4.2);
-  const [hourlyGrowth, setHourlyGrowth] = useState(12.4);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalImpressions, setTotalImpressions] = useState(0);
+  const [totalClicks, setTotalClicks] = useState(0);
+  const [creativesGenerated, setCreativesGenerated] = useState(0);
+  const [abTests, setAbTests] = useState(0);
+  const [dmResponses, setDmResponses] = useState(0);
+  const [roas, setRoas] = useState(0);
+  const [hourlyGrowth, setHourlyGrowth] = useState(0);
   
+  // REAL AURALIFT PRODUCTS ONLY - PURGED FAKE PRODUCTS
   const [topProducts, setTopProducts] = useState<ProductPerformance[]>([
-    { id: '1', title: 'Radiance Vitamin C Serum', revenue: 847.50, conversions: 17, roas: 5.8, status: 'winner', creatives: 4 },
-    { id: '2', title: 'Hydra-Glow Retinol Night Cream', revenue: 649.90, conversions: 10, roas: 4.2, status: 'scaling', creatives: 3 },
-    { id: '5', title: 'Omega Glow Collagen Peptide', revenue: 524.93, conversions: 7, roas: 3.9, status: 'scaling', creatives: 2 },
-    { id: '6', title: 'Smart Fitness Watch Pro', revenue: 399.98, conversions: 2, roas: 2.8, status: 'testing', creatives: 2 },
-    { id: '3', title: 'Ultra Hydration Hyaluronic Serum', revenue: 274.95, conversions: 5, roas: 3.1, status: 'testing', creatives: 1 },
+    { id: '1', title: 'Radiance Vitamin C Serum', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '2', title: 'Hydra-Glow Retinol Night Cream', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '3', title: 'Ultra Hydration Hyaluronic Serum', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '4', title: 'Luxe Rose Quartz Face Roller Set', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '5', title: 'Omega Glow Collagen Peptide Moisturizer', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
   ]);
 
   // Simulate real-time events

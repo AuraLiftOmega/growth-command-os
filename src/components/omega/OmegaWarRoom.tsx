@@ -55,16 +55,17 @@ interface DecisionEntry {
   impact_metrics?: Record<string, unknown>;
 }
 
+// OMEGA AGENTS - Ready for Launch with AuraLift Products
 const OMEGA_AGENTS: AgentStatus[] = [
-  { name: 'Sales Agent', type: 'sales', emoji: '💼', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#10b981' },
-  { name: 'Creative Agent', type: 'creative', emoji: '🎨', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#3b82f6' },
-  { name: 'Optimization Agent', type: 'optimization', emoji: '⚡', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#8b5cf6' },
-  { name: 'Analytics Agent', type: 'analytics', emoji: '📊', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#f59e0b' },
-  { name: 'Forecasting Agent', type: 'forecasting', emoji: '🔮', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#ef4444' },
-  { name: 'Global Agent', type: 'global', emoji: '🌍', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#06b6d4' },
-  { name: 'Sustainability Agent', type: 'sustainability', emoji: '🌱', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#22c55e' },
-  { name: 'Web3 Agent', type: 'web3', emoji: '⛓️', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#a855f7' },
-  { name: 'Orchestrator', type: 'orchestrator', emoji: '👑', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#eab308' },
+  { name: 'Sales Agent', type: 'sales', emoji: '💼', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.95, color: '#10b981' },
+  { name: 'Creative Agent', type: 'creative', emoji: '🎨', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.92, color: '#3b82f6' },
+  { name: 'Optimization Agent', type: 'optimization', emoji: '⚡', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.94, color: '#8b5cf6' },
+  { name: 'Analytics Agent', type: 'analytics', emoji: '📊', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.91, color: '#f59e0b' },
+  { name: 'Forecasting Agent', type: 'forecasting', emoji: '🔮', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.88, color: '#ef4444' },
+  { name: 'Global Agent', type: 'global', emoji: '🌍', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.90, color: '#06b6d4' },
+  { name: 'Sustainability Agent', type: 'sustainability', emoji: '🌱', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.93, color: '#22c55e' },
+  { name: 'Web3 Agent', type: 'web3', emoji: '⛓️', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.87, color: '#a855f7' },
+  { name: 'Orchestrator', type: 'orchestrator', emoji: '👑', status: 'active', lastAction: 'Ready for Launch', decisions24h: 0, avgConfidence: 0.96, color: '#eab308' },
 ];
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#22c55e', '#a855f7', '#eab308'];
