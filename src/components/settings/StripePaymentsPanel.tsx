@@ -33,6 +33,7 @@ interface StripeStatus {
   isLiveMode: boolean;
   hasWebhookSecret: boolean;
   keyType: "live" | "test" | "none";
+  verified: boolean;
 }
 
 export function StripePaymentsPanel() {
@@ -40,7 +41,8 @@ export function StripePaymentsPanel() {
     isConnected: false,
     isLiveMode: false,
     hasWebhookSecret: false,
-    keyType: "none"
+    keyType: "none",
+    verified: false
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -64,7 +66,8 @@ export function StripePaymentsPanel() {
           ...prev,
           isConnected: true,
           isLiveMode: true,
-          keyType: "live"
+          keyType: "live",
+          verified: true
         }));
         alert("💰 VERIFIED: Real money flow is LIVE and connected!");
       } else {
@@ -89,7 +92,8 @@ export function StripePaymentsPanel() {
           isConnected: data.isConnected || false,
           isLiveMode: data.isLiveMode || false,
           hasWebhookSecret: data.hasWebhookSecret || false,
-          keyType: data.keyType || "none"
+          keyType: data.keyType || "none",
+          verified: data.verified || false
         });
         
         // Log debug info for troubleshooting
@@ -102,7 +106,8 @@ export function StripePaymentsPanel() {
           isConnected: false,
           isLiveMode: false,
           hasWebhookSecret: false,
-          keyType: "none"
+          keyType: "none",
+          verified: false
         });
       }
     } catch (err) {
@@ -111,7 +116,8 @@ export function StripePaymentsPanel() {
         isConnected: false,
         isLiveMode: false,
         hasWebhookSecret: false,
-        keyType: "none"
+        keyType: "none",
+        verified: false
       });
     } finally {
       setIsLoading(false);
@@ -136,13 +142,13 @@ export function StripePaymentsPanel() {
       </Card>
     );
   }
-
   const isFullyLive = stripeStatus.isConnected && stripeStatus.isLiveMode && stripeStatus.hasWebhookSecret;
+  const isVerifiedLive = isFullyLive && stripeStatus.verified;
 
   return (
     <div className="space-y-6">
-      {/* REAL MONEY LIVE — CONNECTED Badge - Top Banner */}
-      {isFullyLive && (
+      {/* LIVE CONNECTED — VERIFIED Badge - Top Banner */}
+      {isVerifiedLive && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -151,7 +157,7 @@ export function StripePaymentsPanel() {
           <div className="flex items-center justify-center gap-3 p-5 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 rounded-xl shadow-2xl border-2 border-green-400">
             <Banknote className="w-7 h-7 text-white animate-pulse" />
             <span className="text-2xl font-black text-white tracking-wider drop-shadow-lg">
-              💰 REAL MONEY LIVE — CONNECTED 💰
+              💰 LIVE CONNECTED — VERIFIED 💰
             </span>
             <ShieldCheck className="w-7 h-7 text-white" />
           </div>
