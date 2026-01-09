@@ -61,14 +61,8 @@ const mainNavItems = [
   {
     title: "Social Channels",
     icon: Share2,
-    path: "/dashboard/social",
-    badge: null,
-    subItems: [
-      { title: "TikTok", path: "/dashboard/social/tiktok" },
-      { title: "Instagram", path: "/dashboard/social/instagram" },
-      { title: "Pinterest", path: "/dashboard/social/pinterest" },
-      { title: "YouTube", path: "/dashboard/social/youtube" },
-    ],
+    path: "/dashboard/social-channels",
+    badge: "Live",
   },
   {
     title: "Sales Analytics",
@@ -124,79 +118,33 @@ export function DashboardSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) =>
-                item.subItems ? (
-                  <Collapsible
-                    key={item.title}
-                    open={socialOpen}
-                    onOpenChange={setSocialOpen}
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          className={cn(
-                            "w-full justify-between",
-                            isActiveGroup(item.path) && "bg-sidebar-accent"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <item.icon className="w-4 h-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </div>
-                          {!collapsed && (
-                            <ChevronDown
+              {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                    <NavLink to={item.path} className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      {!collapsed && (
+                        <>
+                          <span className="flex-1">{item.title}</span>
+                          {item.badge && (
+                            <Badge
+                              variant="outline"
                               className={cn(
-                                "w-4 h-4 transition-transform",
-                                socialOpen && "rotate-180"
+                                "text-[9px] px-1.5 py-0 h-4",
+                                item.badge === "New" || item.badge === "Live"
+                                  ? "border-accent text-accent"
+                                  : "border-success text-success"
                               )}
-                            />
+                            >
+                              {item.badge}
+                            </Badge>
                           )}
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.subItems.map((sub) => (
-                            <SidebarMenuSubItem key={sub.path}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={isActive(sub.path)}
-                              >
-                                <NavLink to={sub.path}>{sub.title}</NavLink>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
-                ) : (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                      <NavLink to={item.path} className="flex items-center gap-3">
-                        <item.icon className="w-4 h-4" />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1">{item.title}</span>
-                            {item.badge && (
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[9px] px-1.5 py-0 h-4",
-                                  item.badge === "New"
-                                    ? "border-accent text-accent"
-                                    : "border-success text-success"
-                                )}
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              )}
+                        </>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

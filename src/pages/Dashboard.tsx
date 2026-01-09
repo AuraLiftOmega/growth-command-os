@@ -4,8 +4,8 @@ import { DashboardHome } from "@/components/dashboard/DashboardHome";
 import { ShopifySyncPanel } from "@/components/dashboard/ShopifySyncPanel";
 import { VideoAdStudio } from "@/components/super-app/VideoAdStudio";
 import { VideoAdStudioPage } from "@/components/dashboard/VideoAdStudioPage";
-import { SocialChannelsPanel } from "@/components/dashboard/SocialChannelsPanel";
 import { SalesAnalyticsPanel } from "@/components/dashboard/SalesAnalyticsPanel";
+import { SocialChannelsDashboard } from "@/components/social";
 
 const Dashboard = () => {
   return (
@@ -15,7 +15,8 @@ const Dashboard = () => {
         <Route path="products" element={<ShopifySyncPanel />} />
         <Route path="video-studio" element={<VideoAdStudio />} />
         <Route path="video-ad-studio" element={<VideoAdStudioPage />} />
-        <Route path="social/*" element={<SocialChannelsPanel />} />
+        <Route path="social/*" element={<SocialChannelsDashboard />} />
+        <Route path="social-channels/*" element={<SocialChannelsDashboard />} />
         <Route path="analytics" element={<SalesAnalyticsPanel />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
