@@ -55,7 +55,7 @@ const mainNavItems = [
   {
     title: "Video Ad Studio",
     icon: Video,
-    path: "/dashboard/video-studio",
+    path: "/dashboard/video-ad-studio",
     badge: "New",
   },
   {
