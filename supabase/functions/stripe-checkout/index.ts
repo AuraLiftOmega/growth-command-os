@@ -48,36 +48,76 @@ serve(async (req) => {
   }
 
   try {
-    // FORCE LIVE KEYS: Prioritize sk_live_ keys
-    const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-    const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
-    // Use live key first, fallback to STRIPE_SECRET_KEY only if it's also a live key
-    let stripeSecretKey = liveKey;
-    if (!stripeSecretKey && fallbackKey?.startsWith("sk_live_")) {
-      stripeSecretKey = fallbackKey;
-    } else if (!stripeSecretKey) {
-      stripeSecretKey = fallbackKey; // For status checks only
-    }
-    
+    // FORCE LIVE KEYS: Check both key locations
+    const liveSecretKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+    const mainSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
-    // Determine key type
-    const isLiveKey = stripeSecretKey?.startsWith("sk_live_") || false;
-    const isTestKey = stripeSecretKey?.startsWith("sk_test_") || false;
+    // Log for debugging (redacted)
+    console.log("🔐 Stripe Key Check:", {
+      hasLiveSecretKey: !!liveSecretKey,
+      liveKeyPrefix: liveSecretKey ? liveSecretKey.substring(0, 8) + "..." : "none",
+      hasMainKey: !!mainSecretKey,
+      mainKeyPrefix: mainSecretKey ? mainSecretKey.substring(0, 8) + "..." : "none",
+    });
+    
+    // Determine which key to use - PRIORITIZE LIVE KEYS
+    let stripeSecretKey: string | undefined;
+    let isLiveKey = false;
+    let isTestKey = false;
+    
+    // First check STRIPE_LIVE_SECRET_KEY
+    if (liveSecretKey && liveSecretKey.startsWith("sk_live_")) {
+      stripeSecretKey = liveSecretKey;
+      isLiveKey = true;
+      console.log("💰 Using STRIPE_LIVE_SECRET_KEY (sk_live_)");
+    }
+    // Then check if STRIPE_SECRET_KEY is a live key
+    else if (mainSecretKey && mainSecretKey.startsWith("sk_live_")) {
+      stripeSecretKey = mainSecretKey;
+      isLiveKey = true;
+      console.log("💰 Using STRIPE_SECRET_KEY (sk_live_)");
+    }
+    // Fallback to test key for status checks only
+    else if (mainSecretKey && mainSecretKey.startsWith("sk_test_")) {
+      stripeSecretKey = mainSecretKey;
+      isTestKey = true;
+      console.log("⚠️ Using test key (sk_test_) - NOT for real payments");
+    }
+    // Or if STRIPE_LIVE_SECRET_KEY exists but isn't properly formatted
+    else if (liveSecretKey) {
+      stripeSecretKey = liveSecretKey;
+      isLiveKey = liveSecretKey.startsWith("sk_live_");
+      isTestKey = liveSecretKey.startsWith("sk_test_");
+      console.log("🔑 Using STRIPE_LIVE_SECRET_KEY as-is");
+    }
+    
     const keyType = isLiveKey ? "live" : isTestKey ? "test" : "none";
     
     const body = await req.json();
     
     // Handle verify-live-mode action (no auth required for status check)
     if (body.action === "verify-live-mode") {
+      // Provide detailed diagnostics
+      const liveSecretKeyPrefix = liveSecretKey ? liveSecretKey.substring(0, 7) : "none";
+      const mainKeyPrefix = mainSecretKey ? mainSecretKey.substring(0, 7) : "none";
+      
       return new Response(JSON.stringify({
         isConnected: !!stripeSecretKey,
         isLiveMode: isLiveKey,
         hasWebhookSecret: !!webhookSecret,
         keyType: keyType,
-        liveKeyConfigured: !!liveKey || (!!fallbackKey && fallbackKey.startsWith("sk_live_")),
-        message: isLiveKey ? "REAL MONEY LIVE — CONNECTED" : "Live keys required for real payments",
+        liveKeyConfigured: isLiveKey,
+        message: isLiveKey 
+          ? "REAL MONEY LIVE — CONNECTED" 
+          : `Live keys required. Current key prefix: ${liveSecretKeyPrefix}. Expected: sk_live_`,
+        debug: {
+          liveSecretKeyExists: !!liveSecretKey,
+          liveSecretKeyPrefix: liveSecretKeyPrefix,
+          mainKeyExists: !!mainSecretKey,
+          mainKeyPrefix: mainKeyPrefix,
+          expectedFormat: "sk_live_xxxxx (from Stripe Dashboard → Developers → API Keys)",
+        }
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
