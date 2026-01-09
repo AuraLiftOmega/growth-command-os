@@ -56,15 +56,15 @@ interface DecisionEntry {
 }
 
 const OMEGA_AGENTS: AgentStatus[] = [
-  { name: 'Sales Agent', type: 'sales', emoji: '💼', status: 'active', lastAction: 'Qualified 3 leads', decisions24h: 24, avgConfidence: 0.89, color: '#10b981' },
-  { name: 'Creative Agent', type: 'creative', emoji: '🎨', status: 'processing', lastAction: 'Generating video', decisions24h: 18, avgConfidence: 0.92, color: '#3b82f6' },
-  { name: 'Optimization Agent', type: 'optimization', emoji: '⚡', status: 'active', lastAction: 'Price update', decisions24h: 31, avgConfidence: 0.88, color: '#8b5cf6' },
-  { name: 'Analytics Agent', type: 'analytics', emoji: '📊', status: 'active', lastAction: 'Anomaly check', decisions24h: 42, avgConfidence: 0.94, color: '#f59e0b' },
-  { name: 'Forecasting Agent', type: 'forecasting', emoji: '🔮', status: 'idle', lastAction: 'Demand forecast', decisions24h: 12, avgConfidence: 0.91, color: '#ef4444' },
-  { name: 'Global Agent', type: 'global', emoji: '🌍', status: 'idle', lastAction: 'EU expansion', decisions24h: 8, avgConfidence: 0.87, color: '#06b6d4' },
-  { name: 'Sustainability Agent', type: 'sustainability', emoji: '🌱', status: 'active', lastAction: 'Carbon audit', decisions24h: 6, avgConfidence: 0.93, color: '#22c55e' },
-  { name: 'Web3 Agent', type: 'web3', emoji: '⛓️', status: 'idle', lastAction: 'NFT analysis', decisions24h: 4, avgConfidence: 0.85, color: '#a855f7' },
-  { name: 'Orchestrator', type: 'orchestrator', emoji: '👑', status: 'active', lastAction: 'Coordinating', decisions24h: 15, avgConfidence: 0.96, color: '#eab308' },
+  { name: 'Sales Agent', type: 'sales', emoji: '💼', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#10b981' },
+  { name: 'Creative Agent', type: 'creative', emoji: '🎨', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#3b82f6' },
+  { name: 'Optimization Agent', type: 'optimization', emoji: '⚡', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#8b5cf6' },
+  { name: 'Analytics Agent', type: 'analytics', emoji: '📊', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#f59e0b' },
+  { name: 'Forecasting Agent', type: 'forecasting', emoji: '🔮', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#ef4444' },
+  { name: 'Global Agent', type: 'global', emoji: '🌍', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#06b6d4' },
+  { name: 'Sustainability Agent', type: 'sustainability', emoji: '🌱', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#22c55e' },
+  { name: 'Web3 Agent', type: 'web3', emoji: '⛓️', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#a855f7' },
+  { name: 'Orchestrator', type: 'orchestrator', emoji: '👑', status: 'idle', lastAction: 'Ready', decisions24h: 0, avgConfidence: 0.85, color: '#eab308' },
 ];
 
 const CHART_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#22c55e', '#a855f7', '#eab308'];
@@ -124,23 +124,24 @@ export const OmegaWarRoom = () => {
   }, [user]);
 
   const fetchData = async () => {
-    // Generate realistic data
+    // Start with REAL $0 data - no fake metrics
     const hours = [];
     for (let i = 23; i >= 0; i--) {
       const hour = new Date();
       hour.setHours(hour.getHours() - i);
       hours.push({
         hour: hour.toLocaleTimeString('en-US', { hour: '2-digit' }),
-        revenue: Math.floor(Math.random() * 3000) + 800,
-        orders: Math.floor(Math.random() * 30) + 8
+        revenue: 0, // Real $0 start
+        orders: 0
       });
     }
     setRevenueData(hours);
 
+    // Real agent performance starts at baseline ready state
     setAgentPerformance(OMEGA_AGENTS.map(a => ({
       agent: a.type,
-      efficiency: 70 + Math.random() * 25,
-      impact: 60 + Math.random() * 35
+      efficiency: 85, // Ready baseline
+      impact: 0 // No impact yet - waiting for real data
     })));
 
     // Fetch real decisions
@@ -268,7 +269,7 @@ export const OmegaWarRoom = () => {
   const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
   const avgConfidence = decisions.length > 0 
     ? decisions.reduce((sum, d) => sum + (d.confidence || 0), 0) / decisions.length 
-    : 0;
+    : 0.85; // Default to 85% when no decisions yet (Ready state)
 
   return (
     <div className="space-y-6 p-6 bg-gradient-to-br from-background via-background to-primary/5 min-h-screen">
@@ -570,7 +571,20 @@ export const OmegaWarRoom = () => {
             <CardContent>
               <ScrollArea className="h-[400px]">
                 <div className="space-y-2">
-                  {decisions.map((decision) => (
+                  {decisions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="p-4 bg-green-500/10 rounded-full mb-4">
+                        <CheckCircle2 className="h-8 w-8 text-green-500" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-green-500 mb-2">Ready — Awaiting Data</h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        OMEGA is online and ready. Decisions will appear here as traffic, sales, and product data flows in.
+                      </p>
+                      <Badge variant="outline" className="mt-4 bg-green-500/10 text-green-500 border-green-500/30">
+                        85% Confidence Base
+                      </Badge>
+                    </div>
+                  ) : decisions.map((decision) => (
                     <motion.div
                       key={decision.id}
                       initial={{ opacity: 0, x: -20 }}

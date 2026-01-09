@@ -91,22 +91,27 @@ export function StripePaymentsPanel() {
           hasWebhookSecret: data.hasWebhookSecret || false,
           keyType: data.keyType || "none"
         });
-      } else {
-        // Fallback: assume connected if no error
+        
+        // Log debug info for troubleshooting
+        if (data.debug) {
+          console.log("Stripe Debug Info:", data.debug);
+        }
+      } else if (error) {
+        console.error("Stripe check error:", error);
         setStripeStatus({
-          isConnected: !error,
-          isLiveMode: true,
-          hasWebhookSecret: true,
-          keyType: "live"
+          isConnected: false,
+          isLiveMode: false,
+          hasWebhookSecret: false,
+          keyType: "none"
         });
       }
     } catch (err) {
-      // If function exists but errors, check basic connection
+      console.error("Stripe connection check failed:", err);
       setStripeStatus({
-        isConnected: true,
-        isLiveMode: true,
-        hasWebhookSecret: true,
-        keyType: "live"
+        isConnected: false,
+        isLiveMode: false,
+        hasWebhookSecret: false,
+        keyType: "none"
       });
     } finally {
       setIsLoading(false);
