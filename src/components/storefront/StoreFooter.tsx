@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Globe } from "lucide-react";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreFooter() {
   return (
@@ -9,11 +10,22 @@ export function StoreFooter() {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/store" className="inline-block">
-              <span className="text-2xl font-bold gradient-text">AuraLift</span>
+              <span className="text-2xl font-bold gradient-text">{STORE_CONFIG.name}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Premium skincare essentials for radiant, luminous skin. Science-backed formulas for your daily glow.
+              {STORE_CONFIG.description}
             </p>
+            <div className="flex items-center gap-2 text-sm text-primary">
+              <Globe className="w-4 h-4" />
+              <a 
+                href={STORE_CONFIG.fullUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                {STORE_CONFIG.domain}
+              </a>
+            </div>
           </div>
 
           {/* Shop Links */}
@@ -57,11 +69,11 @@ export function StoreFooter() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>hello@auraliftessentials.com</span>
+                <span>{STORE_CONFIG.email}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>1-800-AURALIFT</span>
+                <span>{STORE_CONFIG.phone}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
@@ -72,7 +84,7 @@ export function StoreFooter() {
         </div>
 
         <div className="border-t border-border/40 mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} AuraLift Essentials. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {STORE_CONFIG.name}. All rights reserved.</p>
         </div>
       </div>
     </footer>

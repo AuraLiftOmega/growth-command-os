@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingCart, Eye, Plus, Minus, Check } from "lucide-react";
+import { ShoppingCart, Eye, Plus, Minus, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN } from "@/lib/shopify-config";
+import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
 
 interface StoreProductCardProps {
@@ -50,6 +51,22 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
     setTimeout(() => setIsAdding(false), 500);
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const shareUrl = STORE_CONFIG.getProductUrl(node.handle);
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied!", {
+        description: `${STORE_CONFIG.domain}/product/${node.handle}`,
+        position: "top-center",
+      });
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,6 +88,18 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
               <span className="text-muted-foreground">No image</span>
             </div>
           )}
+
+          {/* Action Buttons Overlay */}
+          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleShare}
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
 
           {/* Quick View Button */}
           {onQuickView && (
