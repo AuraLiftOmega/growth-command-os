@@ -4,12 +4,39 @@ export const SHOPIFY_STOREFRONT_TOKEN = 'd9830af538b34d418e1167726cf1f67a';
 export const SHOPIFY_API_VERSION = '2025-07';
 export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
+// Local product images for AuraLift Beauty products (fallback when Shopify images missing)
+import vitaminCSerum from '@/assets/products/vitamin-c-serum.jpg';
+import retinolNightCream from '@/assets/products/retinol-night-cream.jpg';
+import hyaluronicSerum from '@/assets/products/hyaluronic-serum.jpg';
+import collagenMoisturizer from '@/assets/products/collagen-moisturizer.jpg';
+import roseQuartzRoller from '@/assets/products/rose-quartz-roller.jpg';
+
+// Map product handles to local images
+export const PRODUCT_IMAGE_FALLBACKS: Record<string, string> = {
+  'radiance-vitamin-c-serum': vitaminCSerum,
+  'hydra-glow-retinol-night-cream': retinolNightCream,
+  'ultra-hydration-hyaluronic-serum': hyaluronicSerum,
+  'omega-glow-collagen-peptide-moisturizer': collagenMoisturizer,
+  'luxe-rose-quartz-face-roller-set': roseQuartzRoller,
+};
+
+// Helper to get product image with fallback
+export function getProductImage(handle: string, shopifyImageUrl?: string): string {
+  if (shopifyImageUrl && shopifyImageUrl.startsWith('http')) {
+    return shopifyImageUrl;
+  }
+  return PRODUCT_IMAGE_FALLBACKS[handle] || vitaminCSerum;
+}
+
 export interface ShopifyProduct {
   node: {
     id: string;
     title: string;
     description: string;
     handle: string;
+    vendor?: string;
+    productType?: string;
+    tags?: string[];
     priceRange: {
       minVariantPrice: {
         amount: string;
@@ -47,76 +74,6 @@ export interface ShopifyProduct {
     }>;
   };
 }
-
-// REAL PRODUCTS ONLY - No demo/fake fallbacks
-// AuraLift Beauty is the ONLY authorized vendor
-export const AURA_LIFT_PRODUCTS = [
-  {
-    node: {
-      id: 'auralift-1',
-      title: 'Radiance Vitamin C Serum',
-      description: 'Brightening serum with 20% Vitamin C for radiant, even-toned skin',
-      handle: 'radiance-vitamin-c-serum',
-      priceRange: { minVariantPrice: { amount: '49.99', currencyCode: 'USD' } },
-      images: { edges: [] },
-      variants: { edges: [{ node: { id: 'al-v1', title: 'Default', price: { amount: '49.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: [],
-      vendor: 'AuraLift Beauty'
-    }
-  },
-  {
-    node: {
-      id: 'auralift-2',
-      title: 'Hydra-Glow Retinol Night Cream',
-      description: 'Anti-aging night cream with retinol for youthful, glowing skin',
-      handle: 'retinol-night-cream',
-      priceRange: { minVariantPrice: { amount: '64.99', currencyCode: 'USD' } },
-      images: { edges: [] },
-      variants: { edges: [{ node: { id: 'al-v2', title: 'Default', price: { amount: '64.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: [],
-      vendor: 'AuraLift Beauty'
-    }
-  },
-  {
-    node: {
-      id: 'auralift-3',
-      title: 'Ultra Hydration Hyaluronic Serum',
-      description: 'Deep hydration serum with hyaluronic acid for plump, moisturized skin',
-      handle: 'hyaluronic-serum',
-      priceRange: { minVariantPrice: { amount: '54.99', currencyCode: 'USD' } },
-      images: { edges: [] },
-      variants: { edges: [{ node: { id: 'al-v3', title: 'Default', price: { amount: '54.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: [],
-      vendor: 'AuraLift Beauty'
-    }
-  },
-  {
-    node: {
-      id: 'auralift-4',
-      title: 'Omega Glow Collagen Peptide Moisturizer',
-      description: 'Collagen-boosting moisturizer for firmer, more youthful skin',
-      handle: 'collagen-moisturizer',
-      priceRange: { minVariantPrice: { amount: '74.99', currencyCode: 'USD' } },
-      images: { edges: [] },
-      variants: { edges: [{ node: { id: 'al-v4', title: 'Default', price: { amount: '74.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: [],
-      vendor: 'AuraLift Beauty'
-    }
-  },
-  {
-    node: {
-      id: 'auralift-5',
-      title: 'Luxe Rose Quartz Face Roller Set',
-      description: 'Premium face roller set for lymphatic drainage and de-puffing',
-      handle: 'rose-quartz-roller',
-      priceRange: { minVariantPrice: { amount: '39.99', currencyCode: 'USD' } },
-      images: { edges: [] },
-      variants: { edges: [{ node: { id: 'al-v5', title: 'Default', price: { amount: '39.99', currencyCode: 'USD' }, availableForSale: true, selectedOptions: [] } }] },
-      options: [],
-      vendor: 'AuraLift Beauty'
-    }
-  }
-];
 
 // PURGED: No demo fallback - return empty if Shopify unavailable
 export const DEMO_PRODUCTS: never[] = [];
@@ -170,6 +127,9 @@ export const PRODUCTS_QUERY = `
           title
           description
           handle
+          vendor
+          productType
+          tags
           priceRange {
             minVariantPrice {
               amount

@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingCart, Plus, Minus, Check } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN } from "@/lib/shopify-config";
+import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN, getProductImage } from "@/lib/shopify-config";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -24,7 +23,13 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
 
   const addItem = useCartStore((s) => s.addItem);
   const selectedVariant = node.variants.edges[selectedVariantIndex]?.node;
-  const images = node.images.edges;
+  const shopifyImages = node.images.edges;
+  
+  // Get product image with fallback
+  const fallbackImageUrl = getProductImage(node.handle, shopifyImages[0]?.node?.url);
+  const images = shopifyImages.length > 0 
+    ? shopifyImages 
+    : [{ node: { url: fallbackImageUrl, altText: node.title } }];
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
