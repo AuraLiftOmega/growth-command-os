@@ -7,6 +7,7 @@ import { useCartStore } from "@/stores/cart-store";
 import { useState } from "react";
 import { StoreCartDrawer } from "./StoreCartDrawer";
 import { ProductSearch } from "./ProductSearch";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,7 +27,7 @@ export function StoreHeader() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/store" className="flex items-center space-x-2 flex-shrink-0">
-            <span className="text-2xl font-bold gradient-text">AuraLift</span>
+            <span className="text-2xl font-bold gradient-text">{STORE_CONFIG.name}</span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -1,14 +1,23 @@
 import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
 import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreHero } from "@/components/storefront/StoreHero";
 import { CategorySection } from "@/components/storefront/CategorySection";
 import { StoreProductGrid } from "@/components/storefront/StoreProductGrid";
 import { TrustBadges } from "@/components/storefront/TrustBadges";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export default function Store() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get("category") || undefined;
+
+  // Set page title for SEO
+  useEffect(() => {
+    document.title = category 
+      ? `${category.charAt(0).toUpperCase() + category.slice(1)} Collection | ${STORE_CONFIG.name}`
+      : `${STORE_CONFIG.name} | ${STORE_CONFIG.tagline}`;
+  }, [category]);
 
   return (
     <div className="min-h-screen bg-background">

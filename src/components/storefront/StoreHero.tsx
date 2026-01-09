@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import heroBanner from "@/assets/skincare-hero.jpg";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreHero() {
   return (
@@ -26,7 +27,7 @@ export function StoreHero() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Premium Skincare</span>
+              <span className="text-sm font-medium text-primary">{STORE_CONFIG.tagline}</span>
             </div>
           </motion.div>
 
@@ -44,11 +45,21 @@ export function StoreHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto"
           >
-            Discover our collection of luxurious serums, moisturizers, and beauty tools. 
-            Science-backed formulas for your most luminous skin ever.
+            {STORE_CONFIG.description}
           </motion.p>
+
+          {/* Domain Display */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground mb-8"
+          >
+            <Globe className="w-4 h-4" />
+            <span className="font-medium">{STORE_CONFIG.domain}</span>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
