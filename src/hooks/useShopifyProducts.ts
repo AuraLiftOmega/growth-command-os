@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { PRODUCT_IMAGE_FALLBACKS } from '@/lib/shopify-config';
 
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-7fb70.myshopify.com';
@@ -162,7 +163,11 @@ async function storefrontApiRequest(query: string, variables: Record<string, unk
 
 function parseProduct(node: ShopifyProduct): ParsedShopifyProduct {
   const firstVariant = node.variants.edges[0]?.node;
-  const images = node.images.edges.map(e => e.node.url);
+  const shopifyImages = node.images.edges.map(e => e.node.url);
+  
+  // Use local fallback if no Shopify images
+  const fallbackImage = PRODUCT_IMAGE_FALLBACKS[node.handle];
+  const images = shopifyImages.length > 0 ? shopifyImages : (fallbackImage ? [fallbackImage] : []);
   
   return {
     id: node.id.replace('gid://shopify/Product/', ''),

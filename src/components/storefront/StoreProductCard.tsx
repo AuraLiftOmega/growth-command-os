@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingCart, Eye, Plus, Minus, Check, Share2 } from "lucide-react";
+import { ShoppingCart, Eye, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN } from "@/lib/shopify-config";
+import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN, getProductImage } from "@/lib/shopify-config";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
 
@@ -21,8 +21,11 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
 
   const node = product.node;
   const firstVariant = node.variants.edges[0]?.node;
-  const firstImage = node.images.edges[0]?.node;
+  const shopifyImageUrl = node.images.edges[0]?.node?.url;
   const price = node.priceRange.minVariantPrice;
+  
+  // Get image with local fallback for AuraLift products
+  const productImageUrl = getProductImage(node.handle, shopifyImageUrl);
 
   const handleAddToCart = async () => {
     if (!firstVariant) {
@@ -77,17 +80,11 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
       <div className="glass-card overflow-hidden transition-all duration-300 hover:border-primary/30">
         {/* Image Container */}
         <Link to={`/product/${node.handle}`} className="block relative aspect-square overflow-hidden">
-          {firstImage ? (
-            <img
-              src={firstImage.url}
-              alt={firstImage.altText || node.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground">No image</span>
-            </div>
-          )}
+          <img
+            src={productImageUrl}
+            alt={node.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
 
           {/* Action Buttons Overlay */}
           <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
