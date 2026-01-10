@@ -1,88 +1,78 @@
 /**
  * SHOPIFY SYNC PRODUCTS - Edge Function
  * 
- * Uses Shopify Admin API (via Lovable integration) to fetch products
- * Bypasses Storefront API token issues
+ * Fetches REAL products from Shopify Storefront API
+ * Now uses actual API - no hardcoded products
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// AuraLift products from the real store (verified via Admin API)
-const AURALIFT_PRODUCTS = [
-  {
-    id: '10511372484913',
-    shopifyId: 'gid://shopify/Product/10511372484913',
-    title: 'Hydra-Glow Retinol Night Cream',
-    description: 'Advanced retinol night cream for glowing, youthful skin. Formulated with 0.5% retinol and hyaluronic acid for overnight transformation.',
-    handle: 'hydra-glow-retinol-night-cream',
-    vendor: 'AuraLift Beauty',
-    productType: 'Skincare',
-    price: 89.00,
-    currency: 'USD',
-    imageUrl: 'https://cdn.shopify.com/s/files/1/0909/7195/8929/files/retinol-night-cream.jpg',
-    images: ['https://cdn.shopify.com/s/files/1/0909/7195/8929/files/retinol-night-cream.jpg'],
-    variants: [{ id: 'gid://shopify/ProductVariant/49753632104753', title: 'Default', price: 89.00, available: true }],
-    available: true
-  },
-  {
-    id: '10511372747057',
-    shopifyId: 'gid://shopify/Product/10511372747057',
-    title: 'Luxe Rose Quartz Face Roller Set',
-    description: 'Premium rose quartz face roller and gua sha set for lymphatic drainage, reduced puffiness, and natural glow.',
-    handle: 'luxe-rose-quartz-face-roller-set',
-    vendor: 'AuraLift Beauty',
-    productType: 'Beauty Tools',
-    price: 45.00,
-    currency: 'USD',
-    imageUrl: 'https://cdn.shopify.com/s/files/1/0909/7195/8929/files/rose-quartz-roller.jpg',
-    images: ['https://cdn.shopify.com/s/files/1/0909/7195/8929/files/rose-quartz-roller.jpg'],
-    variants: [{ id: 'gid://shopify/ProductVariant/49753632399665', title: 'Default', price: 45.00, available: true }],
-    available: true
-  },
-  {
-    id: '10511372812593',
-    shopifyId: 'gid://shopify/Product/10511372812593',
-    title: 'Omega Glow Collagen Peptide Moisturizer',
-    description: 'Collagen-boosting peptide moisturizer with omega fatty acids for firm, deeply hydrated skin.',
-    handle: 'omega-glow-collagen-peptide-moisturizer',
-    vendor: 'AuraLift Beauty',
-    productType: 'Skincare',
-    price: 75.00,
-    currency: 'USD',
-    imageUrl: 'https://cdn.shopify.com/s/files/1/0909/7195/8929/files/collagen-moisturizer.jpg',
-    images: ['https://cdn.shopify.com/s/files/1/0909/7195/8929/files/collagen-moisturizer.jpg'],
-    variants: [{ id: 'gid://shopify/ProductVariant/49753632432433', title: 'Default', price: 75.00, available: true }],
-    available: true
-  },
-  {
-    id: '10517788819761',
-    shopifyId: 'gid://shopify/Product/10517788819761',
-    title: 'Face Lift Up Wrinkle Remover Gua Sha Stone',
-    description: 'Premium gua sha stone for face massage, wrinkle reduction, and skin lifting. Multiple color options available.',
-    handle: 'face-lift-up-wrinkle-remover-gua-sha-stone',
-    vendor: 'AuraLift Beauty',
-    productType: 'Beauty Tools',
-    price: 35.00,
-    currency: 'USD',
-    imageUrl: 'https://cdn.shopify.com/s/files/1/0909/7195/8929/files/gua-sha-stone.jpg',
-    images: ['https://cdn.shopify.com/s/files/1/0909/7195/8929/files/gua-sha-stone.jpg'],
-    variants: [
-      { id: 'gid://shopify/ProductVariant/49762890088753', title: 'Rose Quartz', price: 35.00, available: true },
-      { id: 'gid://shopify/ProductVariant/49762890121521', title: 'Jade', price: 35.00, available: true },
-      { id: 'gid://shopify/ProductVariant/49762890154289', title: 'Amethyst', price: 38.00, available: true },
-    ],
-    available: true
+// Shopify store config (from Lovable integration)
+const SHOPIFY_STORE_DOMAIN = 'lovable-project-7fb70.myshopify.com';
+const SHOPIFY_STOREFRONT_TOKEN = Deno.env.get('SHOPIFY_STOREFRONT_ACCESS_TOKEN') || 'd9830af538b34d418e1167726cf1f67a';
+const SHOPIFY_API_VERSION = '2025-07';
+
+const PRODUCTS_QUERY = `
+  query GetProducts($first: Int!, $query: String) {
+    products(first: $first, query: $query) {
+      edges {
+        node {
+          id
+          title
+          description
+          handle
+          vendor
+          productType
+          tags
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          images(first: 5) {
+            edges {
+              node {
+                url
+                altText
+              }
+            }
+          }
+          variants(first: 10) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+                availableForSale
+              }
+            }
+          }
+        }
+      }
+    }
   }
-];
+`;
+
+// Fallback images for when Shopify images are missing
+const FALLBACK_IMAGES: Record<string, string> = {
+  'radiance-vitamin-c-serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
+  'hydra-glow-retinol-night-cream': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
+  'ultra-hydration-hyaluronic-serum': 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
+  'omega-glow-collagen-peptide-moisturizer': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
+  'luxe-rose-quartz-face-roller-set': 'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=800',
+};
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800';
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -90,22 +80,83 @@ serve(async (req) => {
   try {
     const { vendor } = await req.json().catch(() => ({}));
     
-    console.log('Shopify Sync Products - Fetching for vendor:', vendor || 'all');
+    console.log('=== SHOPIFY SYNC PRODUCTS ===');
+    console.log(`Store: ${SHOPIFY_STORE_DOMAIN}`);
+    console.log(`Vendor filter: ${vendor || 'all'}`);
 
-    // Filter by vendor if specified
-    let products = AURALIFT_PRODUCTS;
-    if (vendor) {
-      products = products.filter(p => p.vendor === vendor);
+    // Build query - filter by vendor if specified
+    const queryFilter = vendor ? `vendor:"${vendor}"` : null;
+
+    // Fetch from Shopify Storefront API
+    const response = await fetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+        },
+        body: JSON.stringify({
+          query: PRODUCTS_QUERY,
+          variables: {
+            first: 50,
+            query: queryFilter,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`Shopify API error: ${response.status}`);
+      throw new Error(`Shopify API returned ${response.status}`);
     }
 
-    console.log(`Returning ${products.length} products`);
+    const data = await response.json();
+    
+    if (data.errors) {
+      console.error('Shopify GraphQL errors:', data.errors);
+      throw new Error(data.errors[0]?.message || 'GraphQL error');
+    }
+
+    const products = (data.data?.products?.edges || []).map((edge: any) => {
+      const node = edge.node;
+      const handle = node.handle || '';
+      const firstImage = node.images?.edges?.[0]?.node?.url;
+      const imageUrl = firstImage || FALLBACK_IMAGES[handle] || DEFAULT_IMAGE;
+      
+      return {
+        id: node.id.replace('gid://shopify/Product/', ''),
+        shopifyId: node.id,
+        title: node.title,
+        description: node.description,
+        handle: handle,
+        vendor: node.vendor || 'AuraLift Beauty',
+        productType: node.productType || 'Skincare',
+        price: parseFloat(node.priceRange?.minVariantPrice?.amount || '0'),
+        currency: node.priceRange?.minVariantPrice?.currencyCode || 'USD',
+        imageUrl,
+        images: node.images?.edges?.map((img: any) => img.node.url) || [imageUrl],
+        variants: node.variants?.edges?.map((v: any) => ({
+          id: v.node.id,
+          title: v.node.title,
+          price: parseFloat(v.node.price?.amount || '0'),
+          available: v.node.availableForSale,
+        })) || [],
+        available: node.variants?.edges?.some((v: any) => v.node.availableForSale) ?? true,
+        tags: node.tags || [],
+      };
+    });
+
+    console.log(`✅ Fetched ${products.length} real products from Shopify`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
         products,
-        source: 'admin_api_cache',
-        timestamp: new Date().toISOString()
+        source: 'storefront_api_live',
+        store: SHOPIFY_STORE_DOMAIN,
+        timestamp: new Date().toISOString(),
+        count: products.length,
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -119,11 +170,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
-        products: AURALIFT_PRODUCTS // Return fallback on error
+        products: [],
+        source: 'error',
+        message: 'Failed to fetch products from Shopify. Please check store connection.',
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 // Still return 200 with fallback data
+        status: 200 // Return 200 so UI can handle gracefully
       }
     );
   }

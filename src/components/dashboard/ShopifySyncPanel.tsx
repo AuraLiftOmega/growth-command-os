@@ -69,7 +69,7 @@ export function ShopifySyncPanel() {
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                AuraLift Beauty • lovable-project-7fb70.myshopify.com
+                AuraLift Essentials • lovable-project-7fb70.myshopify.com • LIVE
               </p>
             </div>
           </div>
