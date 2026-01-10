@@ -16,6 +16,8 @@ import CEOControl from "./pages/CEOControl";
 import WarRoom from "./pages/WarRoom";
 import OAuthCallback from "./pages/OAuthCallback";
 import Revenue from "./pages/Revenue";
+import AcceptInvite from "./pages/AcceptInvite";
+import UsersManagement from "./pages/UsersManagement";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -145,6 +147,19 @@ const AppRoutes = () => {
       
       {/* OAuth callback route */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
+      
+      {/* Invite acceptance route (public) */}
+      <Route path="/invite/:token" element={<AcceptInvite />} />
+      
+      {/* Users Management (protected) */}
+      <Route 
+        path="/dashboard/users" 
+        element={
+          <ProtectedRoute>
+            <UsersManagement />
+          </ProtectedRoute>
+        } 
+      />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
