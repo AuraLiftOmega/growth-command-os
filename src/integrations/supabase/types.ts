@@ -2832,6 +2832,54 @@ export type Database = {
         }
         Relationships: []
       }
+      profit_simulations: {
+        Row: {
+          completed_at: string | null
+          confidence_level: number | null
+          created_at: string
+          id: string
+          input_params: Json | null
+          iterations: number | null
+          market_research: Json | null
+          results: Json | null
+          simulated_profit: number | null
+          simulation_type: string
+          status: string | null
+          target_profit: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confidence_level?: number | null
+          created_at?: string
+          id?: string
+          input_params?: Json | null
+          iterations?: number | null
+          market_research?: Json | null
+          results?: Json | null
+          simulated_profit?: number | null
+          simulation_type?: string
+          status?: string | null
+          target_profit?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          confidence_level?: number | null
+          created_at?: string
+          id?: string
+          input_params?: Json | null
+          iterations?: number | null
+          market_research?: Json | null
+          results?: Json | null
+          simulated_profit?: number | null
+          simulation_type?: string
+          status?: string | null
+          target_profit?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       proof_assets: {
         Row: {
           approved_for: string[] | null
@@ -4144,6 +4192,51 @@ export type Database = {
           identifier?: string
           request_count?: number | null
           window_start?: string | null
+        }
+        Relationships: []
+      }
+      workflow_executions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          output_data: Json | null
+          status: string | null
+          trigger_source: string | null
+          user_id: string
+          workflow_name: string
+          workflow_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          trigger_source?: string | null
+          user_id: string
+          workflow_name: string
+          workflow_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          output_data?: Json | null
+          status?: string | null
+          trigger_source?: string | null
+          user_id?: string
+          workflow_name?: string
+          workflow_type?: string
         }
         Relationships: []
       }

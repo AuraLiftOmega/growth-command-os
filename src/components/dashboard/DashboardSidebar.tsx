@@ -14,6 +14,7 @@ import {
   Github,
   Sparkles,
   Plug,
+  DollarSign,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -82,6 +83,12 @@ const mainNavItems = [
     icon: BarChart3,
     path: "/dashboard/revenue",
     badge: "Live",
+  },
+  {
+    title: "Profit Engine",
+    icon: DollarSign,
+    path: "/dashboard/profit-engine",
+    badge: "95%",
   },
   {
     title: "Sales Analytics",
