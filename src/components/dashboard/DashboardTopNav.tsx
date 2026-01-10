@@ -6,7 +6,6 @@ import {
   Search,
   Moon,
   Sun,
-  Menu,
   ChevronDown,
   Sparkles,
 } from "lucide-react";
@@ -25,6 +24,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { DOMINION_LOGO_URL } from "@/lib/store-config";
+import { ShopifySyncIndicator } from "@/components/dashboard/ShopifySyncIndicator";
 
 interface DashboardTopNavProps {
   onCreateAd?: () => void;
@@ -54,6 +55,16 @@ export function DashboardTopNav({ onCreateAd }: DashboardTopNavProps) {
         {/* Left Section */}
         <div className="flex items-center gap-4">
           <SidebarTrigger className="lg:hidden" />
+          
+          {/* Dominion Logo (mobile) */}
+          <img 
+            src={DOMINION_LOGO_URL} 
+            alt="Dominion" 
+            className="h-8 w-auto lg:hidden" 
+          />
+
+          {/* Sync Status */}
+          <ShopifySyncIndicator compact />
 
           {/* Search */}
           <div className="hidden md:flex relative">
