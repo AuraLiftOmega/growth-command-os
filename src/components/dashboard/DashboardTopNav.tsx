@@ -56,10 +56,10 @@ export function DashboardTopNav({ onCreateAd }: DashboardTopNavProps) {
         <div className="flex items-center gap-4">
           <SidebarTrigger className="lg:hidden" />
           
-          {/* Dominion Logo (mobile) */}
+          {/* AURAOMEGA Logo (mobile) */}
           <img 
             src={DOMINION_LOGO_URL} 
-            alt="Dominion" 
+            alt="AURAOMEGA" 
             className="h-8 w-auto lg:hidden" 
           />
 

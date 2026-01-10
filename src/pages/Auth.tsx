@@ -79,7 +79,7 @@ const Auth = () => {
             throw error;
           }
         } else {
-          toast.success("Account created! Welcome to DOMINION.");
+          toast.success("Account created! Welcome to AURAOMEGA.");
           navigate("/dashboard");
         }
       }
@@ -98,7 +98,7 @@ const Auth = () => {
           <div className="flex items-center justify-center mb-6">
             <DominionLogo size="xl" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">DOMINION</h1>
+          <h1 className="text-3xl font-bold mb-2">AURAOMEGA</h1>
           <p className="text-muted-foreground">
             {isForgotPassword ? "Reset Your Password" : isLogin ? "Sign in to your dashboard" : "Create your account"}
           </p>

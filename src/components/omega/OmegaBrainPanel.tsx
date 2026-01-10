@@ -251,6 +251,17 @@ export function OmegaBrainPanel() {
             >
               <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
             </Button>
+
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={executeHourlyLoop}
+              disabled={isExecuting !== null}
+              className="gap-1.5 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600"
+            >
+              <Sparkles className="w-4 h-4" />
+              Self-Optimize Now
+            </Button>
             
             <Button
               size="sm"

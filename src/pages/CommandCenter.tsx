@@ -77,7 +77,7 @@ const CommandCenter = () => {
                 </div>
                 <div>
                   <h1 className="font-display text-3xl font-bold gradient-text">
-                    DOMINION COMMAND
+                    AURAOMEGA COMMAND
                   </h1>
                   <p className="text-muted-foreground">
                     Universal Revenue Operating System • {tenantMode === 'founder' ? 'Founder Mode' : tenantMode === 'customer' ? 'Customer Mode' : 'Demo Mode'}

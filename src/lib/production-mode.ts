@@ -3,7 +3,7 @@
  * 
  * NO SIMULATIONS. NO TEST MODE. REAL PUBLISHING. REAL REVENUE.
  * 
- * DOMINION is a LIVE money machine. Every metric is real.
+ * AURAOMEGA is a LIVE money machine. Every metric is real.
  */
 
 // FORCE PRODUCTION MODE - NO OVERRIDE POSSIBLE
@@ -24,7 +24,7 @@ export function isDevTestMode(): boolean {
 
 // No-op - dev mode cannot be enabled
 export function setDevMode(_enabled: boolean): void {
-  throw new Error('[DOMINION] Dev mode is permanently disabled. Production only.');
+  throw new Error('[AURAOMEGA] Dev mode is permanently disabled. Production only.');
 }
 
 // Get mode label - always LIVE

@@ -113,7 +113,7 @@ export const usePlatformConnections = () => {
 
   // NO TEST MODE - This function is disabled
   const enableTestMode = useCallback(async (_platformId: string) => {
-    console.warn('[DOMINION] Test mode is permanently disabled. Use real OAuth.');
+    console.warn('[AURAOMEGA] Test mode is permanently disabled. Use real OAuth.');
   }, []);
 
   // Disconnect a platform

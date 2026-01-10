@@ -282,7 +282,7 @@ const OrgScalingEngine = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Humans forget. DOMINION compounds.
+              Humans forget. AURAOMEGA compounds.
             </p>
             <div className="space-y-2">
               <p className="text-sm font-medium">Auto-Logged Data:</p>

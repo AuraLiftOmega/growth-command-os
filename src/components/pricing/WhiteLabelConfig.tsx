@@ -234,7 +234,7 @@ export const WhiteLabelAccessSelector = ({
   const levels: { id: WhiteLabelLevel; name: string; tier: string }[] = [
     { id: 'none', name: 'No White-Label', tier: 'CORE' },
     { id: 'partial', name: 'Partial White-Label', tier: 'SCALE' },
-    { id: 'full', name: 'Full White-Label', tier: 'DOMINION' },
+    { id: 'full', name: 'Full White-Label', tier: 'AURAOMEGA' },
   ];
 
   return (

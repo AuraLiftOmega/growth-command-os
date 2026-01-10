@@ -30,5 +30,6 @@ export const STORE_CONFIG = {
   ]
 } as const;
 
-// Dominion Platform Logo
+// AURAOMEGA Platform Logo
 export const DOMINION_LOGO_URL = "https://files.catbox.moe/0k2q8l.png";
+export const AURAOMEGA_LOGO_URL = DOMINION_LOGO_URL; // Alias for new branding

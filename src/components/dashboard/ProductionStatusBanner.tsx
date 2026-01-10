@@ -106,7 +106,7 @@ export function ProductionStatusBanner() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">DOMINION Production Mode</h3>
+                <h3 className="font-semibold">AURAOMEGA Production Mode</h3>
                 <Badge className="bg-success text-success-foreground animate-pulse">
                   LIVE
                 </Badge>
