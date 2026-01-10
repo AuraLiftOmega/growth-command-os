@@ -21,6 +21,7 @@ import { useLiveMetrics } from "@/hooks/useLiveMetrics";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { ShopifySyncStatus } from "@/components/dashboard/ShopifySyncStatus";
 import { OmegaAISidebar } from "@/components/dashboard/OmegaAISidebar";
+import { STORE_CONFIG, DOMINION_LOGO_URL } from "@/lib/store-config";
 
 interface StatCardProps {
   title: string;
@@ -113,11 +114,18 @@ export function DashboardHome() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Real-time overview of your revenue operations
-          </p>
+        <div className="flex items-center gap-4">
+          <img 
+            src={DOMINION_LOGO_URL} 
+            alt="Dominion" 
+            className="h-10 w-auto object-contain"
+          />
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">{STORE_CONFIG.name}</h1>
+            <p className="text-muted-foreground">
+              Real-time overview of your revenue operations
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-success/30 text-success bg-success/10">

@@ -198,8 +198,8 @@ export function DashboardSidebar() {
         {/* Settings */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={isActive("/settings")}>
-              <NavLink to="/settings" className="flex items-center gap-3">
+            <SidebarMenuButton asChild isActive={isActive("/dashboard/settings")}>
+              <NavLink to="/dashboard/settings" className="flex items-center gap-3">
                 <Settings className="w-4 h-4" />
                 {!collapsed && <span>Settings</span>}
               </NavLink>
