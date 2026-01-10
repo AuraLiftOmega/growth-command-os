@@ -19,6 +19,7 @@ import Revenue from "./pages/Revenue";
 import AcceptInvite from "./pages/AcceptInvite";
 import UsersManagement from "./pages/UsersManagement";
 import ShopifyCallback from "./pages/ShopifyCallback";
+import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -159,6 +160,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <UsersManagement />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Social Channels Dashboard (protected) */}
+      <Route 
+        path="/dashboard/social-channels" 
+        element={
+          <ProtectedRoute>
+            <SocialChannelsDashboard />
           </ProtectedRoute>
         } 
       />

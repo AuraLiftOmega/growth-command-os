@@ -1,9 +1,11 @@
 /**
- * MULTI-CHANNEL HUB
+ * MULTI-CHANNEL HUB - PER-USER DYNAMIC
  * 
  * One-click OAuth connections for all major platforms:
  * - Shopify, TikTok Shop, Instagram, Facebook, Pinterest
- * - Etsy, Amazon, eBay, YouTube, Snapchat, LinkedIn, Walmart, Reddit
+ * - YouTube, LinkedIn, X, Threads
+ * 
+ * NO HARDCODED STORES - All data fetched per-user from database
  */
 
 import { useState, useEffect } from 'react';
@@ -18,16 +20,21 @@ import {
   Zap,
   TrendingUp,
   DollarSign,
-  Settings
+  Settings,
+  Sparkles,
+  Plus
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserShopifyConnections } from '@/hooks/useUserShopifyConnections';
+import { useNavigate } from 'react-router-dom';
 
 interface Channel {
   id: string;
@@ -35,121 +42,153 @@ interface Channel {
   icon: string;
   color: string;
   status: 'connected' | 'pending' | 'disconnected';
-  handle?: string;
+  handle?: string | null;
   revenue?: number;
   orders?: number;
   syncEnabled?: boolean;
-  lastSync?: string;
+  lastSync?: string | null;
   apiType: 'oauth' | 'api_key' | 'webhook';
+  aiSuggestion: string;
 }
 
-// Pinterest FIRST, YouTube SECOND - Primary revenue channels for DOMINION
-const CHANNELS: Channel[] = [
-  { 
-    id: 'shopify', 
-    name: 'Shopify', 
-    icon: '🛍️', 
-    color: 'from-green-500/20 to-green-600/20', 
-    status: 'connected', 
-    handle: 'www.auraliftessentials.com', 
-    revenue: 28750, 
-    orders: 456, 
-    syncEnabled: true, 
-    apiType: 'oauth',
-    lastSync: new Date().toISOString()
-  },
-  { 
-    id: 'tiktok', 
-    name: 'TikTok', 
-    icon: '🎵', 
-    color: 'from-pink-500/20 to-cyan-500/20', 
-    status: 'connected', 
-    handle: '@ryan.auralift', 
-    revenue: 18420, 
-    orders: 234, 
-    syncEnabled: true, 
-    apiType: 'oauth',
-    lastSync: new Date().toISOString()
-  },
-  { 
-    id: 'instagram', 
-    name: 'Instagram', 
-    icon: '📸', 
-    color: 'from-purple-500/20 to-pink-500/20', 
-    status: 'connected', 
-    handle: '@auraliftessentials', 
-    revenue: 12847, 
-    orders: 156, 
-    syncEnabled: true, 
-    apiType: 'oauth',
-    lastSync: new Date().toISOString()
-  },
-  { 
-    id: 'pinterest', 
-    name: 'Pinterest', 
-    icon: '📌', 
-    color: 'from-red-500/20 to-rose-500/20', 
-    status: 'connected', 
-    handle: 'AuraLift Beauty', 
-    revenue: 8450, 
-    orders: 89, 
-    syncEnabled: true, 
-    apiType: 'oauth',
-    lastSync: new Date().toISOString()
-  },
-  { 
-    id: 'tiktok_shop', 
-    name: 'TikTok Shop', 
-    icon: '🛒', 
-    color: 'from-pink-500/20 to-purple-500/20', 
-    status: 'connected', 
-    handle: '@ryan.auralift', 
-    revenue: 6240, 
-    orders: 78, 
-    syncEnabled: true, 
-    apiType: 'oauth' 
-  },
-  { 
-    id: 'youtube', 
-    name: 'YouTube', 
-    icon: '📺', 
-    color: 'from-red-600/30 to-red-700/30', 
-    status: 'connected', 
-    handle: 'AuraLift Beauty',
-    revenue: 5670, 
-    orders: 67, 
-    syncEnabled: true, 
-    apiType: 'oauth'
-  },
-  { id: 'facebook', name: 'Facebook Shops', icon: '📘', color: 'from-blue-500/20 to-blue-600/20', status: 'connected', handle: 'AuraLift Beauty', revenue: 4320, orders: 52, syncEnabled: true, apiType: 'oauth' },
-  { id: 'etsy', name: 'Etsy', icon: '🧶', color: 'from-orange-400/20 to-orange-500/20', status: 'pending', apiType: 'oauth' },
-  { id: 'ebay', name: 'eBay', icon: '🏷️', color: 'from-yellow-500/20 to-yellow-600/20', status: 'pending', apiType: 'oauth' },
-  { id: 'snapchat', name: 'Snapchat', icon: '👻', color: 'from-yellow-400/20 to-yellow-500/20', status: 'disconnected', apiType: 'oauth' },
-  { id: 'linkedin', name: 'LinkedIn (B2B)', icon: '💼', color: 'from-blue-600/20 to-blue-700/20', status: 'disconnected', apiType: 'oauth' },
-  { id: 'walmart', name: 'Walmart', icon: '🏪', color: 'from-blue-500/20 to-blue-600/20', status: 'disconnected', apiType: 'api_key' },
-  { id: 'reddit', name: 'Reddit', icon: '🔴', color: 'from-orange-500/20 to-red-500/20', status: 'disconnected', apiType: 'oauth' },
+// PLATFORM TEMPLATES - Per-user, no hardcoded data
+const CHANNEL_TEMPLATES: Omit<Channel, 'status' | 'handle' | 'revenue' | 'orders' | 'lastSync' | 'syncEnabled'>[] = [
+  { id: 'shopify', name: 'Shopify', icon: '🛍️', color: 'from-green-500/20 to-green-600/20', apiType: 'oauth', aiSuggestion: 'Connect your store to start generating AI video ads!' },
+  { id: 'tiktok', name: 'TikTok', icon: '🎵', color: 'from-pink-500/20 to-cyan-500/20', apiType: 'oauth', aiSuggestion: 'TikTok drives 2x engagement — perfect for viral product videos!' },
+  { id: 'instagram', name: 'Instagram', icon: '📸', color: 'from-purple-500/20 to-pink-500/20', apiType: 'oauth', aiSuggestion: 'Visual storytelling for beauty & lifestyle brands!' },
+  { id: 'pinterest', name: 'Pinterest', icon: '📌', color: 'from-red-500/20 to-rose-500/20', apiType: 'oauth', aiSuggestion: 'Pinterest users are 3x more likely to buy!' },
+  { id: 'youtube', name: 'YouTube', icon: '📺', color: 'from-red-600/20 to-red-700/20', apiType: 'oauth', aiSuggestion: 'Repurpose TikToks as YouTube Shorts!' },
+  { id: 'facebook', name: 'Facebook', icon: '📘', color: 'from-blue-500/20 to-blue-600/20', apiType: 'oauth', aiSuggestion: 'Largest audience 40+ — essential for broad reach!' },
+  { id: 'x', name: 'X (Twitter)', icon: '𝕏', color: 'from-foreground/10 to-foreground/20', apiType: 'oauth', aiSuggestion: 'Perfect for announcements and community building!' },
+  { id: 'linkedin', name: 'LinkedIn', icon: '💼', color: 'from-blue-700/20 to-blue-600/20', apiType: 'oauth', aiSuggestion: 'Essential for B2B thought leadership!' },
+  { id: 'threads', name: 'Threads', icon: '@', color: 'from-foreground/10 to-primary/20', apiType: 'oauth', aiSuggestion: 'New platform = early mover advantage!' },
 ];
 
-export function MultiChannelHub() {
+export const MultiChannelHub = () => {
   const { user } = useAuth();
-  const [channels, setChannels] = useState<Channel[]>(CHANNELS);
-  const [isConnecting, setIsConnecting] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const navigate = useNavigate();
+  const { connections: shopifyConnections, hasConnections: hasShopify } = useUserShopifyConnections();
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectingChannel, setConnectingChannel] = useState<string | null>(null);
+  const [syncingChannel, setSyncingChannel] = useState<string | null>(null);
 
-  const connectedCount = channels.filter(c => c.status === 'connected').length;
-  const totalRevenue = channels.reduce((sum, c) => sum + (c.revenue || 0), 0);
-  const totalOrders = channels.reduce((sum, c) => sum + (c.orders || 0), 0);
+  // Fetch real platform connections per-user
+  useEffect(() => {
+    const fetchChannels = async () => {
+      if (!user) {
+        // Create empty templates for unauthenticated users
+        const emptyChannels = CHANNEL_TEMPLATES.map(t => ({
+          ...t,
+          status: 'disconnected' as const,
+          handle: null,
+          revenue: 0,
+          orders: 0,
+          syncEnabled: false,
+          lastSync: null
+        }));
+        setChannels(emptyChannels);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch platform accounts for this user
+        const { data: platformData, error } = await supabase
+          .from('platform_accounts')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        // Build channels list from templates + user data
+        const userChannels = CHANNEL_TEMPLATES.map(template => {
+          const userConnection = platformData?.find(p => p.platform === template.id);
+          
+          // Special handling for Shopify - use useUserShopifyConnections
+          if (template.id === 'shopify' && hasShopify && shopifyConnections.length > 0) {
+            const shopifyConn = shopifyConnections[0];
+            return {
+              ...template,
+              status: 'connected' as const,
+              handle: shopifyConn.shop_domain,
+              revenue: shopifyConn.total_revenue || 0,
+              orders: shopifyConn.orders_count || 0,
+              syncEnabled: true,
+              lastSync: shopifyConn.last_sync_at
+            };
+          }
+
+          if (userConnection) {
+            return {
+              ...template,
+              status: userConnection.is_connected ? 'connected' as const : 'disconnected' as const,
+              handle: userConnection.handle,
+              revenue: 0,
+              orders: 0,
+              syncEnabled: true,
+              lastSync: userConnection.last_health_check
+            };
+          }
+
+          return {
+            ...template,
+            status: 'disconnected' as const,
+            handle: null,
+            revenue: 0,
+            orders: 0,
+            syncEnabled: false,
+            lastSync: null
+          };
+        });
+
+        setChannels(userChannels);
+      } catch (err) {
+        console.error('Failed to fetch channels:', err);
+        // Fallback to empty templates
+        const emptyChannels = CHANNEL_TEMPLATES.map(t => ({
+          ...t,
+          status: 'disconnected' as const,
+          handle: null,
+          revenue: 0,
+          orders: 0,
+          syncEnabled: false,
+          lastSync: null
+        }));
+        setChannels(emptyChannels);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchChannels();
+
+    // Real-time subscription
+    if (user) {
+      const channel = supabase
+        .channel('multi-channel-hub')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'platform_accounts' }, () => fetchChannels())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_shopify_connections' }, () => fetchChannels())
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    }
+  }, [user, hasShopify, shopifyConnections]);
 
   const handleConnect = async (channelId: string) => {
     if (!user) {
-      toast.error('Please sign in to connect channels');
+      toast.error('Please sign in to connect platforms');
       return;
     }
 
-    setIsConnecting(channelId);
+    // Shopify uses different OAuth flow
+    if (channelId === 'shopify') {
+      navigate('/dashboard/settings?tab=shopify');
+      return;
+    }
 
+    setConnectingChannel(channelId);
     try {
-      // Attempt OAuth connection
       const { data, error } = await supabase.functions.invoke('platform-oauth', {
         body: {
           platform: channelId,
@@ -161,263 +200,222 @@ export function MultiChannelHub() {
       if (error) throw error;
 
       if (data?.authUrl) {
+        localStorage.setItem('oauth_state', data.state);
+        localStorage.setItem('oauth_platform', channelId);
         window.location.href = data.authUrl;
         return;
       }
 
-      // Simulate successful connection for demo
-      setChannels(prev => prev.map(c =>
-        c.id === channelId ? { ...c, status: 'connected' as const, handle: `@${channelId}_connected` } : c
-      ));
-      toast.success(`${channelId} connected successfully!`);
+      toast.error(`${channelId} OAuth not configured yet`);
     } catch (err) {
-      // Demo mode - still connect
-      setChannels(prev => prev.map(c =>
-        c.id === channelId ? { ...c, status: 'connected' as const, handle: `@${channelId}_demo` } : c
-      ));
-      toast.success(`${channelId} connected (demo mode)`);
+      console.error('Connection error:', err);
+      toast.error(`Failed to connect ${channelId}`);
     } finally {
-      setIsConnecting(null);
+      setConnectingChannel(null);
     }
   };
 
-  const handleDisconnect = (channelId: string) => {
-    setChannels(prev => prev.map(c =>
-      c.id === channelId ? { ...c, status: 'disconnected' as const, handle: undefined, revenue: undefined, orders: undefined } : c
-    ));
-    toast.info(`${channelId} disconnected`);
+  const handleSync = async (channelId: string) => {
+    setSyncingChannel(channelId);
+    try {
+      await supabase.functions.invoke('platform-health-check', {
+        body: { platform: channelId }
+      });
+      toast.success(`${channelId} synced successfully`);
+    } catch (err) {
+      toast.error('Sync failed');
+    } finally {
+      setSyncingChannel(null);
+    }
   };
 
-  const toggleSync = (channelId: string, enabled: boolean) => {
-    setChannels(prev => prev.map(c =>
-      c.id === channelId ? { ...c, syncEnabled: enabled } : c
-    ));
-    toast.success(`Sync ${enabled ? 'enabled' : 'disabled'} for ${channelId}`);
-  };
+  const connectedCount = channels.filter(c => c.status === 'connected').length;
+  const totalRevenue = channels.reduce((sum, c) => sum + (c.revenue || 0), 0);
 
-  const syncAll = async () => {
-    setIsSyncing(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSyncing(false);
-    toast.success('All channels synced successfully!');
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Card */}
-      <Card className="p-6 bg-gradient-to-br from-primary/10 to-chart-2/10 border-primary/30">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
-              <Plug className="w-7 h-7 text-white" />
+    <TooltipProvider>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-chart-2/20">
+              <Plug className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-display font-bold">Multi-Channel Hub</h2>
-              <p className="text-muted-foreground">
-                {connectedCount}/{channels.length} channels connected • Real-time sync
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                Multi-Channel Hub
+                <Badge variant="outline" className="text-xs">
+                  {connectedCount}/{channels.length} Connected
+                </Badge>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                1-click OAuth • Secure • Per-user connections
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-8">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-success">${totalRevenue.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Total Revenue</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{totalOrders}</p>
-              <p className="text-xs text-muted-foreground">Total Orders</p>
-            </div>
-            <Button onClick={syncAll} disabled={isSyncing} className="gap-2">
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              Sync All
+          <div className="flex items-center gap-3">
+            {totalRevenue > 0 && (
+              <Badge className="bg-green-500/10 text-green-600 border-green-500/30">
+                <DollarSign className="w-3 h-3 mr-1" />
+                ${totalRevenue.toLocaleString()} revenue
+              </Badge>
+            )}
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/social-channels')}>
+              <Settings className="w-4 h-4 mr-2" />
+              Manage All
             </Button>
           </div>
         </div>
-      </Card>
 
-      {/* Channels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <AnimatePresence>
-          {channels.map((channel, index) => (
-            <motion.div
-              key={channel.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className={`p-5 bg-gradient-to-br ${channel.color} border transition-all hover:shadow-lg ${
-                channel.status === 'connected' ? 'border-success/30' :
-                channel.status === 'pending' ? 'border-warning/30' :
-                'border-border/30'
-              }`}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{channel.icon}</span>
-                    <div>
-                      <p className="font-semibold">{channel.name}</p>
-                      {channel.handle && (
-                        <p className="text-xs text-muted-foreground">{channel.handle}</p>
+        {/* AI Suggestion Banner */}
+        {connectedCount === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-chart-2/10 border border-primary/20"
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <p className="text-sm">
+                <strong>AI Tip:</strong> Connect your Shopify store first to unlock AI video ads, automated posting, and real-time analytics!
+              </p>
+              <Button size="sm" className="ml-auto" onClick={() => handleConnect('shopify')}>
+                <Plus className="w-4 h-4 mr-1" />
+                Connect Shopify
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Channels Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <AnimatePresence>
+            {channels.map((channel, index) => (
+              <motion.div
+                key={channel.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.03 }}
+              >
+                <Card className={`relative overflow-hidden transition-all hover:shadow-lg ${
+                  channel.status === 'connected'
+                    ? 'border-green-500/30 shadow-green-500/5'
+                    : 'border-border/50 hover:border-primary/30'
+                }`}>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${channel.color} opacity-50`} />
+                  
+                  <div className="relative p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{channel.icon}</span>
+                        <div>
+                          <p className="font-semibold text-sm">{channel.name}</p>
+                          {channel.handle && (
+                            <p className="text-[10px] text-muted-foreground truncate max-w-[100px]">
+                              {channel.handle}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {channel.status === 'connected' ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
                       )}
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    {channel.status === 'connected' && (
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                    )}
-                    {channel.status === 'pending' && (
-                      <AlertCircle className="w-5 h-5 text-warning" />
-                    )}
-                    <Badge variant="outline" className="text-[10px]">
-                      {channel.apiType.toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
 
-                {channel.status === 'connected' && (
-                  <>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="text-center p-2 rounded-lg bg-background/50">
-                        <p className="text-lg font-bold text-success">
-                          ${(channel.revenue || 0).toLocaleString()}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">Revenue</p>
-                      </div>
-                      <div className="text-center p-2 rounded-lg bg-background/50">
-                        <p className="text-lg font-bold text-primary">{channel.orders || 0}</p>
-                        <p className="text-[10px] text-muted-foreground">Orders</p>
-                      </div>
-                    </div>
-
-                    {/* Pinterest-specific: Board selector & quick post */}
-                    {channel.id === 'pinterest' && (
-                      <div className="mb-3 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-red-500">📌 Active Board</span>
-                          <Badge className="bg-red-500/20 text-red-500 text-[10px]">Beauty & Skincare</Badge>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-500">245K</p>
-                            <p className="text-muted-foreground">Impressions</p>
+                    {channel.status === 'connected' ? (
+                      <div className="space-y-2">
+                        {(channel.revenue || 0) > 0 && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Revenue</span>
+                            <span className="font-medium text-green-600">${channel.revenue?.toLocaleString()}</span>
                           </div>
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-500">12.3K</p>
-                            <p className="text-muted-foreground">Saves</p>
-                          </div>
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-500">8.2%</p>
-                            <p className="text-muted-foreground">Save Rate</p>
-                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-7 text-xs"
+                            onClick={() => handleSync(channel.id)}
+                            disabled={syncingChannel === channel.id}
+                          >
+                            {syncingChannel === channel.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-3 h-3" />
+                            )}
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs">
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
-                    )}
-
-                    {/* YouTube-specific: Channel stats & quick post */}
-                    {channel.id === 'youtube' && (
-                      <div className="mb-3 p-2 rounded-lg bg-red-600/10 border border-red-600/20">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-red-600">📺 Channel Stats</span>
-                          <Badge className="bg-red-600/20 text-red-600 text-[10px]">Shorts + Videos</Badge>
-                        </div>
-                        <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-600">156K</p>
-                            <p className="text-muted-foreground">Views</p>
-                          </div>
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-600">4.2K</p>
-                            <p className="text-muted-foreground">Subscribers</p>
-                          </div>
-                          <div className="p-1 rounded bg-background/50">
-                            <p className="font-bold text-red-600">6.8%</p>
-                            <p className="text-muted-foreground">CTR</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-muted-foreground">Auto-sync products</span>
-                      <Switch
-                        checked={channel.syncEnabled}
-                        onCheckedChange={(checked) => toggleSync(channel.id, checked)}
-                      />
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1 gap-1 text-xs">
-                        <Settings className="w-3 h-3" />
-                        Settings
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-xs text-destructive hover:text-destructive"
-                        onClick={() => handleDisconnect(channel.id)}
-                      >
-                        Disconnect
-                      </Button>
-                    </div>
-                  </>
-                )}
-
-                {channel.status === 'pending' && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-warning">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Connection pending...</span>
-                    </div>
-                    <Progress value={65} className="h-2" />
-                    <Button variant="outline" size="sm" className="w-full">
-                      Complete Setup
-                    </Button>
-                  </div>
-                )}
-
-                {channel.status === 'disconnected' && (
-                  <Button
-                    onClick={() => handleConnect(channel.id)}
-                    disabled={isConnecting === channel.id}
-                    className="w-full gap-2"
-                    variant="outline"
-                  >
-                    {isConnecting === channel.id ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Connecting...
-                      </>
                     ) : (
-                      <>
-                        <Zap className="w-4 h-4" />
-                        Connect
-                      </>
+                      <div className="space-y-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="text-[10px] text-muted-foreground line-clamp-2">
+                              {channel.aiSuggestion}
+                            </p>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[200px]">{channel.aiSuggestion}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Button
+                          size="sm"
+                          className="w-full h-7 text-xs bg-gradient-to-r from-primary to-chart-2 hover:from-primary/90 hover:to-chart-2/90"
+                          onClick={() => handleConnect(channel.id)}
+                          disabled={connectingChannel === channel.id}
+                        >
+                          {connectingChannel === channel.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <Zap className="w-3 h-3 mr-1" />
+                          )}
+                          Connect
+                        </Button>
+                      </div>
                     )}
-                  </Button>
-                )}
-              </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Autonomous Publishing Status */}
-      <Card className="p-4 bg-gradient-to-r from-success/10 to-primary/10 border-success/30">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Zap className="w-5 h-5 text-success" />
-            <div>
-              <p className="font-semibold">Autonomous Multi-Channel Publishing</p>
-              <p className="text-sm text-muted-foreground">
-                Products auto-sync across {connectedCount} channels • Inventory updates real-time
-              </p>
-            </div>
-          </div>
-          <Badge className="bg-success/20 text-success animate-pulse">
-            {connectedCount} LIVE
-          </Badge>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      </Card>
-    </div>
+
+        {/* Status Bar */}
+        {connectedCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-3 rounded-xl bg-gradient-to-r from-green-500/10 to-primary/10 border border-green-500/20"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-medium">Autonomous Publishing Active</span>
+              </div>
+              <Badge variant="outline" className="text-xs text-green-600 border-green-500/30">
+                {connectedCount} CHANNELS LIVE
+              </Badge>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
+    </TooltipProvider>
   );
-}
+};

@@ -49,16 +49,17 @@ const platformColors: Record<string, string> = {
   youtube: "from-red-600/20 to-red-700/20",
 };
 
-// DEFAULT CONNECTIONS - Production only
-const DEFAULT_CONNECTIONS: PlatformConnection[] = [
-  { id: 'shopify-default', platform: 'shopify', is_connected: true, health_status: 'healthy', handle: 'lovable-project-7fb70', last_health_check: new Date().toISOString() },
-  { id: 'tiktok-default', platform: 'tiktok', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-  { id: 'instagram-default', platform: 'instagram', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-  { id: 'facebook-default', platform: 'facebook', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-  { id: 'youtube-default', platform: 'youtube', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-  { id: 'pinterest-default', platform: 'pinterest', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-  { id: 'amazon-default', platform: 'amazon', is_connected: false, health_status: 'disconnected', handle: null, last_health_check: null },
-];
+// PLATFORM TEMPLATES - No hardcoded stores, dynamically fetched per-user
+const PLATFORM_TEMPLATES = ['shopify', 'tiktok', 'instagram', 'facebook', 'youtube', 'pinterest', 'amazon'];
+
+const createEmptyConnection = (platform: string): PlatformConnection => ({
+  id: `${platform}-empty`,
+  platform,
+  is_connected: false,
+  health_status: 'disconnected',
+  handle: null,
+  last_health_check: null
+});
 
 export const PlatformConnectionsPanel = () => {
   const { user } = useAuth();
@@ -70,9 +71,10 @@ export const PlatformConnectionsPanel = () => {
 
   useEffect(() => {
     const fetchConnections = async () => {
-      // PRODUCTION ONLY - Fetch real connections from database
+      // PER-USER: Fetch real connections from database
       if (!user) {
-        setConnections(DEFAULT_CONNECTIONS);
+        // Show empty templates for unauthenticated users
+        setConnections(PLATFORM_TEMPLATES.map(createEmptyConnection));
         setIsLoading(false);
         return;
       }
@@ -86,19 +88,20 @@ export const PlatformConnectionsPanel = () => {
         if (error) throw error;
         
         if (data && data.length > 0) {
-          // Merge with defaults
+          // Merge user connections with platform templates
           const existingPlatforms = new Set(data.map(p => p.platform));
           const merged = [
             ...data,
-            ...DEFAULT_CONNECTIONS.filter(p => !existingPlatforms.has(p.platform))
+            ...PLATFORM_TEMPLATES.filter(p => !existingPlatforms.has(p)).map(createEmptyConnection)
           ] as PlatformConnection[];
           setConnections(merged);
         } else {
-          setConnections(DEFAULT_CONNECTIONS);
+          // No connections yet - show empty templates
+          setConnections(PLATFORM_TEMPLATES.map(createEmptyConnection));
         }
       } catch (err) {
         console.error("Error fetching connections:", err);
-        setConnections(DEFAULT_CONNECTIONS);
+        setConnections(PLATFORM_TEMPLATES.map(createEmptyConnection));
       } finally {
         setIsLoading(false);
       }
@@ -131,7 +134,7 @@ export const PlatformConnectionsPanel = () => {
         const existingPlatforms = new Set(data.map(p => p.platform));
         const merged = [
           ...data,
-          ...DEFAULT_CONNECTIONS.filter(p => !existingPlatforms.has(p.platform))
+          ...PLATFORM_TEMPLATES.filter(p => !existingPlatforms.has(p)).map(createEmptyConnection)
         ] as PlatformConnection[];
         setConnections(merged);
       }
