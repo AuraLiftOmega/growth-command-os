@@ -1,6 +1,6 @@
 /**
  * SHOPIFY LIVE BANNER - Top-level sync status with revenue tracking
- * Shows connected store, products, last sync, and today's revenue
+ * Shows connected store (AuraLift Essentials), products, last sync, and today's revenue
  */
 
 import { useState, useEffect } from 'react';
@@ -14,12 +14,14 @@ import {
   Wifi,
   WifiOff,
   ExternalLink,
-  TrendingUp
+  TrendingUp,
+  Sparkles
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { AURALIFT_DOMAIN, AURALIFT_STORE_URL } from '@/lib/shopify-config';
 
 interface ShopifyLiveBannerProps {
   compact?: boolean;
@@ -119,7 +121,10 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
           
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Shopify Live</span>
+              <span className="font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-primary" />
+                AuraLift Essentials
+              </span>
               {(isLoading || isSyncing) ? (
                 <Badge variant="secondary" className="gap-1 text-xs animate-pulse">
                   <RefreshCw className="w-3 h-3 animate-spin" />
@@ -128,7 +133,7 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
               ) : isConnected ? (
                 <Badge className="gap-1 text-xs bg-success/20 text-success hover:bg-success/30 border-0">
                   <CheckCircle className="w-3 h-3" />
-                  Connected
+                  Live
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="gap-1 text-xs">
@@ -138,7 +143,7 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Last sync: {formatTime(lastFetched)} • {products.length} AuraLift products
+              {AURALIFT_DOMAIN} • {formatTime(lastFetched)} • {products.length} products
             </p>
           </div>
         </div>
@@ -184,12 +189,27 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
             asChild
           >
             <a 
-              href="https://admin.shopify.com" 
+              href={AURALIFT_STORE_URL} 
               target="_blank" 
               rel="noopener noreferrer"
               className="gap-2"
             >
               <ExternalLink className="w-4 h-4" />
+              Store
+            </a>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+          >
+            <a 
+              href="https://admin.shopify.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
               Admin
             </a>
           </Button>
