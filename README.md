@@ -72,25 +72,55 @@ This project is built with:
 - **Self-Healing System**: Auto-fixes errors, token expiry, sync issues
 - **Revenue Dashboard**: Real-time MRR, ROAS, channel performance
 
+## Integrations Superstack (40+ Tools)
+
+AURAOMEGA connects to your entire business stack:
+
+| Category | Integrations |
+|----------|-------------|
+| **Project Management** | Asana, ClickUp, monday.com, Trello, Jira |
+| **Communication** | Slack, Discord, WhatsApp, Telegram, Gmail, Outlook |
+| **CRM & Sales** | HubSpot, Pipedrive, Salesforce, LeadConnector, Facebook Lead Ads |
+| **Productivity** | Notion, Google Calendar, Airtable, Todoist, Google Tasks, Microsoft To Do |
+| **Forms & Surveys** | Google Forms, Typeform, Jotform |
+| **Email & Marketing** | Mailchimp, ActiveCampaign |
+| **Storage & Sheets** | Google Drive, Google Sheets, Google Docs, Microsoft Excel |
+| **Automation** | Zapier, Calendly, Motion, tl;dv |
+| **E-commerce** | Shopify, Webflow |
+| **AI** | ChatGPT (OpenAI) |
+| **Video** | YouTube |
+
+## Zapier Integration Guide
+
+AURAOMEGA exposes webhook endpoints for Zapier automation:
+
+### Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/zapier-test` | POST | Test endpoint - returns 200 with status |
+| `/zapier-trigger` | POST | Receive events from Zapier |
+| `/zapier-action` | POST | Send actions to integrations |
+
+### Security
+
+Add `x-zapier-secret` header with your configured secret for authenticated calls.
+
+### Example Zapier Call
+
+```json
+POST https://phpektarjfbgnuyqjnmj.supabase.co/functions/v1/zapier-trigger
+Headers: { "Content-Type": "application/json", "x-zapier-secret": "YOUR_SECRET" }
+Body: { "action": "new_order", "data": { "order_id": "123" } }
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-
-## Screenshots
-
-![AURAOMEGA Dashboard](/screenshots/dashboard.png)
-![Video Ad Studio](/screenshots/video-ad-studio.png)
-![Social Channels](/screenshots/social-channels.png)
-![Omega Brain](/screenshots/omega-brain.png)
-![Revenue Dashboard](/screenshots/revenue-dashboard.png)
+Yes! Navigate to Project > Settings > Domains and click Connect Domain.
 
 ---
 
