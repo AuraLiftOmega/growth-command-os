@@ -60,6 +60,81 @@ const HEYGEN_AVATARS = {
   default: "Anna_public_3_20240108" // DEFAULT - Professional female for skincare
 };
 
+// FALLBACK: Pexels stock skincare video URLs (vertical 9:16, 10-20s clips)
+const PEXELS_STOCK_VIDEOS = [
+  {
+    id: "pexels-1",
+    url: "https://videos.pexels.com/video-files/6974595/6974595-uhd_1440_2560_25fps.mp4",
+    hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4",
+    title: "Woman applying skincare serum",
+    duration: 15,
+  },
+  {
+    id: "pexels-2", 
+    url: "https://videos.pexels.com/video-files/5069413/5069413-uhd_1440_2560_30fps.mp4",
+    hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4",
+    title: "Woman beauty skincare routine",
+    duration: 12,
+  },
+  {
+    id: "pexels-3",
+    url: "https://videos.pexels.com/video-files/5069610/5069610-uhd_1440_2560_30fps.mp4",
+    hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4",
+    title: "Face massage skincare",
+    duration: 14,
+  },
+  {
+    id: "pexels-4",
+    url: "https://videos.pexels.com/video-files/3997796/3997796-uhd_1440_2560_25fps.mp4",
+    hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4",
+    title: "Beauty products display",
+    duration: 10,
+  },
+  {
+    id: "pexels-5",
+    url: "https://videos.pexels.com/video-files/5069387/5069387-uhd_1440_2560_30fps.mp4",
+    hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4",
+    title: "Skincare application closeup",
+    duration: 11,
+  },
+];
+
+// Generate stock video with voiceover overlay (fallback when HeyGen fails)
+async function generateStockVideoAd(
+  supabase: any,
+  userId: string,
+  product: any,
+  script: string,
+  voiceoverUrl: string | null,
+  useHeyGenVoice: boolean
+): Promise<{ video_url: string; thumbnail_url: string | null; stock_video_id: string; mode: string }> {
+  console.log("\n=== STOCK VIDEO FALLBACK MODE ===");
+  
+  // Pick a random stock video
+  const stockVideo = PEXELS_STOCK_VIDEOS[Math.floor(Math.random() * PEXELS_STOCK_VIDEOS.length)];
+  console.log(`Selected stock video: ${stockVideo.id} - ${stockVideo.title}`);
+  console.log(`Video URL: ${stockVideo.hd_url}`);
+  
+  // For now, we return the stock video URL directly
+  // In production, you would combine this with voiceover using FFmpeg or similar
+  // The client can overlay the voiceover audio on the stock video
+  
+  // Generate thumbnail from first frame (using Unsplash skincare image as fallback)
+  const thumbnailUrl = product.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400";
+  
+  console.log(`✅ Stock video fallback ready`);
+  console.log(`Video: ${stockVideo.hd_url}`);
+  console.log(`Thumbnail: ${thumbnailUrl}`);
+  console.log(`Voiceover: ${voiceoverUrl || 'none'}`);
+  
+  return {
+    video_url: stockVideo.hd_url,
+    thumbnail_url: thumbnailUrl,
+    stock_video_id: stockVideo.id,
+    mode: "stock_video_fallback"
+  };
+}
+
 // Helper to check HeyGen credits
 async function checkHeyGenCredits(apiKey: string): Promise<{ credits: number; hasCredits: boolean; error?: string }> {
   try {
@@ -420,10 +495,29 @@ serve(async (req) => {
       const HEYGEN_API_KEY = Deno.env.get("HEYGEN_API_KEY");
       
       if (!HEYGEN_API_KEY) {
-        console.warn("❌ HEYGEN_API_KEY not configured");
-        videoStatus = "voiceover_only";
-        creditsWarning = "HEYGEN_API_KEY not configured. Add your HeyGen API key to Supabase secrets.";
-        await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "HeyGen API key missing", {});
+        console.warn("❌ HEYGEN_API_KEY not configured - using stock video fallback");
+        console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (no API key)...`);
+        
+        // Use stock video fallback when no API key
+        const stockResult = await generateStockVideoAd(
+          supabase,
+          user.id,
+          product,
+          script,
+          voiceoverUrl,
+          useHeyGenVoice
+        );
+        
+        videoUrl = stockResult.video_url;
+        thumbnailUrl = stockResult.thumbnail_url;
+        videoStatus = "completed";
+        creditsWarning = "HEYGEN_API_KEY not configured - using stock video fallback";
+        
+        await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (no API key)", {
+          stock_video_id: stockResult.stock_video_id,
+          mode: stockResult.mode,
+          video_url: videoUrl
+        });
       } else {
         console.log("✅ HEYGEN_API_KEY found");
         
@@ -431,12 +525,29 @@ serve(async (req) => {
         const creditsCheck = await checkHeyGenCredits(HEYGEN_API_KEY);
         
         if (!creditsCheck.hasCredits) {
-          console.warn(`❌ Insufficient credits: ${creditsCheck.error}`);
-          videoStatus = "credits_low";
-          creditsWarning = creditsCheck.error || "HeyGen credits low - upgrade at app.heygen.com";
-          await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "HeyGen credits low", { 
+          console.warn(`❌ Insufficient HeyGen credits: ${creditsCheck.error}`);
+          console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE...`);
+          
+          // Use stock video fallback
+          const stockResult = await generateStockVideoAd(
+            supabase,
+            user.id,
+            product,
+            script,
+            voiceoverUrl,
+            useHeyGenVoice
+          );
+          
+          videoUrl = stockResult.video_url;
+          thumbnailUrl = stockResult.thumbnail_url;
+          videoStatus = "completed";
+          creditsWarning = `HeyGen credits low - using stock video fallback. ${creditsCheck.error}`;
+          
+          await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (HeyGen credits low)", { 
             credits: creditsCheck.credits,
-            error: creditsCheck.error 
+            stock_video_id: stockResult.stock_video_id,
+            mode: stockResult.mode,
+            video_url: videoUrl
           });
         } else {
           console.log(`✅ Credits OK: ${creditsCheck.credits}s remaining`);
@@ -551,19 +662,54 @@ serve(async (req) => {
             } else {
               console.error(`\n❌ HeyGen API error: ${heygenResponse.status}`);
               console.error(`Response: ${responseText}`);
-              videoStatus = "heygen_error";
-              creditsWarning = `HeyGen API error: ${heygenResponse.status}. ${responseText}`;
-              await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen API error", { 
-                status: heygenResponse.status, 
-                response: responseText 
+              console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (HeyGen error)...`);
+              
+              // Use stock video fallback on HeyGen error
+              const stockResult = await generateStockVideoAd(
+                supabase,
+                user.id,
+                product,
+                script,
+                voiceoverUrl,
+                useHeyGenVoice
+              );
+              
+              videoUrl = stockResult.video_url;
+              thumbnailUrl = stockResult.thumbnail_url;
+              videoStatus = "completed";
+              creditsWarning = `HeyGen API error (${heygenResponse.status}) - using stock video fallback`;
+              
+              await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (HeyGen error)", { 
+                heygen_status: heygenResponse.status, 
+                stock_video_id: stockResult.stock_video_id,
+                mode: stockResult.mode,
+                video_url: videoUrl
               });
             }
           } catch (heygenError) {
             console.error(`\n❌ HeyGen request exception:`, heygenError);
-            videoStatus = "heygen_error";
-            creditsWarning = `HeyGen request failed: ${heygenError instanceof Error ? heygenError.message : 'Unknown error'}`;
-            await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen request exception", { 
-              error: String(heygenError) 
+            console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (exception)...`);
+            
+            // Use stock video fallback on exception
+            const stockResult = await generateStockVideoAd(
+              supabase,
+              user.id,
+              product,
+              script,
+              voiceoverUrl,
+              useHeyGenVoice
+            );
+            
+            videoUrl = stockResult.video_url;
+            thumbnailUrl = stockResult.thumbnail_url;
+            videoStatus = "completed";
+            creditsWarning = `HeyGen request failed - using stock video fallback. ${heygenError instanceof Error ? heygenError.message : 'Unknown error'}`;
+            
+            await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (exception)", { 
+              error: String(heygenError),
+              stock_video_id: stockResult.stock_video_id,
+              mode: stockResult.mode,
+              video_url: videoUrl
             });
           }
         }
