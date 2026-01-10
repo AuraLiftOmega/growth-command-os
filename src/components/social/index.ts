@@ -1,4 +1,5 @@
 export { SocialChannelsDashboard } from "./SocialChannelsDashboard";
+export { EnhancedChannelsDashboard } from "./EnhancedChannelsDashboard";
 export { PlatformChannelCard } from "./PlatformChannelCard";
 export { ShopifyChannelCard } from "./ShopifyChannelCard";
 export { ThreadsChannelCard } from "./ThreadsChannelCard";
@@ -6,3 +7,4 @@ export { AISuggestionBanner, useAISuggestions } from "./AISuggestionBanner";
 export { PostAdModal } from "./PostAdModal";
 export { SocialAnalyticsPanel } from "./SocialAnalyticsPanel";
 export { AutonomousModePanel } from "./AutonomousModePanel";
+export { AddChannelConfig } from "./AddChannelConfig";
