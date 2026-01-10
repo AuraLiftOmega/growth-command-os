@@ -241,9 +241,9 @@ export function AnalyticsPanel() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <Badge className="mb-2 bg-[#FF0000]/20 text-[#FF0000]">SHORTS</Badge>
-                    <h4 className="font-medium">Get the Glow: Radiance Vitamin C Serum Routine 2026 | AuraLift Essentials</h4>
+                    <h4 className="font-medium">Get the Glow: Radiance Vitamin C Serum Routine 2026 | Skincare Brand</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Tags: vitamin c serum, skincare routine, natural glow, auralift
+                      Tags: vitamin c serum, skincare routine, natural glow, beauty
                     </p>
                     <div className="flex items-center gap-4 mt-3 text-sm">
                       <span className="flex items-center gap-1">

@@ -39,6 +39,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useShopifyProducts, ParsedShopifyProduct } from '@/hooks/useShopifyProducts';
+import { useActiveStore } from '@/hooks/useActiveStore';
 
 interface GeneratedVideo {
   id: string;
@@ -92,6 +93,7 @@ const QUICK_HOOKS = [
 ];
 
 export function VideoAdStudio() {
+  const { activeStore } = useActiveStore();
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('pinterest');
   const [style, setStyle] = useState('ugc');
@@ -102,9 +104,8 @@ export function VideoAdStudio() {
   const [selectedProduct, setSelectedProduct] = useState<ParsedShopifyProduct | null>(null);
   const [isQuickGenerating, setIsQuickGenerating] = useState(false);
 
-  // Fetch ONLY AuraLift Beauty products (real skincare)
+  // Fetch products from user's connected store
   const { products, isLoading: loadingProducts, refetch } = useShopifyProducts({ 
-    vendor: 'AuraLift Beauty',
     autoLoad: true 
   });
 
@@ -302,11 +303,14 @@ export function VideoAdStudio() {
         }
       } else if (publishTo === 'youtube_shorts' || publishTo === 'youtube') {
         const isShort = publishTo === 'youtube_shorts';
+        const storeUrl = activeStore?.storeDomain || 'auradominion.io';
+        const storeName = activeStore?.storeName || 'Store';
+        
         const result = await supabase.functions.invoke('youtube-publish', {
           body: {
             video_url: video.videoUrl,
-            title: `${product?.title || 'Product'} | AuraLift Essentials`,
-            description: `${product?.description?.slice(0, 800) || video.prompt.slice(0, 800)}\n\n✨ Shop: https://auraliftessentials.com/products/${product?.handle}`,
+            title: `${product?.title || 'Product'} | ${storeName}`,
+            description: `${product?.description?.slice(0, 800) || video.prompt.slice(0, 800)}\n\n✨ Shop: https://${storeUrl}/products/${product?.handle}`,
             tags: ['skincare', 'beauty', 'glow up', product?.productType?.toLowerCase()].filter(Boolean),
             category_id: '26',
             privacy_status: 'public',
@@ -321,13 +325,17 @@ export function VideoAdStudio() {
           toast.success(`📺 Published to YouTube${isShort ? ' Shorts' : ''}!`);
         }
       } else {
+        const productUrl = activeStore?.storeDomain 
+          ? `https://${activeStore.storeDomain}/products/${product?.handle}`
+          : `/product/${product?.handle}`;
+        
         await supabase.functions.invoke('autonomous-publisher', {
           body: {
             video_url: video.videoUrl,
             platform: publishTo,
             caption: `${product?.title} | Shop Now ✨`,
             hashtags: ['fyp', 'viral', 'beauty', 'skincare'],
-            product_link: `https://auraliftessentials.com/products/${product?.handle}`
+            product_link: productUrl
           }
         });
         toast.success(`Published to ${publishTo}!`);

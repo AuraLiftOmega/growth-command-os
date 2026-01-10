@@ -28,7 +28,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { STORE_CONFIG, DOMINION_LOGO_URL } from '@/lib/store-config';
+import { PLATFORM_CONFIG, DOMINION_LOGO_URL } from '@/lib/store-config';
+import { useActiveStore } from '@/hooks/useActiveStore';
 
 interface IntegrationStatus {
   name: string;
@@ -38,6 +39,7 @@ interface IntegrationStatus {
 
 export function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { activeStore, hasConnectedStores } = useActiveStore();
   const [testMode, setTestMode] = useState(false);
   const [autonomousMode, setAutonomousMode] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -250,9 +252,11 @@ export function SettingsPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{STORE_CONFIG.name}</p>
+                  <p className="font-medium">
+                    {hasConnectedStores && activeStore ? activeStore.storeName : 'No Store Connected'}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {STORE_CONFIG.domain}
+                    {hasConnectedStores && activeStore ? activeStore.storeDomain : 'Connect your Shopify store to sync products'}
                   </p>
                 </div>
                 <Button 
