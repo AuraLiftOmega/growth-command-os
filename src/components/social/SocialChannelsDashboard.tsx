@@ -59,6 +59,16 @@ const SOCIAL_PLATFORMS: PlatformConfig[] = [
     apiFeatures: ["Video Upload", "Reels", "Duets", "TikTok Ads"],
   },
   {
+    id: "tiktok_shop",
+    name: "TikTok Shop (US)",
+    icon: "🛍️",
+    color: "#ff0050",
+    gradientFrom: "from-pink-600",
+    gradientTo: "to-orange-500",
+    type: "social",
+    apiFeatures: ["Shoppable Videos", "Product Tags", "Orders", "GMV Analytics"],
+  },
+  {
     id: "instagram",
     name: "Instagram",
     icon: "📸",
@@ -188,6 +198,9 @@ export function SocialChannelsDashboard() {
   const [targetPlatformName, setTargetPlatformName] = useState("");
   const [activeChannel, setActiveChannel] = useState<string>("all");
 
+  // Check TikTok Shop connection
+  const isTikTokShopConnected = isSocialTokenConnected('tiktok_shop');
+
   // Live stats with auto-connected status + real token data
   const platformStats: Record<string, any> = {
     tiktok: { 
@@ -195,6 +208,14 @@ export function SocialChannelsDashboard() {
       engagement: isTikTokConnected || isSocialTokenConnected('tiktok') ? 8.4 : 0, 
       posts7d: isTikTokConnected || isSocialTokenConnected('tiktok') ? 12 : 0, 
       reach: isTikTokConnected || isSocialTokenConnected('tiktok') ? 145000 : 0 
+    },
+    tiktok_shop: {
+      followers: isTikTokShopConnected ? 18500 : 0,
+      engagement: isTikTokShopConnected ? 12.4 : 0,
+      posts7d: isTikTokShopConnected ? 8 : 0,
+      reach: isTikTokShopConnected ? 320000 : 0,
+      revenue: isTikTokShopConnected ? 12840 : 0,
+      orders: isTikTokShopConnected ? 156 : 0
     },
     instagram: { followers: isSocialTokenConnected('instagram') ? 18200 : 0, engagement: isSocialTokenConnected('instagram') ? 4.2 : 0, posts7d: isSocialTokenConnected('instagram') ? 8 : 0, reach: isSocialTokenConnected('instagram') ? 89000 : 0 },
     pinterest: { 
@@ -219,14 +240,18 @@ export function SocialChannelsDashboard() {
     localStorage.setItem("oauth_platform", platformId);
 
     try {
-      // Use social-oauth for social platforms, platform-oauth for sales channels
-      const isSocialPlatform = SOCIAL_PLATFORMS.some(p => p.id === platformId);
-      const functionName = isSocialPlatform ? "social-oauth" : "platform-oauth";
+      // Use tiktok-shop-oauth for TikTok Shop, social-oauth for other social platforms
+      let functionName = "social-oauth";
+      if (platformId === "tiktok_shop") {
+        functionName = "tiktok-shop-oauth";
+      } else if (!SOCIAL_PLATFORMS.some(p => p.id === platformId)) {
+        functionName = "platform-oauth";
+      }
       
       const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
-          channel: platformId, // social-oauth uses 'channel'
-          platform: platformId, // platform-oauth uses 'platform'
+          channel: platformId,
+          platform: platformId,
           action: "authorize",
           redirect_uri: `${window.location.origin}/oauth/callback`,
         },
@@ -235,7 +260,8 @@ export function SocialChannelsDashboard() {
       if (error) throw error;
 
       if (data?.authUrl) {
-        toast.success(`Redirecting to ${platformId} login...`);
+        const platformName = platformId === "tiktok_shop" ? "TikTok Shop" : platformId;
+        toast.success(`Redirecting to ${platformName} login...`);
         window.location.href = data.authUrl;
         return;
       }

@@ -181,6 +181,12 @@ export function VideoAdStudioPage() {
   const [pinterestConnected, setPinterestConnected] = useState(false);
   const [lastPinterestPost, setLastPinterestPost] = useState<{ time: string; url: string } | null>(null);
   
+  // TikTok Shop state
+  const [tiktokShopConnected, setTiktokShopConnected] = useState(false);
+  const [lastTiktokShopPost, setLastTiktokShopPost] = useState<{ time: string; url: string } | null>(null);
+  const [isBatchPostingTikTokShop, setIsBatchPostingTikTokShop] = useState(false);
+  const [tiktokShopBatchProgress, setTiktokShopBatchProgress] = useState(0);
+  
   const { products, isLoading: loadingProducts } = useShopifyProducts({
     vendor: 'AuraLift Beauty',
     autoLoad: true
@@ -241,10 +247,43 @@ export function VideoAdStudioPage() {
     }
   }, [user]);
 
+  // Check TikTok Shop connection
+  const checkTikTokShopConnection = useCallback(async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('social_tokens')
+      .select('is_connected')
+      .eq('user_id', user.id)
+      .eq('channel', 'tiktok_shop')
+      .single();
+    
+    if (data?.is_connected) {
+      setTiktokShopConnected(true);
+    }
+    
+    // Get last TikTok Shop post
+    const { data: posts } = await supabase
+      .from('social_posts')
+      .select('posted_at, post_url')
+      .eq('user_id', user.id)
+      .eq('channel', 'tiktok_shop')
+      .order('posted_at', { ascending: false })
+      .limit(1);
+    
+    if (posts && posts.length > 0) {
+      setLastTiktokShopPost({
+        time: posts[0].posted_at,
+        url: posts[0].post_url
+      });
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchVideos();
     checkPinterestConnection();
-  }, [fetchVideos, checkPinterestConnection]);
+    checkTikTokShopConnection();
+  }, [fetchVideos, checkPinterestConnection, checkTikTokShopConnection]);
 
   // Fetch HeyGen avatars
   const fetchAvatars = async () => {
