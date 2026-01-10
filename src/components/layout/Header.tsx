@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./Breadcrumbs";
+import { DominionLogo } from "@/components/DominionLogo";
 
 export const Header = () => {
   return (
@@ -12,6 +13,8 @@ export const Header = () => {
       className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6"
     >
       <div className="flex items-center gap-4">
+        <DominionLogo size="sm" linkTo="/dashboard" />
+        <div className="h-6 w-px bg-border" />
         <Breadcrumbs />
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
