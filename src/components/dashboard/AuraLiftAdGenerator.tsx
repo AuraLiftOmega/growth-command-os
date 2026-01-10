@@ -40,6 +40,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useShopifyProducts, type ParsedShopifyProduct } from '@/hooks/useShopifyProducts';
 
 // TikTok & Pinterest icons
 const TikTokIcon = () => (
@@ -86,57 +87,34 @@ interface AuraLiftAdGeneratorProps {
   onAdGenerated?: (ad: GeneratedAd) => void;
 }
 
-// AuraLift product catalog
-const AURALIFT_PRODUCTS = [
-  { 
-    handle: 'radiance-vitamin-c-serum', 
-    title: 'Radiance Vitamin C Serum',
-    emoji: '🍊',
-    description: 'Brightens skin, fights dark spots, radiant glow in weeks',
-    price: '$38.00'
-  },
-  { 
-    handle: 'hydra-glow-retinol-night-cream', 
-    title: 'Hydra-Glow Retinol Night Cream',
-    emoji: '🌙',
-    description: 'Repairs skin overnight, reduces fine lines',
-    price: '$44.00'
-  },
-  { 
-    handle: 'ultra-hydration-hyaluronic-serum', 
-    title: 'Ultra Hydration Hyaluronic Serum',
-    emoji: '💧',
-    description: 'Deep hydration, plumps skin, locks in moisture',
-    price: '$36.00'
-  },
-  { 
-    handle: 'omega-glow-collagen-peptide-moisturizer', 
-    title: 'Omega Glow Collagen Peptide Moisturizer',
-    emoji: '✨',
-    description: 'Firms skin, boosts collagen, youthful elasticity',
-    price: '$48.00'
-  },
-  { 
-    handle: 'luxe-rose-quartz-face-roller-set', 
-    title: 'Luxe Rose Quartz Face Roller Set',
-    emoji: '💎',
-    description: 'Depuffs, promotes circulation, luxurious spa experience',
-    price: '$32.00'
-  },
-];
+// Product emoji mapping
+const PRODUCT_EMOJIS: Record<string, string> = {
+  'radiance-vitamin-c-serum': '🍊',
+  'hydra-glow-retinol-night-cream': '🌙',
+  'ultra-hydration-hyaluronic-serum': '💧',
+  'omega-glow-collagen-peptide-moisturizer': '✨',
+  'luxe-rose-quartz-face-roller-set': '💎',
+};
 
 // Script variations by emotion - AURALIFT ESSENTIALS domain
 const SCRIPT_VARIATIONS = {
-  excited: (product: string, desc: string) => 
-    `OMG you NEED to try ${product}! ${desc} - I literally can't live without it! Shop www.auraliftessentials.com!`,
-  calm: (product: string, desc: string) => 
-    `Discover ${product} from AuraLift Essentials. ${desc}. Radiant, hydrated, youthful skin. Shop now at www.auraliftessentials.com!`,
-  urgent: (product: string, desc: string) => 
-    `STOP scrolling! ${product} is selling out fast. ${desc}. Get yours before it's gone - www.auraliftessentials.com!`,
+  excited: (title: string, desc: string) => 
+    `OMG you NEED to try ${title}! ${desc} - I literally can't live without it! Shop www.auraliftessentials.com!`,
+  calm: (title: string, desc: string) => 
+    `Discover ${title} from AuraLift Essentials. ${desc}. Radiant, hydrated, youthful skin. Shop now at www.auraliftessentials.com!`,
+  urgent: (title: string, desc: string) => 
+    `STOP scrolling! ${title} is selling out fast. ${desc}. Get yours before it's gone - www.auraliftessentials.com!`,
 };
 
 export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps) {
   const { user } = useAuth();
+  
+  // Fetch real AuraLift products from Shopify
+  const { products: shopifyProducts, isLoading: loadingProducts, refetch: refetchProducts } = useShopifyProducts({
+    vendor: 'AuraLift Beauty',
+    autoLoad: true
+  });
+  
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAd, setGeneratedAd] = useState<GeneratedAd | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -147,8 +125,8 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const [recentAds, setRecentAds] = useState<GeneratedAd[]>([]);
   const [isLoadingAds, setIsLoadingAds] = useState(true);
   
-  // Product selection
-  const [selectedProduct, setSelectedProduct] = useState(AURALIFT_PRODUCTS[0]);
+  // Product selection - use real Shopify products
+  const [selectedProduct, setSelectedProduct] = useState<ParsedShopifyProduct | null>(null);
   const [selectedEmotion, setSelectedEmotion] = useState<'excited' | 'calm' | 'urgent'>('calm');
   const [customScript, setCustomScript] = useState('');
   
@@ -159,11 +137,20 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const [tiktokConnected, setTiktokConnected] = useState(false);
   const [pinterestConnected, setPinterestConnected] = useState(false);
 
+  // Set first product as default when products load
+  useEffect(() => {
+    if (shopifyProducts.length > 0 && !selectedProduct) {
+      setSelectedProduct(shopifyProducts[0]);
+    }
+  }, [shopifyProducts, selectedProduct]);
+
   // Generated script preview
-  const generatedScript = customScript || SCRIPT_VARIATIONS[selectedEmotion](
-    selectedProduct.title, 
-    selectedProduct.description
-  );
+  const generatedScript = selectedProduct 
+    ? (customScript || SCRIPT_VARIATIONS[selectedEmotion](
+        selectedProduct.title, 
+        selectedProduct.description || `${selectedProduct.productType} from AuraLift Beauty`
+      ))
+    : '';
 
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
@@ -251,6 +238,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       return;
     }
 
+    if (!selectedProduct) {
+      toast.error('Please select a product first');
+      return;
+    }
+
     setIsGenerating(true);
     setProgress(0);
     setStatus('Initializing...');
@@ -266,6 +258,8 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       const { data, error } = await supabase.functions.invoke('generate-auralift-ad', {
         body: {
           product_handle: selectedProduct.handle,
+          product_title: selectedProduct.title,
+          product_image: selectedProduct.imageUrl,
           script: generatedScript,
           test_mode: testMode,
           voice: 'sarah',
@@ -499,28 +493,37 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
           {/* Product Selector */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Product</label>
-              <Select 
-                value={selectedProduct.handle} 
-                onValueChange={(v) => setSelectedProduct(
-                  AURALIFT_PRODUCTS.find(p => p.handle === v) || AURALIFT_PRODUCTS[0]
-                )}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AURALIFT_PRODUCTS.map(p => (
-                    <SelectItem key={p.handle} value={p.handle}>
-                      <span className="flex items-center gap-2">
-                        <span>{p.emoji}</span>
-                        <span>{p.title}</span>
-                        <span className="text-muted-foreground text-xs">{p.price}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium flex items-center justify-between">
+                <span>Product</span>
+                {loadingProducts && <Loader2 className="w-3 h-3 animate-spin" />}
+              </label>
+              {shopifyProducts.length === 0 && !loadingProducts ? (
+                <p className="text-sm text-muted-foreground">No AuraLift products found</p>
+              ) : (
+                <Select 
+                  value={selectedProduct?.handle || ''} 
+                  onValueChange={(v) => setSelectedProduct(
+                    shopifyProducts.find(p => p.handle === v) || shopifyProducts[0]
+                  )}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {shopifyProducts.map(p => (
+                      <SelectItem key={p.handle} value={p.handle}>
+                        <span className="flex items-center gap-2">
+                          <span>{PRODUCT_EMOJIS[p.handle] || '🧴'}</span>
+                          <span>{p.title}</span>
+                          <span className="text-muted-foreground text-xs">
+                            ${p.price.toFixed(2)}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -557,7 +560,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
             <Textarea
               value={customScript || generatedScript}
               onChange={(e) => setCustomScript(e.target.value)}
-              placeholder={generatedScript}
+              placeholder={generatedScript || 'Select a product to preview script...'}
               className="min-h-[80px] text-sm"
             />
             <p className="text-xs text-muted-foreground flex items-center gap-2">
