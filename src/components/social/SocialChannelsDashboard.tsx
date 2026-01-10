@@ -34,6 +34,7 @@ import { PlatformChannelCard, type PlatformConfig } from "./PlatformChannelCard"
 import { PostAdModal } from "./PostAdModal";
 import { SocialAnalyticsPanel } from "./SocialAnalyticsPanel";
 import { AutonomousModePanel } from "./AutonomousModePanel";
+import { AddChannelConfig } from "./AddChannelConfig";
 
 // Platform configurations
 const SOCIAL_PLATFORMS: PlatformConfig[] = [
@@ -313,6 +314,7 @@ export function SocialChannelsDashboard() {
               </>
             )}
           </Button>
+          <AddChannelConfig />
         </div>
       </div>
 
