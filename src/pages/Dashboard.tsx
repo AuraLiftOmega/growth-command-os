@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardHome } from "@/components/dashboard/DashboardHome";
 import { ShopifySyncPanel } from "@/components/dashboard/ShopifySyncPanel";
@@ -12,6 +13,16 @@ import { LiveProfitEngine } from "@/components/autonomous";
 import { EmergingLayerDashboard } from "@/components/omega";
 import { SuperGrokCEODashboard } from "@/components/dashboard/SuperGrokCEODashboard";
 import { CJDropshippingDashboard } from "@/components/dashboard/CJDropshippingDashboard";
+import { Loader2 } from "lucide-react";
+
+// Lazy load ElevenLabs dashboard for better performance
+const ElevenLabsDashboard = lazy(() => import("@/pages/ElevenLabsDashboard"));
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-64">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 const Dashboard = () => {
   return (
@@ -29,6 +40,14 @@ const Dashboard = () => {
         <Route path="emerging-layer" element={<EmergingLayerDashboard />} />
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
         <Route path="cj-dropshipping" element={<CJDropshippingDashboard />} />
+        <Route 
+          path="elevenlabs" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ElevenLabsDashboard />
+            </Suspense>
+          } 
+        />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
