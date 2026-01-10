@@ -16,6 +16,8 @@ import {
   Plug,
   DollarSign,
   Globe,
+  Package,
+  Truck,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +62,12 @@ const mainNavItems = [
     icon: ShoppingBag,
     path: "/dashboard/products",
     badge: "Sync",
+  },
+  {
+    title: "CJ Dropshipping",
+    icon: Truck,
+    path: "/dashboard/cj-dropshipping",
+    badge: "Source",
   },
   {
     title: "Video Ad Studio",
