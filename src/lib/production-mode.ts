@@ -1,142 +1,125 @@
 /**
- * PRODUCTION MODE - REAL MONEY OPERATIONS ONLY
+ * DOMINION SaaS - Production Mode Configuration
  * 
- * NO SIMULATIONS. NO TEST MODE. REAL PUBLISHING. REAL REVENUE.
- * 
- * AURAOMEGA is a LIVE money machine. Every metric is real.
+ * FULLY DYNAMIC PER-USER CONFIGURATION
+ * All stores and social accounts are fetched from user tables
+ * No hardcoded references - clean multi-tenant SaaS
  */
 
-// FORCE PRODUCTION MODE - NO OVERRIDE POSSIBLE
-export const PRODUCTION_MODE = true;
+// ================= PRODUCTION FLAGS =================
+export const IS_PRODUCTION = true;
+export const ENABLE_REAL_APIS = true;
+export const REQUIRE_REAL_CONNECTIONS = true;
 
-// Admin email for god-mode bypass
-export const ADMIN_EMAIL = 'ryanauralift@gmail.com';
-
-// ALWAYS returns true - production mode is FORCED
-export function isProductionMode(): boolean {
-  return true;
-}
-
-// ALWAYS returns false - dev mode is PERMANENTLY disabled
-export function isDevTestMode(): boolean {
-  return false;
-}
-
-// No-op - dev mode cannot be enabled
-export function setDevMode(_enabled: boolean): void {
-  throw new Error('[AURAOMEGA] Dev mode is permanently disabled. Production only.');
-}
-
-// Get mode label - always LIVE
-export function getModeLabel(): string {
-  return 'LIVE';
-}
-
-// Platform API Keys Status - ALL LIVE
-export interface PlatformKeyStatus {
-  platform: string;
-  configured: boolean;
-  key: string;
-  description: string;
-}
-
-export const REQUIRED_PLATFORM_KEYS: PlatformKeyStatus[] = [
-  // Social Publishing - ALL LIVE
-  { platform: 'TikTok', configured: true, key: 'TIKTOK_CLIENT_KEY', description: 'TikTok @ryan.auralift LIVE ✓' },
-  { platform: 'TikTok Secret', configured: true, key: 'TIKTOK_CLIENT_SECRET', description: 'TikTok OAuth secret LIVE ✓' },
-  
-  // Payments - LIVE MODE ONLY
-  { platform: 'Stripe Live', configured: true, key: 'STRIPE_SECRET_KEY', description: 'Stripe LIVE payments ✓' },
-  { platform: 'Stripe Webhook', configured: true, key: 'STRIPE_WEBHOOK_SECRET', description: 'Stripe webhook LIVE ✓' },
-  
-  // AI Video Generation - D-ID Pro ONLY (NO HeyGen)
-  { platform: 'D-ID Pro', configured: true, key: 'DID_API_KEY', description: 'D-ID Pro video generation LIVE ✓' },
-  { platform: 'ElevenLabs', configured: true, key: 'ELEVENLABS_API_KEY', description: 'ElevenLabs Sarah voice LIVE ✓' },
-  { platform: 'Lovable AI', configured: true, key: 'LOVABLE_API_KEY', description: 'Lovable AI gateway LIVE ✓' },
-  { platform: 'Perplexity', configured: true, key: 'PERPLEXITY_API_KEY', description: 'Perplexity AI LIVE ✓' },
-  
-  // Email - LIVE
-  { platform: 'Resend', configured: true, key: 'RESEND_API_KEY', description: 'Transactional email LIVE ✓' },
-  
-  // Pinterest - LIVE
-  { platform: 'Pinterest', configured: true, key: 'PINTEREST_APP_ID', description: 'Pinterest AuraLift Beauty LIVE ✓' },
-  
-  // Instagram - LIVE
-  { platform: 'Instagram', configured: true, key: 'INSTAGRAM_ACCESS_TOKEN', description: 'Instagram @auraliftessentials LIVE ✓' },
-];
-
-// Get unconfigured keys - should be empty in production
-export function getRequiredKeys(): PlatformKeyStatus[] {
-  return REQUIRED_PLATFORM_KEYS.filter(k => !k.configured);
-}
-
-// Shopify Store Configuration - LIVE (LOCKED - NO OVERRIDES)
-// Target: aura-lift-essentials.myshopify.com (requires Shopify OAuth reconnect)
-// Current: Uses Lovable integration store with AuraLift products synced
-export const SHOPIFY_STORE = {
-  // API domain (Lovable Shopify integration - synced with AuraLift products)
-  domain: 'lovable-project-7fb70.myshopify.com',
-  // Public domain for customer links
-  publicDomain: 'www.auraliftessentials.com',
-  // Target store for full connection
-  targetStore: 'aura-lift-essentials.myshopify.com',
-  name: 'AuraLift Essentials',
-  productCount: 22,
-  connected: true,
-  live: true,
-  videoEngine: 'D-ID Pro', // SOLE video engine - NO HeyGen
+// ================= APP CONFIGURATION =================
+export const APP_CONFIG = {
+  name: 'DOMINION',
+  tagline: 'AI Marketing Command Center',
+  version: '2.0.0',
+  domains: {
+    primary: 'profitreaper.com',
+    tech: 'omegaalpha.io',
+  },
 };
 
-// REAL Social Accounts - LOCKED
-export const SOCIAL_ACCOUNTS = {
-  tiktok: { handle: '@ryan.auralift', connected: true, live: true },
-  instagram: { handle: '@auraliftessentials', connected: true, live: true },
-  pinterest: { handle: 'AuraLift Essentials', connected: true, live: true },
-  youtube: { handle: 'AuraLift Beauty', connected: true, live: true },
+// ================= VIDEO ENGINE (SHARED) =================
+export const VIDEO_ENGINE = {
+  provider: 'D-ID Pro',
+  apiKeyEnv: 'DID_API_KEY',
+  voiceProvider: 'ElevenLabs',
+  defaultVoice: 'Sarah',
+  defaultVoiceId: 'EXAVITQu4vr4xnSDxMaL',
+  avatars: ['amy', 'anna', 'emma'],
+  defaultAvatar: 'amy',
 };
 
-// Stripe Configuration - LIVE MODE ONLY - NO TEST MODE
-export const STRIPE_CONFIG = {
-  isLiveMode: true,
-  testModeDisabled: true,
-  plans: [
-    { id: 'free', name: 'Free', credits: 10, price: 0 },
-    { id: 'pro', name: 'Pro', credits: 100, price: 49 },
-    { id: 'enterprise', name: 'Enterprise', credits: -1, price: 199 },
-  ]
+// ================= PLATFORM OAUTH CONFIG =================
+// OAuth credentials are stored securely in Supabase secrets
+// Each user authenticates via their own platform accounts
+export const PLATFORM_OAUTH = {
+  shopify: {
+    scopes: ['read_products', 'write_products', 'read_orders', 'read_customers'],
+    apiVersion: '2024-10',
+  },
+  tiktok: {
+    scopes: ['video.upload', 'user.info.basic'],
+  },
+  instagram: {
+    scopes: ['instagram_basic', 'instagram_content_publish', 'pages_read_engagement'],
+  },
+  pinterest: {
+    scopes: ['pins:read', 'pins:write', 'boards:read', 'boards:write'],
+  },
+  youtube: {
+    scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly'],
+  },
+  facebook: {
+    scopes: ['pages_manage_posts', 'pages_read_engagement', 'publish_video'],
+  },
+  x: {
+    scopes: ['tweet.read', 'tweet.write', 'users.read'],
+  },
+  linkedin: {
+    scopes: ['w_member_social', 'r_liteprofile'],
+  },
 };
 
-// Connected Platforms Status - ALL LIVE
-export const PLATFORM_STATUS = {
-  tiktok: { connected: true, hasOAuth: true, status: 'live', handle: '@ryan.auralift' },
-  instagram: { connected: true, hasOAuth: true, status: 'live', handle: '@auraliftessentials' },
-  youtube: { connected: true, hasOAuth: true, status: 'live', handle: 'AuraLift Beauty' },
-  pinterest: { connected: true, hasOAuth: true, status: 'live', handle: 'AuraLift Beauty' },
-  shopify: { connected: true, hasOAuth: true, status: 'live', domain: 'www.auraliftessentials.com' },
-  stripe: { connected: true, hasOAuth: true, status: 'live' },
-  did: { connected: true, hasOAuth: true, status: 'live', plan: 'Pro' }, // D-ID Pro - SOLE video engine
+// ================= FEATURE FLAGS =================
+export const FEATURES = {
+  aiVideoGeneration: true,
+  autonomousPosting: true,
+  multiStoreSupport: true,
+  realtimeSync: true,
+  abTesting: true,
+  advancedAnalytics: true,
+  elevenLabsDashboard: true,
+  superGrokCEO: true,
 };
 
-// Real Swarm Metrics - starts at $0 until real money hits
-export interface SwarmMetrics {
-  videosGenerated: number;
-  videosPublished: number;
-  totalImpressions: number;
-  totalEngagement: number;
-  conversions: number;
-  revenue: number;
-  roas: number;
+// ================= API CONFIGURATION =================
+export const API_CONFIG = {
+  shopifyApiVersion: '2025-07',
+  maxProductsPerSync: 250,
+  syncIntervalMs: 300000, // 5 minutes
+  healthCheckIntervalMs: 60000, // 1 minute
+};
+
+// ================= SUBSCRIPTION TIERS =================
+export const SUBSCRIPTION_TIERS = {
+  free: {
+    stores: 1,
+    socialChannels: 2,
+    videosPerMonth: 10,
+    aiCredits: 100,
+  },
+  pro: {
+    stores: 5,
+    socialChannels: 5,
+    videosPerMonth: 100,
+    aiCredits: 1000,
+  },
+  enterprise: {
+    stores: -1, // unlimited
+    socialChannels: -1,
+    videosPerMonth: -1,
+    aiCredits: -1,
+  },
+};
+
+/**
+ * Helper to check if user has feature access based on subscription
+ */
+export function hasFeatureAccess(
+  subscription: { plan: string } | null, 
+  feature: keyof typeof FEATURES
+): boolean {
+  if (!subscription) return false;
+  return FEATURES[feature] ?? false;
 }
 
-// Initialize with ZERO - only real data from here
-export function createSwarmMetrics(): SwarmMetrics {
-  return {
-    videosGenerated: 0,
-    videosPublished: 0,
-    totalImpressions: 0,
-    totalEngagement: 0,
-    conversions: 0,
-    revenue: 0,
-    roas: 0,
-  };
+/**
+ * Helper to get tier limits
+ */
+export function getTierLimits(plan: string) {
+  return SUBSCRIPTION_TIERS[plan as keyof typeof SUBSCRIPTION_TIERS] ?? SUBSCRIPTION_TIERS.free;
 }

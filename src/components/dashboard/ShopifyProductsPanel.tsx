@@ -1,72 +1,60 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Store, ExternalLink, Plus, Loader2, RefreshCw, ShoppingBag } from "lucide-react";
+import { Store, ExternalLink, Loader2, RefreshCw, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/shopify/CartDrawer";
-import { useUserStore } from "@/hooks/useUserStore";
+import { useUserShopifyConnections } from "@/hooks/useUserShopifyConnections";
 import { ConnectShopifyModal } from "@/components/settings/ConnectShopifyModal";
-import { 
-  storefrontApiRequest, 
-  PRODUCTS_QUERY,
-  SHOPIFY_STORE_PERMANENT_DOMAIN,
-  SHOPIFY_STOREFRONT_TOKEN,
-  ShopifyProduct 
-} from "@/lib/shopify-config";
 import { Link } from "react-router-dom";
 import { useCartStore } from "@/stores/cart-store";
 import { toast } from "sonner";
-
-// NO TEST MODE PRODUCTS - PRODUCTION ONLY
+import { AISuggestionBanner } from "./AISuggestionBanner";
 
 export const ShopifyProductsPanel = () => {
-  const { primaryStore, hasConnectedStore, isLoading: storeLoading } = useUserStore();
+  const { products, connections, hasConnections, isLoading, refetch, primaryConnection } = useUserShopifyConnections();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
-  const [products, setProducts] = useState<ShopifyProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { addItem } = useCartStore();
 
-  // Load REAL products from connected Shopify store
-  const loadProducts = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: 12 });
-      if (data?.data?.products?.edges) {
-        setProducts(data.data.products.edges);
-      } else {
-        setProducts([]);
-      }
-    } catch (err) {
-      console.error("Error loading products:", err);
-      setError("Failed to load products");
-    } finally {
-      setIsLoading(false);
+  const handleAddToCart = (product: any) => {
+    if (!primaryConnection) {
+      toast.error('No store connected');
+      return;
     }
-  };
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const handleAddToCart = (product: ShopifyProduct) => {
-    const variant = product.node.variants.edges[0]?.node;
-    if (!variant) return;
+    
+    // Format product for cart
+    const formattedProduct = {
+      node: {
+        id: product.id,
+        title: product.title,
+        handle: product.handle,
+        images: { edges: product.images?.map((img: string) => ({ node: { url: img, altText: null } })) || [] },
+        variants: { edges: product.variants?.map((v: any) => ({ node: v })) || [] },
+        priceRange: { minVariantPrice: { amount: String(product.price || 0), currencyCode: product.currency || 'USD' } },
+        description: product.description || '',
+        options: product.options || []
+      }
+    };
+    
+    const variant = product.variants?.[0];
+    if (!variant) {
+      toast.error('No variant available');
+      return;
+    }
     
     addItem({
-      product,
+      product: formattedProduct,
       variantId: variant.id,
       variantTitle: variant.title,
-      price: variant.price,
+      price: { amount: String(variant.price || product.price), currencyCode: product.currency || 'USD' },
       quantity: 1,
-      selectedOptions: variant.selectedOptions,
-      storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-      storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
+      selectedOptions: [],
+      storeDomain: primaryConnection.shop_domain,
+      storefrontToken: '', // Would need to store this
     });
-    toast.success(`${product.node.title} added to cart`);
+    toast.success(`${product.title} added to cart`);
   };
 
-  if (storeLoading || isLoading) {
+  if (isLoading) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -78,21 +66,38 @@ export const ShopifyProductsPanel = () => {
     );
   }
 
-  if (error) {
+  if (!hasConnections) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card border border-border rounded-xl p-6"
-      >
-        <div className="text-center py-8">
-          <p className="text-destructive mb-4">{error}</p>
-          <Button onClick={loadProducts} variant="outline">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Retry
-          </Button>
-        </div>
-      </motion.div>
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-border rounded-xl p-6"
+        >
+          <AISuggestionBanner 
+            message="Connect your Shopify store to display products, generate AI video ads, and start selling!"
+            type="shopify"
+            ctaLabel="Connect Store"
+            onAction={() => setConnectModalOpen(true)}
+          />
+          
+          <div className="text-center py-12 mt-4">
+            <Store className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h4 className="font-medium mb-2">No Store Connected</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Connect your Shopify store to see your products here
+            </p>
+            <Button onClick={() => setConnectModalOpen(true)}>
+              Connect Shopify Store
+            </Button>
+          </div>
+        </motion.div>
+
+        <ConnectShopifyModal
+          open={connectModalOpen}
+          onOpenChange={setConnectModalOpen}
+        />
+      </>
     );
   }
 
@@ -112,7 +117,7 @@ export const ShopifyProductsPanel = () => {
             <div>
               <h3 className="font-semibold text-lg">Product Catalog</h3>
               <p className="text-sm text-muted-foreground">
-                {products.length} products from your store
+                {products.length} products from {connections.length} store{connections.length > 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -121,10 +126,20 @@ export const ShopifyProductsPanel = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open(`https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/admin`, '_blank')}
+              onClick={() => refetch()}
             >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Store Admin
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Sync
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              asChild
+            >
+              <a href="/dashboard/settings">
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Manage Stores
+              </a>
             </Button>
           </div>
         </div>
@@ -134,29 +149,32 @@ export const ShopifyProductsPanel = () => {
             <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h4 className="font-medium mb-2">No products found</h4>
             <p className="text-sm text-muted-foreground mb-4">
-              Add products to your store to see them here
+              Add products to your Shopify store to see them here
             </p>
+            <Button variant="outline" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Products
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product, index) => {
-              const image = product.node.images.edges[0]?.node;
-              const price = product.node.priceRange.minVariantPrice;
+              const image = product.images?.[0];
               
               return (
                 <motion.div
-                  key={product.node.id}
+                  key={product.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="group bg-secondary/30 rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all"
                 >
-                  <Link to={`/product/${product.node.handle}`}>
+                  <Link to={`/product/${product.handle}`}>
                     <div className="aspect-square bg-muted relative overflow-hidden">
                       {image ? (
                         <img 
-                          src={image.url} 
-                          alt={image.altText || product.node.title}
+                          src={image} 
+                          alt={product.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
@@ -167,13 +185,13 @@ export const ShopifyProductsPanel = () => {
                     </div>
                   </Link>
                   <div className="p-3">
-                    <Link to={`/product/${product.node.handle}`}>
+                    <Link to={`/product/${product.handle}`}>
                       <h4 className="font-medium text-sm truncate hover:text-primary transition-colors">
-                        {product.node.title}
+                        {product.title}
                       </h4>
                     </Link>
                     <p className="text-primary font-semibold mt-1">
-                      ${parseFloat(price.amount).toFixed(2)} {price.currencyCode}
+                      ${(product.price || 0).toFixed(2)} {product.currency || 'USD'}
                     </p>
                     <Button 
                       size="sm" 

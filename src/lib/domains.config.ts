@@ -1,72 +1,49 @@
 /**
- * DUAL-DOMAIN CONFIGURATION - AURAOMEGA/Dominion
+ * DOMINION SaaS - Domain Configuration
  * 
- * Primary: profitreaper.com (Main App)
- * Tech/API Docs: omegaalpha.io
+ * Primary: profitreaper.com (main app)
+ * Tech/Docs: omegaalpha.io (API documentation, tech resources)
  */
 
 export const DOMAINS = {
-  // Primary production domain
+  // Primary application domain
   primary: {
     domain: 'profitreaper.com',
     url: 'https://profitreaper.com',
-    label: 'ProfitReaper',
-    description: 'Main Application',
+    label: 'DOMINION App',
+    type: 'application' as const,
   },
-  // Tech documentation & API domain
+  
+  // Tech documentation domain
   tech: {
     domain: 'omegaalpha.io',
     url: 'https://omegaalpha.io',
-    label: 'OmegaAlpha.io',
-    description: 'Tech Docs & API',
-  },
-  // Vercel staging
-  staging: {
-    domain: 'profitreaper.vercel.app',
-    url: 'https://profitreaper.vercel.app',
-    label: 'Staging',
-  },
-  // Legacy store (Shopify)
-  shopify: {
-    domain: 'www.auraliftessentials.com',
-    url: 'https://www.auraliftessentials.com',
-    apiDomain: 'lovable-project-7fb70.myshopify.com',
-    label: 'AuraLift Essentials',
+    label: 'Tech & API Docs',
+    type: 'documentation' as const,
   },
 } as const;
 
-// Quick accessors
-export const PRIMARY_DOMAIN = DOMAINS.primary.url;
-export const TECH_DOMAIN = DOMAINS.tech.url;
-export const SHOPIFY_URL = DOMAINS.shopify.url;
-
-// Banner configuration
-export const DUAL_DOMAIN_BANNER = {
-  enabled: true,
-  primaryText: `Live at ${DOMAINS.primary.domain}`,
-  techText: `Tech Docs at ${DOMAINS.tech.domain}`,
-  primaryLink: DOMAINS.primary.url,
-  techLink: DOMAINS.tech.url,
+export const BRANDING = {
+  appName: 'DOMINION',
+  tagline: 'AI Marketing Command Center',
+  description: 'Autonomous AI-powered marketing platform for e-commerce',
+  company: 'Omega Alpha Technologies',
 };
 
-// AI suggestions with domain-aware messaging
-export const DOMAIN_SUGGESTIONS = {
-  connectStore: {
-    title: 'Connect Your Store',
-    message: 'Connect your Shopify store to start printing money with AI-powered video ads.',
-    icon: 'Store',
-    priority: 'critical',
-  },
-  goLive: {
-    title: 'Go Live Now',
-    message: `Your app is ready at ${DOMAINS.primary.domain}. Start generating revenue today.`,
-    icon: 'Rocket',
-    priority: 'high',
-  },
-  techDocs: {
-    title: 'API Documentation',
-    message: `Full API docs and integrations available at ${DOMAINS.tech.domain}`,
-    icon: 'FileCode',
-    priority: 'medium',
-  },
-};
+export function getDomainLabel(hostname: string): string {
+  if (hostname.includes('profitreaper.com')) {
+    return DOMAINS.primary.label;
+  }
+  if (hostname.includes('omegaalpha.io')) {
+    return DOMAINS.tech.label;
+  }
+  return BRANDING.appName;
+}
+
+export function isPrimaryDomain(hostname: string): boolean {
+  return hostname.includes('profitreaper.com') || hostname.includes('localhost');
+}
+
+export function isTechDomain(hostname: string): boolean {
+  return hostname.includes('omegaalpha.io');
+}
