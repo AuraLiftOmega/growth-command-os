@@ -109,13 +109,11 @@ export function VideoAdStudio() {
     autoLoad: true 
   });
 
-  // Auto-select first AuraLift product
+  // Auto-select first product from connected store
   useEffect(() => {
     if (products.length > 0 && !selectedProduct) {
-      const auraLiftProduct = products.find(p => p.vendor === 'AuraLift Beauty');
-      if (auraLiftProduct) {
-        setSelectedProduct(auraLiftProduct);
-      }
+      // Select the first available product
+      setSelectedProduct(products[0]);
     }
   }, [products, selectedProduct]);
 

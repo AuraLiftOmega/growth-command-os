@@ -64,9 +64,8 @@ export function ProductIntelligenceEngine() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [overallScore, setOverallScore] = useState(0);
 
-  // Fetch ONLY AuraLift Beauty products (real skincare)
+  // Fetch products from user's connected store
   const { products, isLoading, lastFetched, refetch } = useShopifyProducts({ 
-    vendor: 'AuraLift Beauty',
     autoLoad: true 
   });
 
@@ -81,16 +80,15 @@ export function ProductIntelligenceEngine() {
     // Generate AI analysis for each real product
     const analyzed: AnalyzedProduct[] = shopifyProducts.map((product, index) => {
       // Scoring based on product attributes
-      const isAuraLift = product.vendor === 'AuraLift Beauty';
       const priceScore = product.price > 30 ? 85 : product.price > 20 ? 75 : 65;
       const hasGoodImages = product.images.length > 2;
       const hasDescription = product.description && product.description.length > 50;
       
-      const baseScore = isAuraLift ? 90 : 75;
+      const baseScore = 80;
       const hitScore = Math.min(100, baseScore + (hasGoodImages ? 5 : 0) + (hasDescription ? 5 : 0) - (index * 2));
       
       const demandTrend: 'rising' | 'stable' | 'declining' = 
-        isAuraLift ? 'rising' : 
+        product.available ? 'rising' : 
         product.productType === 'Electronics' ? 'stable' : 'declining';
 
       return {
@@ -123,7 +121,7 @@ export function ProductIntelligenceEngine() {
   const generateRecommendations = (product: ParsedShopifyProduct, hitScore: number): string[] => {
     const recs: string[] = [];
     
-    if (product.vendor === 'AuraLift Beauty') {
+    if (product.available) {
       recs.push('📌 PINTEREST FIRST: High save rate potential');
       recs.push('Create video showcase with avatar demo');
     }

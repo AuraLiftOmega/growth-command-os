@@ -130,7 +130,7 @@ serve(async (req: Request) => {
               </div>
               <p style="font-size: 18px;"><strong>Cart Total: $${cart.cart_total}</strong></p>
               ${discount_code ? `<p style="color: #10B981; font-size: 18px;">🎁 Use code <strong>${discount_code}</strong> for 10% off!</p>` : ''}
-              <a href="https://auraliftessentials.com/checkout" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6, #D946EF); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px;">
+              <a href="${Deno.env.get('SITE_URL') || 'https://auradominion.io'}/checkout" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6, #D946EF); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px;">
                 Complete Your Order →
               </a>
               <p style="color: #666; font-size: 12px; margin-top: 30px;">
@@ -146,7 +146,7 @@ serve(async (req: Request) => {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'AuraLift <hello@auraliftessentials.com>',
+              from: Deno.env.get('FROM_EMAIL') || 'Store <noreply@auradominion.io>',
               to: cart.customer_email,
               subject: `✨ Your glow routine is waiting - Complete your order!${discount_code ? ' (10% OFF)' : ''}`,
               html: emailHtml

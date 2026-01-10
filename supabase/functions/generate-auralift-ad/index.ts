@@ -1,10 +1,10 @@
 /**
- * AURALIFT AD GENERATION - D-ID PRO ONLY
+ * AI AD GENERATION - D-ID PRO ONLY
  * 
  * Video engine: D-ID Pro (SOLE provider - NO HeyGen)
  * Voice: ElevenLabs Sarah
- * Store: www.auraliftessentials.com
- * Social: TikTok @ryan.auralift, Instagram @auraliftessentials, Pinterest AuraLift Beauty
+ * Store: Dynamic per-user from user_store_connections
+ * Multi-tenant: Each user's store credentials are fetched dynamically
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
