@@ -44,7 +44,8 @@ interface OmegaRequest {
     | 'translate_pins'
     | 'score_sustainability'
     | 'mint_loyalty_nft'
-    | 'get_omega_status';
+    | 'get_omega_status'
+    | 'global_expand';
   user_id: string;
   agent?: AgentType;
   task?: string;
@@ -863,6 +864,42 @@ auto_execute = ${aggressiveness >= 80 ? 'true' : 'false'} at this aggression lev
         await logDecision(body.agent, decision, 'manual_task');
 
         result = { agent: body.agent, decision };
+        break;
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // GLOBAL EXPAND - International market expansion
+      // ═══════════════════════════════════════════════════════════════
+      case 'global_expand': {
+        console.log('🌍 GLOBAL EXPAND starting...');
+        
+        // Fetch products and content for translation
+        const [productsRes, creativesRes] = await Promise.all([
+          supabase.from('shopify_products').select('*').eq('user_id', body.user_id).limit(50),
+          supabase.from('creatives').select('*').eq('user_id', body.user_id).eq('status', 'active').limit(20)
+        ]);
+
+        const expandContext = {
+          products: productsRes.data || [],
+          creatives: creativesRes.data || [],
+          target_markets: body.context?.target_markets || ['EU', 'UK', 'CA', 'AU'],
+          current_languages: body.context?.languages || ['en']
+        };
+
+        const decision = await runAgentTask('global', 
+          'Analyze products and creatives for international expansion. Recommend translations, localizations, and market-specific adaptations.',
+          expandContext
+        );
+        
+        await logDecision('global', decision, 'global_expand');
+
+        result = {
+          agent: 'global',
+          decision,
+          products_analyzed: productsRes.data?.length || 0,
+          creatives_analyzed: creativesRes.data?.length || 0,
+          target_markets: expandContext.target_markets
+        };
         break;
       }
 
