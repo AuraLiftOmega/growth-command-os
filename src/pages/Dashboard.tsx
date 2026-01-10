@@ -6,6 +6,7 @@ import { VideoAdStudio } from "@/components/super-app/VideoAdStudio";
 import { VideoAdStudioPage } from "@/components/dashboard/VideoAdStudioPage";
 import { SalesAnalyticsPanel } from "@/components/dashboard/SalesAnalyticsPanel";
 import { SocialChannelsDashboard } from "@/components/social";
+import { SettingsPage } from "@/components/dashboard/SettingsPage";
 
 const Dashboard = () => {
   return (
@@ -18,6 +19,7 @@ const Dashboard = () => {
         <Route path="social/*" element={<SocialChannelsDashboard />} />
         <Route path="social-channels/*" element={<SocialChannelsDashboard />} />
         <Route path="analytics" element={<SalesAnalyticsPanel />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </DashboardLayout>

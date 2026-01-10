@@ -125,14 +125,14 @@ const AURALIFT_PRODUCTS = [
   },
 ];
 
-// Script variations by emotion
+// Script variations by emotion - AURALIFT ESSENTIALS domain
 const SCRIPT_VARIATIONS = {
   excited: (product: string, desc: string) => 
-    `OMG you NEED to try ${product}! ${desc} - I literally can't live without it! Shop auraliftessentials.com!`,
+    `OMG you NEED to try ${product}! ${desc} - I literally can't live without it! Shop www.auraliftessentials.com!`,
   calm: (product: string, desc: string) => 
-    `Discover ${product} from AuraLift Essentials. ${desc}. Radiant, hydrated, youthful skin. Shop now at auraliftessentials.com!`,
+    `Discover ${product} from AuraLift Essentials. ${desc}. Radiant, hydrated, youthful skin. Shop now at www.auraliftessentials.com!`,
   urgent: (product: string, desc: string) => 
-    `STOP scrolling! ${product} is selling out fast. ${desc}. Get yours before it's gone - auraliftessentials.com!`,
+    `STOP scrolling! ${product} is selling out fast. ${desc}. Get yours before it's gone - www.auraliftessentials.com!`,
 };
 
 export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps) {
@@ -407,7 +407,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
           metadata: { 
             product: generatedAd.product_name,
             board_name: boardName || 'AuraLift Skincare Favorites',
-            link: 'https://auraliftessentials.com'
+            link: 'https://www.auraliftessentials.com'
           }
         }
       });
