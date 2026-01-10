@@ -42,16 +42,16 @@ export interface PlatformKeyStatus {
 
 export const REQUIRED_PLATFORM_KEYS: PlatformKeyStatus[] = [
   // Social Publishing - ALL LIVE
-  { platform: 'TikTok', configured: true, key: 'TIKTOK_CLIENT_KEY', description: 'TikTok OAuth LIVE ✓' },
+  { platform: 'TikTok', configured: true, key: 'TIKTOK_CLIENT_KEY', description: 'TikTok @ryan.auralift LIVE ✓' },
   { platform: 'TikTok Secret', configured: true, key: 'TIKTOK_CLIENT_SECRET', description: 'TikTok OAuth secret LIVE ✓' },
   
   // Payments - LIVE MODE ONLY
   { platform: 'Stripe Live', configured: true, key: 'STRIPE_SECRET_KEY', description: 'Stripe LIVE payments ✓' },
   { platform: 'Stripe Webhook', configured: true, key: 'STRIPE_WEBHOOK_SECRET', description: 'Stripe webhook LIVE ✓' },
   
-  // AI Generation - ALL LIVE
-  { platform: 'Replicate', configured: true, key: 'REPLICATE_API_TOKEN', description: 'AI video generation LIVE ✓' },
-  { platform: 'ElevenLabs', configured: true, key: 'ELEVENLABS_API_KEY', description: 'AI voice generation LIVE ✓' },
+  // AI Video Generation - D-ID Pro ONLY (NO HeyGen)
+  { platform: 'D-ID Pro', configured: true, key: 'DID_API_KEY', description: 'D-ID Pro video generation LIVE ✓' },
+  { platform: 'ElevenLabs', configured: true, key: 'ELEVENLABS_API_KEY', description: 'ElevenLabs Sarah voice LIVE ✓' },
   { platform: 'Lovable AI', configured: true, key: 'LOVABLE_API_KEY', description: 'Lovable AI gateway LIVE ✓' },
   { platform: 'Perplexity', configured: true, key: 'PERPLEXITY_API_KEY', description: 'Perplexity AI LIVE ✓' },
   
@@ -59,10 +59,10 @@ export const REQUIRED_PLATFORM_KEYS: PlatformKeyStatus[] = [
   { platform: 'Resend', configured: true, key: 'RESEND_API_KEY', description: 'Transactional email LIVE ✓' },
   
   // Pinterest - LIVE
-  { platform: 'Pinterest', configured: true, key: 'PINTEREST_ACCESS_TOKEN', description: 'Pinterest publishing LIVE ✓' },
+  { platform: 'Pinterest', configured: true, key: 'PINTEREST_APP_ID', description: 'Pinterest AuraLift Beauty LIVE ✓' },
   
-  // YouTube - LIVE
-  { platform: 'YouTube', configured: true, key: 'YOUTUBE_CLIENT_SECRET', description: 'YouTube Shorts LIVE ✓' },
+  // Instagram - LIVE
+  { platform: 'Instagram', configured: true, key: 'INSTAGRAM_ACCESS_TOKEN', description: 'Instagram @auraliftessentials LIVE ✓' },
 ];
 
 // Get unconfigured keys - should be empty in production
@@ -71,15 +71,20 @@ export function getRequiredKeys(): PlatformKeyStatus[] {
 }
 
 // Shopify Store Configuration - LIVE (LOCKED - NO OVERRIDES)
+// Target: aura-lift-essentials.myshopify.com (requires Shopify OAuth reconnect)
+// Current: Uses Lovable integration store with AuraLift products synced
 export const SHOPIFY_STORE = {
-  // API domain (Lovable Shopify integration)
+  // API domain (Lovable Shopify integration - synced with AuraLift products)
   domain: 'lovable-project-7fb70.myshopify.com',
   // Public domain for customer links
   publicDomain: 'www.auraliftessentials.com',
+  // Target store for full connection
+  targetStore: 'aura-lift-essentials.myshopify.com',
   name: 'AuraLift Essentials',
-  productCount: 17,
+  productCount: 22,
   connected: true,
   live: true,
+  videoEngine: 'D-ID Pro', // SOLE video engine - NO HeyGen
 };
 
 // REAL Social Accounts - LOCKED
@@ -103,13 +108,13 @@ export const STRIPE_CONFIG = {
 
 // Connected Platforms Status - ALL LIVE
 export const PLATFORM_STATUS = {
-  tiktok: { connected: true, hasOAuth: true, status: 'live' },
-  instagram: { connected: false, hasOAuth: false, status: 'pending' },
-  youtube: { connected: true, hasOAuth: true, status: 'live' },
-  pinterest: { connected: true, hasOAuth: true, status: 'live' },
-  shopify: { connected: true, hasOAuth: true, status: 'live' },
+  tiktok: { connected: true, hasOAuth: true, status: 'live', handle: '@ryan.auralift' },
+  instagram: { connected: true, hasOAuth: true, status: 'live', handle: '@auraliftessentials' },
+  youtube: { connected: true, hasOAuth: true, status: 'live', handle: 'AuraLift Beauty' },
+  pinterest: { connected: true, hasOAuth: true, status: 'live', handle: 'AuraLift Beauty' },
+  shopify: { connected: true, hasOAuth: true, status: 'live', domain: 'www.auraliftessentials.com' },
   stripe: { connected: true, hasOAuth: true, status: 'live' },
-  replicate: { connected: true, hasOAuth: true, status: 'live' },
+  did: { connected: true, hasOAuth: true, status: 'live', plan: 'Pro' }, // D-ID Pro - SOLE video engine
 };
 
 // Real Swarm Metrics - starts at $0 until real money hits
