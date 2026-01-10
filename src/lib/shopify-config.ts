@@ -19,15 +19,27 @@ export const AURALIFT_STORE_URL = 'https://www.auraliftessentials.com';
 export const AURALIFT_VENDOR = 'AuraLift Beauty';
 export const AURALIFT_STORE_NAME = 'AuraLift Essentials';
 
-// Product count - Synced from Shopify (22 total, 13 AuraLift Beauty)
+// Product count - Synced from Shopify (22 total, 17+ AuraLift Beauty)
 export const AURALIFT_PRODUCT_COUNT = 22;
 
-// Social accounts - CORRECT REAL ACCOUNTS ONLY
+// Social accounts - CORRECT REAL ACCOUNTS ONLY (LOCKED)
 export const AURALIFT_SOCIAL = {
   tiktok: '@ryan.auralift',
+  tiktokUrl: 'https://www.tiktok.com/@ryan.auralift',
   instagram: '@auraliftessentials',
-  pinterest: 'AuraLift Essentials',
+  instagramUrl: 'https://www.instagram.com/auraliftessentials/',
+  pinterest: 'AuraLift Beauty',
+  pinterestUrl: 'https://www.pinterest.com/auraliftbeauty/',
   youtube: 'AuraLift Beauty',
+};
+
+// Video generation engine - D-ID Pro ONLY (NO HeyGen)
+export const VIDEO_ENGINE = {
+  provider: 'D-ID Pro',
+  apiKey: 'DID_API_KEY',
+  voice: 'ElevenLabs Sarah',
+  avatars: ['amy', 'anna', 'emma'],
+  defaultAvatar: 'amy',
 };
 
 // Fallback images for products when Shopify image is missing (using Unsplash URLs)

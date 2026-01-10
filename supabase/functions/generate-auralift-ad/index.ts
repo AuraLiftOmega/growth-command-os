@@ -1,3 +1,12 @@
+/**
+ * AURALIFT AD GENERATION - D-ID PRO ONLY
+ * 
+ * Video engine: D-ID Pro (SOLE provider - NO HeyGen)
+ * Voice: ElevenLabs Sarah
+ * Store: www.auraliftessentials.com
+ * Social: TikTok @ryan.auralift, Instagram @auraliftessentials, Pinterest AuraLift Beauty
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
@@ -431,9 +440,9 @@ serve(async (req) => {
       product_image,
       script: customScript,
       test_mode = false,
-      force_live = false, // Force real HeyGen generation
-      voice = "sarah", // DEFAULT: Sarah (warm female)
-      avatar = "anna", // DEFAULT: Anna (proven professional female skincare)
+      force_live = false, // Force real D-ID Pro generation
+      voice = "sarah", // DEFAULT: Sarah (warm female ElevenLabs)
+      avatar = "amy", // DEFAULT: Amy (professional female skincare)
       emotion = "calm",
       wait_for_video = false, // If true, poll for video completion
       upload_to_ads = false // If true, upload completed video to ads table

@@ -113,12 +113,13 @@ function generateFallbackDecision(query: string, autonomous_mode: boolean) {
       expected_shortfall: monteCarlo.expectedShortfall
     },
     actions: [
-      { action: "Scale TikTok spend 5x on winning creatives", priority: "high", expected_roi: "420%", auto_execute: autonomous_mode },
-      { action: "Deploy Pinterest domination swarm", priority: "high", expected_roi: "340%", auto_execute: autonomous_mode },
+      { action: "Scale TikTok @ryan.auralift spend 5x on winning creatives", priority: "high", expected_roi: "420%", auto_execute: autonomous_mode },
+      { action: "Deploy Pinterest AuraLift Beauty domination swarm", priority: "high", expected_roi: "340%", auto_execute: autonomous_mode },
       { action: "Launch CJ affiliate network - 500 partners", priority: "high", expected_roi: "180%", auto_execute: autonomous_mode },
-      { action: "Generate 100 new video creatives via HeyGen", priority: "high", expected_roi: "260%", auto_execute: autonomous_mode },
+      { action: "Generate 100 new video creatives via D-ID Pro", priority: "high", expected_roi: "260%", auto_execute: autonomous_mode },
       { action: "Activate cart abandonment AI with 95% recovery", priority: "medium", expected_roi: "95%", auto_execute: autonomous_mode },
-      { action: "Deploy influencer micro-swarm across 50 accounts", priority: "high", expected_roi: "380%", auto_execute: autonomous_mode }
+      { action: "Deploy influencer micro-swarm across 50 accounts", priority: "high", expected_roi: "380%", auto_execute: autonomous_mode },
+      { action: "Post to Instagram @auraliftessentials", priority: "high", expected_roi: "280%", auto_execute: autonomous_mode }
     ],
     ad_generation: {
       platforms: ["tiktok", "instagram", "pinterest", "facebook", "youtube"],
