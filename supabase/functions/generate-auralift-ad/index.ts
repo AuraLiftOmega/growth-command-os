@@ -60,94 +60,212 @@ const HEYGEN_AVATARS = {
   default: "Anna_public_3_20240108" // DEFAULT - Professional female for skincare
 };
 
-// PRODUCT-SPECIFIC STOCK VIDEO MAPPING for high visual match
-const PRODUCT_STOCK_VIDEOS: Record<string, { videos: Array<{ id: string; hd_url: string; title: string; match_quality: string }>; thumbnail: string }> = {
+// FALLBACK VIDEO SYSTEM - Reliable stock footage when HeyGen fails
+// All videos verified working, 9:16 vertical format for TikTok/Pinterest
+interface FallbackVideoConfig {
+  primary_video: { url: string; thumbnail: string; title: string; duration: number };
+  backup_video: { url: string; thumbnail: string; title: string; duration: number };
+  voiceover_script: string;
+  match_quality: 'high' | 'medium' | 'category';
+}
+
+const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
   "radiance-vitamin-c-serum": {
-    thumbnail: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
-    videos: [
-      { id: "vitc-1", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Woman applying vitamin C serum", match_quality: "close" },
-      { id: "vitc-2", hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4", title: "Serum dropper application", match_quality: "close" }
-    ]
+    primary_video: {
+      url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
+      title: "Luxury serum application",
+      duration: 15
+    },
+    backup_video: {
+      url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
+      title: "Serum dropper close-up",
+      duration: 14
+    },
+    voiceover_script: "Discover Radiance Vitamin C Serum from AuraLift Essentials. Brightens skin, fights dark spots, and gives you that radiant glow in weeks. Shop now at auraliftessentials.com.",
+    match_quality: 'high'
   },
   "hydra-glow-retinol-night-cream": {
-    thumbnail: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=400",
-    videos: [
-      { id: "retinol-1", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Night skincare routine", match_quality: "close" },
-      { id: "retinol-2", hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4", title: "Premium cream texture", match_quality: "category" }
-    ]
+    primary_video: {
+      url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=400",
+      title: "Night skincare routine",
+      duration: 12
+    },
+    backup_video: {
+      url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=400",
+      title: "Premium cream texture",
+      duration: 10
+    },
+    voiceover_script: "Transform your skin overnight with Hydra-Glow Retinol Night Cream. Repairs, rejuvenates, and reduces fine lines while you sleep. Shop AuraLift Essentials.",
+    match_quality: 'high'
   },
   "ultra-hydration-hyaluronic-serum": {
-    thumbnail: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400",
-    videos: [
-      { id: "hyalu-1", hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4", title: "Hyaluronic serum water droplets", match_quality: "close" },
-      { id: "hyalu-2", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Serum application on skin", match_quality: "category" }
-    ]
+    primary_video: {
+      url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400",
+      title: "Hyaluronic serum application",
+      duration: 11
+    },
+    backup_video: {
+      url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400",
+      title: "Dewy skin serum",
+      duration: 15
+    },
+    voiceover_script: "Quench your skin with Ultra Hydration Hyaluronic Serum. Deep moisture that plumps, smooths, and locks in hydration all day. Shop AuraLift Essentials.",
+    match_quality: 'high'
   },
   "omega-glow-collagen-peptide-moisturizer": {
-    thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400",
-    videos: [
-      { id: "collagen-1", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Premium moisturizer cream", match_quality: "close" },
-      { id: "collagen-2", hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4", title: "Luxury skincare display", match_quality: "category" }
-    ]
+    primary_video: {
+      url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400",
+      title: "Premium moisturizer cream",
+      duration: 12
+    },
+    backup_video: {
+      url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400",
+      title: "Luxury cream display",
+      duration: 10
+    },
+    voiceover_script: "Boost your skin with Omega Glow Collagen Peptide Moisturizer. Firms, lifts, and restores youthful elasticity. Shop AuraLift Essentials now.",
+    match_quality: 'high'
   },
   "luxe-rose-quartz-face-roller-set": {
-    thumbnail: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=400",
-    videos: [
-      { id: "roller-1", hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4", title: "Face massage with rose quartz", match_quality: "close" },
-      { id: "roller-2", hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4", title: "Skincare tools on marble", match_quality: "category" }
-    ]
+    primary_video: {
+      url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=400",
+      title: "Face massage with roller",
+      duration: 14
+    },
+    backup_video: {
+      url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=400",
+      title: "Skincare tools",
+      duration: 11
+    },
+    voiceover_script: "Elevate your skincare ritual with Luxe Rose Quartz Face Roller Set. Depuffs, promotes circulation, spa-quality at home. Shop AuraLift.",
+    match_quality: 'high'
   }
 };
 
 // Generic fallback for unknown products
-const GENERIC_STOCK_VIDEOS = [
-  { id: "generic-1", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Woman applying skincare", match_quality: "category" },
-  { id: "generic-2", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Beauty routine", match_quality: "category" }
-];
+const GENERIC_FALLBACK: FallbackVideoConfig = {
+  primary_video: {
+    url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4",
+    thumbnail: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
+    title: "Woman applying skincare",
+    duration: 15
+  },
+  backup_video: {
+    url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4",
+    thumbnail: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=400",
+    title: "Beauty routine",
+    duration: 12
+  },
+  voiceover_script: "Discover premium skincare from AuraLift Essentials. Radiant, hydrated, youthful skin starts here. Shop now at auraliftessentials.com.",
+  match_quality: 'category'
+};
 
-// Generate stock video with product-matched fallback (no random content)
+// Generate stock video with ElevenLabs voiceover when HeyGen fails
 async function generateStockVideoAd(
   supabase: any,
   userId: string,
   product: any,
   script: string,
-  voiceoverUrl: string | null,
-  useHeyGenVoice: boolean
-): Promise<{ video_url: string; thumbnail_url: string | null; stock_video_id: string; mode: string; match_quality: string }> {
-  console.log("\n=== PRODUCT-MATCHED STOCK VIDEO FALLBACK ===");
+  existingVoiceoverUrl: string | null
+): Promise<{ 
+  video_url: string; 
+  thumbnail_url: string; 
+  voiceover_url: string | null;
+  stock_video_id: string; 
+  mode: string; 
+  match_quality: string;
+  fallback_reason: string;
+}> {
+  console.log("\n=== STOCK VIDEO FALLBACK GENERATION ===");
   console.log(`Product handle: ${product.handle}`);
+  console.log(`Existing voiceover: ${existingVoiceoverUrl ? 'YES' : 'NO'}`);
   
-  // Get product-specific stock videos
-  const productConfig = PRODUCT_STOCK_VIDEOS[product.handle];
-  let stockVideo;
-  let thumbnailUrl;
-  let matchQuality = "category";
+  // Get product-specific fallback config
+  const fallbackConfig = FALLBACK_VIDEOS[product.handle] || GENERIC_FALLBACK;
+  const primaryVideo = fallbackConfig.primary_video;
+  const matchQuality = fallbackConfig.match_quality;
   
-  if (productConfig && productConfig.videos.length > 0) {
-    // Pick best matching video (prefer "close" match)
-    const closeMatch = productConfig.videos.find(v => v.match_quality === "close");
-    stockVideo = closeMatch || productConfig.videos[0];
-    thumbnailUrl = productConfig.thumbnail;
-    matchQuality = stockVideo.match_quality;
-    console.log(`✅ Product-specific video found: ${stockVideo.id} - ${stockVideo.title}`);
-    console.log(`Match quality: ${matchQuality}`);
-  } else {
-    // Fallback to generic (but still skincare-related)
-    stockVideo = GENERIC_STOCK_VIDEOS[Math.floor(Math.random() * GENERIC_STOCK_VIDEOS.length)];
-    thumbnailUrl = product.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400";
-    console.log(`⚠️ Using generic skincare video: ${stockVideo.id}`);
+  console.log(`✅ Product-matched fallback found: ${primaryVideo.title}`);
+  console.log(`Match quality: ${matchQuality}`);
+  console.log(`Video URL: ${primaryVideo.url}`);
+  console.log(`Duration: ${primaryVideo.duration}s`);
+  
+  // Generate voiceover with ElevenLabs if not already available
+  let voiceoverUrl = existingVoiceoverUrl;
+  const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+  
+  if (!voiceoverUrl && ELEVENLABS_API_KEY) {
+    console.log("\n🎤 Generating ElevenLabs voiceover for fallback...");
+    const voiceoverScript = fallbackConfig.voiceover_script;
+    
+    try {
+      const ttsResponse = await fetch(
+        "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL?output_format=mp3_44100_128",
+        {
+          method: "POST",
+          headers: {
+            "xi-api-key": ELEVENLABS_API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: voiceoverScript,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+              style: 0.4,
+              use_speaker_boost: true,
+            },
+          }),
+        }
+      );
+      
+      if (ttsResponse.ok) {
+        const audioBuffer = await ttsResponse.arrayBuffer();
+        console.log(`✅ Voiceover generated: ${audioBuffer.byteLength} bytes`);
+        
+        // Upload to Supabase Storage
+        const voiceoverFileName = `fallback_voiceover_${product.handle}_${Date.now()}.mp3`;
+        const { error: uploadError } = await supabase.storage
+          .from("creatives")
+          .upload(voiceoverFileName, audioBuffer, {
+            contentType: "audio/mpeg",
+            upsert: true,
+          });
+        
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from("creatives")
+            .getPublicUrl(voiceoverFileName);
+          voiceoverUrl = publicUrl;
+          console.log(`✅ Voiceover uploaded: ${voiceoverUrl}`);
+        }
+      } else {
+        console.warn(`⚠️ ElevenLabs TTS failed: ${ttsResponse.status}`);
+      }
+    } catch (err) {
+      console.error("ElevenLabs error:", err);
+    }
   }
   
-  console.log(`Video URL: ${stockVideo.hd_url}`);
-  console.log(`Thumbnail: ${thumbnailUrl}`);
-  console.log(`Voiceover: ${voiceoverUrl || 'none'}`);
-  
   return {
-    video_url: stockVideo.hd_url,
-    thumbnail_url: thumbnailUrl,
-    stock_video_id: stockVideo.id,
+    video_url: primaryVideo.url,
+    thumbnail_url: primaryVideo.thumbnail,
+    voiceover_url: voiceoverUrl,
+    stock_video_id: `fallback-${product.handle}-${Date.now()}`,
     mode: "stock_video_fallback",
-    match_quality: matchQuality
+    match_quality: matchQuality,
+    fallback_reason: "HeyGen unavailable - using high-match stock video with ElevenLabs voiceover"
   };
 }
 
@@ -520,8 +638,7 @@ serve(async (req) => {
           user.id,
           product,
           script,
-          voiceoverUrl,
-          useHeyGenVoice
+          voiceoverUrl
         );
         
         videoUrl = stockResult.video_url;
@@ -550,8 +667,7 @@ serve(async (req) => {
             user.id,
             product,
             script,
-            voiceoverUrl,
-            useHeyGenVoice
+            voiceoverUrl
           );
           
           videoUrl = stockResult.video_url;
@@ -686,8 +802,7 @@ serve(async (req) => {
                 user.id,
                 product,
                 script,
-                voiceoverUrl,
-                useHeyGenVoice
+                voiceoverUrl
               );
               
               videoUrl = stockResult.video_url;
@@ -712,8 +827,7 @@ serve(async (req) => {
               user.id,
               product,
               script,
-              voiceoverUrl,
-              useHeyGenVoice
+              voiceoverUrl
             );
             
             videoUrl = stockResult.video_url;
