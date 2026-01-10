@@ -1,8 +1,15 @@
-// Shopify Store Configuration
+// Shopify Store Configuration - AuraLift Essentials Store
+// Connected via Lovable Shopify integration (lovable-project-7fb70.myshopify.com)
+// Public domain: www.auraliftessentials.com
 export const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-7fb70.myshopify.com';
 export const SHOPIFY_STOREFRONT_TOKEN = 'd9830af538b34d418e1167726cf1f67a';
 export const SHOPIFY_API_VERSION = '2025-07';
 export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
+
+// AuraLift Essentials branding
+export const AURALIFT_DOMAIN = 'www.auraliftessentials.com';
+export const AURALIFT_STORE_URL = 'https://www.auraliftessentials.com';
+export const AURALIFT_VENDOR = 'AuraLift Beauty';
 
 // Fallback images for products when Shopify image is missing (using Unsplash URLs)
 export const PRODUCT_IMAGE_FALLBACKS: Record<string, string> = {
