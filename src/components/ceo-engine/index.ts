@@ -4,3 +4,6 @@ export { CEOInsightsPanel } from './CEOInsightsPanel';
 export { CEOAutonomousActions } from './CEOAutonomousActions';
 export { CEOOnboarding } from './CEOOnboarding';
 export { EmbeddableChatWidget } from './EmbeddableChatWidget';
+export { AutonomousLoopsPanel } from './AutonomousLoopsPanel';
+export { OmegaCEOBrain } from './OmegaCEOBrain';
+export { SalesTeamAgents } from './SalesTeamAgents';
