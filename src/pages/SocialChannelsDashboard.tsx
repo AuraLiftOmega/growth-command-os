@@ -41,6 +41,17 @@ const PLATFORMS: PlatformConfig[] = [
     aiSuggestion: 'Connect your Shopify store to start generating AI video ads for your products!'
   },
   {
+    id: 'google-ads',
+    name: 'Google Ads',
+    icon: '📊',
+    color: 'text-yellow-600',
+    gradient: 'from-yellow-500/20 to-orange-500/20',
+    description: 'Paid search & display advertising',
+    features: ['Smart campaigns', 'Performance Max', 'Shopping ads'],
+    oauthSupported: true,
+    aiSuggestion: 'Google Ads delivers 4x ROAS on average — essential for paid scaling!'
+  },
+  {
     id: 'tiktok',
     name: 'TikTok',
     icon: '🎵',

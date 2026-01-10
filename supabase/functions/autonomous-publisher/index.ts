@@ -329,9 +329,9 @@ serve(async (req: Request) => {
 
       contentToPublish = {
         caption: creatives?.[0]?.script || 'Check out our products! 🔥',
-        hashtags: ['fyp', 'viral', 'trending', 'musthave', 'tiktokmademebuyit', 'skincare', 'beauty', 'auralift'],
+        hashtags: ['fyp', 'viral', 'trending', 'musthave', 'tiktokmademebuyit'],
         video_url: creatives?.[0]?.video_url,
-        product_url: 'https://www.auraliftessentials.com',
+        product_url: Deno.env.get('SITE_URL') || 'https://auradominion.io',
       };
     }
 

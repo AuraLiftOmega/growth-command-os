@@ -253,8 +253,8 @@ export function RealVideoSwarm({ className, onComplete }: RealVideoSwarmProps) {
           product_name: job.product.title,
           product_id: job.product.id,
           product_image: job.product.imageUrl,
-          link: `https://auraliftessentials.com/products/${job.product.handle}`,
-          shopify_product_url: `https://auraliftessentials.com/products/${job.product.handle}`,
+          link: `/product/${job.product.handle}`,
+          shopify_product_url: `/product/${job.product.handle}`,
         }
       });
 

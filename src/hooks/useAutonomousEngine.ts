@@ -379,7 +379,7 @@ export function useAutonomousEngine() {
               caption,
               hashtags,
               video_url: creative.video_url,
-              product_url: 'https://auraliftessentials.com',
+              product_url: window.location.origin,
             },
             force_real: true,
           }
