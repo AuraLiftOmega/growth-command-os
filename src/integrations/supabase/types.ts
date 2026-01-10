@@ -2193,6 +2193,48 @@ export type Database = {
         }
         Relationships: []
       }
+      omega_ceo_agents: {
+        Row: {
+          agent_type: string
+          created_at: string
+          id: string
+          last_run: string | null
+          logs: string | null
+          metadata: Json | null
+          query: string | null
+          status: string
+          strategy: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_type?: string
+          created_at?: string
+          id?: string
+          last_run?: string | null
+          logs?: string | null
+          metadata?: Json | null
+          query?: string | null
+          status?: string
+          strategy?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_type?: string
+          created_at?: string
+          id?: string
+          last_run?: string | null
+          logs?: string | null
+          metadata?: Json | null
+          query?: string | null
+          status?: string
+          strategy?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_data: {
         Row: {
           ad_styles: string[] | null
