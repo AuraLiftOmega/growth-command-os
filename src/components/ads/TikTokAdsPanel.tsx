@@ -179,7 +179,7 @@ export function TikTokAdsPanel() {
           product_name: newCampaign.product,
           budget: newCampaign.budget,
           objective: 'TRAFFIC',
-          target_url: 'https://auraliftessentials.com',
+          target_url: window.location.origin,
           targeting: {
             gender: newCampaign.targetGender,
             age_groups: newCampaign.targetAges,

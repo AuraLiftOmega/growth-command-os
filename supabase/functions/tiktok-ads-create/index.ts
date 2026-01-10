@@ -280,7 +280,7 @@ serve(async (req: Request) => {
               video_id: videoId,
               ad_text: body.product_name ? `Discover ${body.product_name} ✨` : 'Discover now ✨',
               call_to_action: 'SHOP_NOW',
-              landing_page_url: body.target_url || 'https://auraliftessentials.com',
+              landing_page_url: body.target_url || Deno.env.get('SITE_URL') || 'https://auradominion.io',
             }],
           };
 

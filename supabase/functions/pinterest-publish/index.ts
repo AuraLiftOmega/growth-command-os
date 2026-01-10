@@ -19,8 +19,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// AuraLift domain for all product links
-const AURALIFT_DOMAIN = 'https://www.auraliftessentials.com';
+// Default domain - should be overridden by user's store domain in request body
+const DEFAULT_DOMAIN = Deno.env.get('SITE_URL') || 'https://auradominion.io';
 
 // Pinterest-optimized captions for AuraLift products
 const PINTEREST_CAPTIONS: Record<string, { title: string; description: string; hashtags: string[] }> = {
@@ -118,7 +118,7 @@ serve(async (req: Request) => {
       title: inputTitle, 
       description: inputDescription, 
       board_id: inputBoardId,
-      board_name = 'AuraLift Skincare Favorites',
+      board_name = 'Products',
       link, 
       alt_text, 
       keywords = [],
@@ -211,7 +211,7 @@ serve(async (req: Request) => {
         if (optimizeResponse.ok) {
           const optimized = await optimizeResponse.json();
           optimizedTitle = optimizedTitle || optimized.optimized_caption || `${product_name} ✨`;
-          optimizedDescription = optimizedDescription || optimized.description || `Premium skincare from AuraLift Essentials. Shop now!`;
+          optimizedDescription = optimizedDescription || optimized.description || `Premium products. Shop now!`;
           if (optimized.hashtags && Array.isArray(optimized.hashtags)) {
             hashtagsList = [...hashtagsList, ...optimized.hashtags];
           }
@@ -223,10 +223,10 @@ serve(async (req: Request) => {
     }
 
     // Build final title and description
-    const finalTitle = generateOptimizedTitle(optimizedTitle || product_name || 'AuraLift Skincare', product_name);
-    const productLink = shopify_product_url || `${AURALIFT_DOMAIN}/products/${product_handle || ''}`;
+    const finalTitle = generateOptimizedTitle(optimizedTitle || product_name || 'Product', product_name);
+    const productLink = shopify_product_url || `${DEFAULT_DOMAIN}/products/${product_handle || ''}`;
     const finalDescription = generateOptimizedDescription(
-      optimizedDescription || `Discover premium skincare from AuraLift Essentials.`,
+      optimizedDescription || `Discover this amazing product.`,
       [...new Set(hashtagsList)],
       product_name,
       productLink
@@ -253,8 +253,8 @@ serve(async (req: Request) => {
         if (boardsResponse.ok) {
           const boardsData = await boardsResponse.json();
           const matchingBoard = boardsData.items?.find(
-            (b: any) => b.name.toLowerCase().includes('auralift') || 
-                       b.name.toLowerCase().includes('skincare')
+            (b: any) => b.name.toLowerCase().includes('products') || 
+                       b.name.toLowerCase().includes('shop')
           );
           if (matchingBoard) {
             finalBoardId = matchingBoard.id;
