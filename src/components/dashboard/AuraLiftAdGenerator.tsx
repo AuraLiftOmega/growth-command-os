@@ -771,26 +771,46 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               Force Live: Uses real HeyGen API, falls back to stock videos if credits low (auto-approve)
             </p>
             
-            {/* Stock Video Fallback Mode Info */}
+            {/* Stock Video Fallback Mode Info - Prominent Banner */}
             {isStockFallbackMode && realVideoUrl && (
-              <div className="mt-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                <div className="flex items-center gap-2 text-amber-500 text-sm mb-2">
-                  <Video className="w-4 h-4" />
-                  <span className="font-medium">Stock Video Fallback Active</span>
+              <div className="mt-2 p-4 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <Video className="w-5 h-5" />
+                    <span className="font-bold">🎬 High-Match Fallback Active</span>
+                  </div>
+                  <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
+                    Pexels + ElevenLabs
+                  </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  HeyGen unavailable — using Pexels stock skincare video + voiceover. 
-                  Ready to post to TikTok/Pinterest!
+                <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+                  HeyGen credits low/unavailable — using product-matched Pexels stock video + ElevenLabs voiceover.
                 </p>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-green-500" />
+                    9:16 Vertical Format
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-green-500" />
+                    15s Duration
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-green-500" />
+                    Ready for TikTok/Pinterest
+                  </span>
+                </div>
               </div>
             )}
             
             {/* Real Video Preview Section */}
             {realVideoUrl && (
-              <div className="mt-4 p-4 rounded-lg bg-success/10 border border-success/30">
+              <div className={`mt-4 p-4 rounded-lg ${isStockFallbackMode ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-success/10 border border-success/30'}`}>
                 <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-success" />
-                  <span className="font-semibold text-success">Real HeyGen Video Ready!</span>
+                  <CheckCircle className={`w-5 h-5 ${isStockFallbackMode ? 'text-amber-500' : 'text-success'}`} />
+                  <span className={`font-semibold ${isStockFallbackMode ? 'text-amber-500' : 'text-success'}`}>
+                    {isStockFallbackMode ? '🎬 Fallback Video Ready!' : 'Real HeyGen Video Ready!'}
+                  </span>
                 </div>
                 
                 <div className="aspect-[9/16] max-h-[300px] rounded-lg overflow-hidden mb-3 bg-black">
