@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { User, Shield, LogOut, CreditCard, Store } from "lucide-react";
+import { User, Shield, LogOut, CreditCard, Store, Github } from "lucide-react";
 import { StripePaymentsPanel } from "@/components/settings/StripePaymentsPanel";
 import { PricingPanel } from "@/components/settings/PricingPanel";
 import { ShopifyConnectionsPanel } from "@/components/settings/ShopifyConnectionsPanel";
 import { BillingPanel } from "@/components/settings/BillingPanel";
+import { GitHubIntegrationPanel } from "@/components/settings/GitHubIntegrationPanel";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
@@ -33,7 +34,7 @@ const Settings = () => {
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
           <Tabs defaultValue="account" className="space-y-6">
-            <TabsList className="grid grid-cols-5 w-full max-w-2xl">
+            <TabsList className="grid grid-cols-6 w-full max-w-3xl">
               <TabsTrigger value="account" className="gap-2">
                 <User className="w-4 h-4" />
                 Account
@@ -41,6 +42,10 @@ const Settings = () => {
               <TabsTrigger value="shopify" className="gap-2">
                 <Store className="w-4 h-4" />
                 Shopify
+              </TabsTrigger>
+              <TabsTrigger value="github" className="gap-2">
+                <Github className="w-4 h-4" />
+                GitHub
               </TabsTrigger>
               <TabsTrigger value="billing" className="gap-2">
                 <CreditCard className="w-4 h-4" />
@@ -84,6 +89,11 @@ const Settings = () => {
             {/* Shopify Tab */}
             <TabsContent value="shopify">
               <ShopifyConnectionsPanel />
+            </TabsContent>
+
+            {/* GitHub Tab */}
+            <TabsContent value="github">
+              <GitHubIntegrationPanel />
             </TabsContent>
 
             {/* Billing Tab */}
