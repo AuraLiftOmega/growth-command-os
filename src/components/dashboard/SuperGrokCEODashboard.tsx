@@ -37,8 +37,16 @@ import {
   Pause,
   Calculator,
   Crown,
-  Sparkles
+  Sparkles,
+  Cpu
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CampaignLauncher } from './CampaignLauncher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -122,6 +130,21 @@ interface GrokLog {
   created_at: string;
 }
 
+// Multi-model configuration via Vercel AI Gateway
+const AI_MODELS = [
+  { id: "grok-4", name: "Grok 4 Fast", provider: "xAI", speed: "⚡ Fast", reasoning: "Excellent", badge: "Primary" },
+  { id: "grok-4-deep", name: "Grok 4 Deep", provider: "xAI", speed: "🧠 Deep", reasoning: "Superior", badge: null },
+  { id: "gpt-5", name: "GPT-5", provider: "OpenAI", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
+  { id: "gpt-5-mini", name: "GPT-5 Mini", provider: "OpenAI", speed: "⚡⚡ Ultra", reasoning: "Good", badge: null },
+  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", speed: "⚡ Fast", reasoning: "Good", badge: null },
+  { id: "claude-4-opus", name: "Claude 4 Opus", provider: "Anthropic", speed: "🧠 Deep", reasoning: "Superior", badge: "Best Reasoning" },
+  { id: "claude-4-sonnet", name: "Claude 4 Sonnet", provider: "Anthropic", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "Google", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google", speed: "⚡⚡ Ultra", reasoning: "Good", badge: "Fastest" },
+  { id: "llama-3.3-70b", name: "Llama 3.3 70B", provider: "Groq", speed: "⚡⚡⚡ Blazing", reasoning: "Good", badge: "Ultra Fast" },
+  { id: "mixtral-8x7b", name: "Mixtral 8x7B", provider: "Groq", speed: "⚡⚡⚡ Blazing", reasoning: "Good", badge: null },
+];
+
 const QUICK_CEO_COMMANDS = [
   { label: "Scale to $1M", query: "Scale operations to achieve $1M monthly revenue - deploy all agents, maximize every channel, generate viral ads", icon: Rocket },
   { label: "Maximize ROAS", query: "Analyze all campaigns and maximize ROAS - kill underperformers, scale winners 10x, reallocate budget aggressively", icon: TrendingUp },
@@ -199,6 +222,8 @@ export function SuperGrokCEODashboard() {
   const [ceoStatus, setCeoStatus] = useState<'idle' | 'analyzing' | 'executing' | 'optimizing'>('idle');
   const [totalActionsExecuted, setTotalActionsExecuted] = useState(0);
   const [totalRevenueGenerated, setTotalRevenueGenerated] = useState(0);
+  const [selectedModel, setSelectedModel] = useState('grok-4');
+  const [lastModelUsed, setLastModelUsed] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState('command');
   const [nextLoopTime, setNextLoopTime] = useState<Date | null>(null);
@@ -284,7 +309,8 @@ export function SuperGrokCEODashboard() {
     if (!queryToUse.trim() || isProcessing) return;
 
     setIsProcessing(true);
-    toast.loading("🧠 Super Grok 4 analyzing...", { id: 'grok-processing' });
+    const modelInfo = AI_MODELS.find(m => m.id === selectedModel);
+    toast.loading(`🧠 ${modelInfo?.name || 'Super Grok'} analyzing...`, { id: 'grok-processing' });
 
     try {
       const { data, error } = await supabase.functions.invoke('super-grok-ceo', {
@@ -292,7 +318,8 @@ export function SuperGrokCEODashboard() {
           query: queryToUse,
           user_id: user?.id,
           autonomous_mode: autonomousMode,
-          loop_type: loopType || 'manual'
+          loop_type: loopType || 'manual',
+          selected_model: selectedModel
         }
       });
 
@@ -301,12 +328,13 @@ export function SuperGrokCEODashboard() {
       const decision = data?.decision as GrokDecision;
       setCurrentDecision(decision);
       setActiveAgents(decision?.agents_to_deploy || []);
+      setLastModelUsed(data?.model_used || selectedModel);
       
       if (decision?.projected_revenue) {
         setProfitData(generateProfitProjections(decision.projected_revenue / 12));
       }
 
-      toast.success("✅ Super Grok 4 decision ready!", { id: 'grok-processing' });
+      toast.success(`✅ ${data?.model_used || modelInfo?.name} decision ready!`, { id: 'grok-processing' });
       if (!customQuery) setQuery('');
     } catch (err) {
       console.error('Grok 4 CEO error:', err);
@@ -590,11 +618,45 @@ export function SuperGrokCEODashboard() {
       {/* Command Input */}
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
         <CardContent className="p-6">
+          {/* Model Selector */}
+          <div className="flex items-center gap-4 mb-4 p-3 rounded-lg bg-muted/30 border border-muted">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium">AI Model:</span>
+            </div>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="w-[280px] h-10">
+                <SelectValue placeholder="Select AI Model" />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{model.name}</span>
+                      <span className="text-xs text-muted-foreground">({model.provider})</span>
+                      {model.badge && (
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                          {model.badge}
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {lastModelUsed && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CheckCircle2 className="w-3 h-3 text-green-500" />
+                Last used: {AI_MODELS.find(m => m.id === lastModelUsed)?.name || lastModelUsed}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-4 mb-4">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Command Super Grok 4: 'Scale to $10M', 'Deploy affiliate swarm', 'Generate 100 viral ads'..."
+              placeholder={`Command ${AI_MODELS.find(m => m.id === selectedModel)?.name || 'Super Grok'}: 'Scale to $10M', 'Deploy affiliate swarm', 'Generate 100 viral ads'...`}
               className="flex-1 text-lg h-12"
               onKeyDown={(e) => e.key === 'Enter' && runGrokCEO()}
               disabled={isProcessing}
@@ -610,7 +672,7 @@ export function SuperGrokCEODashboard() {
               ) : (
                 <>
                   <Play className="w-5 h-5 mr-2" />
-                  Run Super Grok Now
+                  Run {AI_MODELS.find(m => m.id === selectedModel)?.name?.split(' ')[0] || 'AI'}
                 </>
               )}
             </Button>
