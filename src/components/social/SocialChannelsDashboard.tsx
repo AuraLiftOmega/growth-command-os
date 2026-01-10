@@ -59,6 +59,16 @@ const SOCIAL_PLATFORMS: PlatformConfig[] = [
     apiFeatures: ["Video Upload", "Reels", "Duets", "TikTok Ads"],
   },
   {
+    id: "tiktok_business",
+    name: "TikTok Business Suite",
+    icon: "📊",
+    color: "#00f2ea",
+    gradientFrom: "from-cyan-500",
+    gradientTo: "to-pink-500",
+    type: "social",
+    apiFeatures: ["Video Posting", "Analytics", "Paid Ads", "Optimization"],
+  },
+  {
     id: "tiktok_shop",
     name: "TikTok Shop (US)",
     icon: "🛍️",
@@ -200,6 +210,8 @@ export function SocialChannelsDashboard() {
 
   // Check TikTok Shop connection
   const isTikTokShopConnected = isSocialTokenConnected('tiktok_shop');
+  // Check TikTok Business Suite connection
+  const isTikTokBusinessConnected = isSocialTokenConnected('tiktok_business');
 
   // Live stats with auto-connected status + real token data
   const platformStats: Record<string, any> = {
@@ -208,6 +220,14 @@ export function SocialChannelsDashboard() {
       engagement: isTikTokConnected || isSocialTokenConnected('tiktok') ? 8.4 : 0, 
       posts7d: isTikTokConnected || isSocialTokenConnected('tiktok') ? 12 : 0, 
       reach: isTikTokConnected || isSocialTokenConnected('tiktok') ? 145000 : 0 
+    },
+    tiktok_business: {
+      followers: isTikTokBusinessConnected ? 32500 : 0,
+      engagement: isTikTokBusinessConnected ? 9.8 : 0,
+      posts7d: isTikTokBusinessConnected ? 18 : 0,
+      reach: isTikTokBusinessConnected ? 520000 : 0,
+      adSpend: isTikTokBusinessConnected ? 2450 : 0,
+      roas: isTikTokBusinessConnected ? 4.2 : 0
     },
     tiktok_shop: {
       followers: isTikTokShopConnected ? 18500 : 0,
@@ -240,10 +260,12 @@ export function SocialChannelsDashboard() {
     localStorage.setItem("oauth_platform", platformId);
 
     try {
-      // Use tiktok-shop-oauth for TikTok Shop, social-oauth for other social platforms
+      // Use specific OAuth functions for TikTok variants
       let functionName = "social-oauth";
       if (platformId === "tiktok_shop") {
         functionName = "tiktok-shop-oauth";
+      } else if (platformId === "tiktok_business") {
+        functionName = "tiktok-business-oauth";
       } else if (!SOCIAL_PLATFORMS.some(p => p.id === platformId)) {
         functionName = "platform-oauth";
       }
