@@ -165,6 +165,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   
   // Stock video fallback mode
   const [isStockFallbackMode, setIsStockFallbackMode] = useState(false);
+  
+  // Batch generation state
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchResults, setBatchResults] = useState<any[]>([]);
 
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
@@ -765,11 +770,104 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 <>
                   <Zap className="w-4 h-4 mr-2" />
                   🎬 Generate with D-ID Pro (Real Avatar Video)
+              </>
+              )}
+            </Button>
+            
+            {/* Batch Generate All 5 Creatives Button */}
+            <Button
+              onClick={async () => {
+                if (!user) {
+                  toast.error('Please sign in to generate ads');
+                  return;
+                }
+                
+                setIsBatchGenerating(true);
+                setBatchProgress(0);
+                setBatchResults([]);
+                
+                toast.info('🎬 Starting batch D-ID Pro generation...', {
+                  description: 'Generating 5 Vitamin C Serum creatives (may take 30-50 min total)',
+                  duration: 10000
+                });
+                
+                try {
+                  setBatchProgress(10);
+                  
+                  const { data, error } = await supabase.functions.invoke('batch-video-generate', {
+                    body: {
+                      generate_all: true,
+                      auto_post: true
+                    }
+                  });
+                  
+                  if (error) throw error;
+                  
+                  setBatchProgress(100);
+                  setBatchResults(data.results || []);
+                  
+                  if (data.successful > 0) {
+                    toast.success(`🎬 Batch complete: ${data.successful}/${data.total} videos generated!`, {
+                      description: 'Real D-ID Pro videos ready for posting',
+                      duration: 10000
+                    });
+                  } else {
+                    toast.warning('Batch generation completed with issues', {
+                      description: data.results?.[0]?.error || 'Check console for details'
+                    });
+                  }
+                  
+                  fetchRecentAds();
+                } catch (err: any) {
+                  console.error('Batch generation error:', err);
+                  toast.error('Batch generation failed', {
+                    description: err.message || 'Please try again'
+                  });
+                } finally {
+                  setIsBatchGenerating(false);
+                }
+              }}
+              disabled={isGenerating || isForceGenerating || isBatchGenerating}
+              variant="default"
+              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+            >
+              {isBatchGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Batch Generating ({batchProgress}%)...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  🚀 Batch Generate All 5 Creatives (D-ID Pro + Auto-Post)
                 </>
               )}
             </Button>
+            
+            {/* Batch Results Display */}
+            {batchResults.length > 0 && (
+              <div className="mt-2 p-3 rounded-lg bg-muted/50 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-4 h-4 text-success" />
+                  <span className="font-medium">Batch Results:</span>
+                </div>
+                <div className="space-y-1 text-sm">
+                  {batchResults.map((result, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span>{result.name}</span>
+                      {result.success ? (
+                        <Badge className="bg-success/20 text-success">✅ Ready</Badge>
+                      ) : (
+                        <Badge variant="destructive">{result.error?.substring(0, 30) || 'Failed'}</Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <p className="text-xs text-muted-foreground text-center">
-              D-ID Pro: Real talking avatar, watermark-free, professional quality (~2-10 min)
+              D-ID Pro: Real talking avatar, watermark-free, professional quality (~2-10 min per video)
             </p>
             
             {/* Stock Video Fallback Mode Info - Prominent Banner */}

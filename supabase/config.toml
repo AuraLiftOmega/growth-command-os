@@ -128,3 +128,18 @@ verify_jwt = false
 
 [functions.generate-did-ad]
 verify_jwt = false
+
+[functions.batch-video-generate]
+verify_jwt = false
+
+[functions.generate-auralift-ad]
+verify_jwt = false
+
+[functions.post-to-channel]
+verify_jwt = false
+
+[functions.send-workspace-invite]
+verify_jwt = false
+
+[functions.accept-workspace-invite]
+verify_jwt = false
