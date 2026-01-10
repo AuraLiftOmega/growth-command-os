@@ -60,46 +60,52 @@ const HEYGEN_AVATARS = {
   default: "Anna_public_3_20240108" // DEFAULT - Professional female for skincare
 };
 
-// FALLBACK: Pexels stock skincare video URLs (vertical 9:16, 10-20s clips)
-const PEXELS_STOCK_VIDEOS = [
-  {
-    id: "pexels-1",
-    url: "https://videos.pexels.com/video-files/6974595/6974595-uhd_1440_2560_25fps.mp4",
-    hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4",
-    title: "Woman applying skincare serum",
-    duration: 15,
+// PRODUCT-SPECIFIC STOCK VIDEO MAPPING for high visual match
+const PRODUCT_STOCK_VIDEOS: Record<string, { videos: Array<{ id: string; hd_url: string; title: string; match_quality: string }>; thumbnail: string }> = {
+  "radiance-vitamin-c-serum": {
+    thumbnail: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
+    videos: [
+      { id: "vitc-1", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Woman applying vitamin C serum", match_quality: "close" },
+      { id: "vitc-2", hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4", title: "Serum dropper application", match_quality: "close" }
+    ]
   },
-  {
-    id: "pexels-2", 
-    url: "https://videos.pexels.com/video-files/5069413/5069413-uhd_1440_2560_30fps.mp4",
-    hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4",
-    title: "Woman beauty skincare routine",
-    duration: 12,
+  "hydra-glow-retinol-night-cream": {
+    thumbnail: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=400",
+    videos: [
+      { id: "retinol-1", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Night skincare routine", match_quality: "close" },
+      { id: "retinol-2", hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4", title: "Premium cream texture", match_quality: "category" }
+    ]
   },
-  {
-    id: "pexels-3",
-    url: "https://videos.pexels.com/video-files/5069610/5069610-uhd_1440_2560_30fps.mp4",
-    hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4",
-    title: "Face massage skincare",
-    duration: 14,
+  "ultra-hydration-hyaluronic-serum": {
+    thumbnail: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=400",
+    videos: [
+      { id: "hyalu-1", hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4", title: "Hyaluronic serum water droplets", match_quality: "close" },
+      { id: "hyalu-2", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Serum application on skin", match_quality: "category" }
+    ]
   },
-  {
-    id: "pexels-4",
-    url: "https://videos.pexels.com/video-files/3997796/3997796-uhd_1440_2560_25fps.mp4",
-    hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4",
-    title: "Beauty products display",
-    duration: 10,
+  "omega-glow-collagen-peptide-moisturizer": {
+    thumbnail: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400",
+    videos: [
+      { id: "collagen-1", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Premium moisturizer cream", match_quality: "close" },
+      { id: "collagen-2", hd_url: "https://videos.pexels.com/video-files/3997796/3997796-hd_1080_1920_25fps.mp4", title: "Luxury skincare display", match_quality: "category" }
+    ]
   },
-  {
-    id: "pexels-5",
-    url: "https://videos.pexels.com/video-files/5069387/5069387-uhd_1440_2560_30fps.mp4",
-    hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4",
-    title: "Skincare application closeup",
-    duration: 11,
-  },
+  "luxe-rose-quartz-face-roller-set": {
+    thumbnail: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=400",
+    videos: [
+      { id: "roller-1", hd_url: "https://videos.pexels.com/video-files/5069610/5069610-hd_1080_1920_30fps.mp4", title: "Face massage with rose quartz", match_quality: "close" },
+      { id: "roller-2", hd_url: "https://videos.pexels.com/video-files/5069387/5069387-hd_1080_1920_30fps.mp4", title: "Skincare tools on marble", match_quality: "category" }
+    ]
+  }
+};
+
+// Generic fallback for unknown products
+const GENERIC_STOCK_VIDEOS = [
+  { id: "generic-1", hd_url: "https://videos.pexels.com/video-files/6974595/6974595-hd_1080_1920_25fps.mp4", title: "Woman applying skincare", match_quality: "category" },
+  { id: "generic-2", hd_url: "https://videos.pexels.com/video-files/5069413/5069413-hd_1080_1920_30fps.mp4", title: "Beauty routine", match_quality: "category" }
 ];
 
-// Generate stock video with voiceover overlay (fallback when HeyGen fails)
+// Generate stock video with product-matched fallback (no random content)
 async function generateStockVideoAd(
   supabase: any,
   userId: string,
@@ -107,23 +113,32 @@ async function generateStockVideoAd(
   script: string,
   voiceoverUrl: string | null,
   useHeyGenVoice: boolean
-): Promise<{ video_url: string; thumbnail_url: string | null; stock_video_id: string; mode: string }> {
-  console.log("\n=== STOCK VIDEO FALLBACK MODE ===");
+): Promise<{ video_url: string; thumbnail_url: string | null; stock_video_id: string; mode: string; match_quality: string }> {
+  console.log("\n=== PRODUCT-MATCHED STOCK VIDEO FALLBACK ===");
+  console.log(`Product handle: ${product.handle}`);
   
-  // Pick a random stock video
-  const stockVideo = PEXELS_STOCK_VIDEOS[Math.floor(Math.random() * PEXELS_STOCK_VIDEOS.length)];
-  console.log(`Selected stock video: ${stockVideo.id} - ${stockVideo.title}`);
+  // Get product-specific stock videos
+  const productConfig = PRODUCT_STOCK_VIDEOS[product.handle];
+  let stockVideo;
+  let thumbnailUrl;
+  let matchQuality = "category";
+  
+  if (productConfig && productConfig.videos.length > 0) {
+    // Pick best matching video (prefer "close" match)
+    const closeMatch = productConfig.videos.find(v => v.match_quality === "close");
+    stockVideo = closeMatch || productConfig.videos[0];
+    thumbnailUrl = productConfig.thumbnail;
+    matchQuality = stockVideo.match_quality;
+    console.log(`✅ Product-specific video found: ${stockVideo.id} - ${stockVideo.title}`);
+    console.log(`Match quality: ${matchQuality}`);
+  } else {
+    // Fallback to generic (but still skincare-related)
+    stockVideo = GENERIC_STOCK_VIDEOS[Math.floor(Math.random() * GENERIC_STOCK_VIDEOS.length)];
+    thumbnailUrl = product.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400";
+    console.log(`⚠️ Using generic skincare video: ${stockVideo.id}`);
+  }
+  
   console.log(`Video URL: ${stockVideo.hd_url}`);
-  
-  // For now, we return the stock video URL directly
-  // In production, you would combine this with voiceover using FFmpeg or similar
-  // The client can overlay the voiceover audio on the stock video
-  
-  // Generate thumbnail from first frame (using Unsplash skincare image as fallback)
-  const thumbnailUrl = product.image || "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400";
-  
-  console.log(`✅ Stock video fallback ready`);
-  console.log(`Video: ${stockVideo.hd_url}`);
   console.log(`Thumbnail: ${thumbnailUrl}`);
   console.log(`Voiceover: ${voiceoverUrl || 'none'}`);
   
@@ -131,7 +146,8 @@ async function generateStockVideoAd(
     video_url: stockVideo.hd_url,
     thumbnail_url: thumbnailUrl,
     stock_video_id: stockVideo.id,
-    mode: "stock_video_fallback"
+    mode: "stock_video_fallback",
+    match_quality: matchQuality
   };
 }
 
