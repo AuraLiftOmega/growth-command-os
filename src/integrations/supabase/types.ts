@@ -809,6 +809,102 @@ export type Database = {
         }
         Relationships: []
       }
+      cj_logs: {
+        Row: {
+          ad_video_url: string | null
+          cj_price: number | null
+          cj_product_id: string
+          cj_product_image: string | null
+          cj_product_name: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          posted_platforms: string[] | null
+          shopify_handle: string | null
+          shopify_product_id: string | null
+          sync_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ad_video_url?: string | null
+          cj_price?: number | null
+          cj_product_id: string
+          cj_product_image?: string | null
+          cj_product_name?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          posted_platforms?: string[] | null
+          shopify_handle?: string | null
+          shopify_product_id?: string | null
+          sync_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ad_video_url?: string | null
+          cj_price?: number | null
+          cj_product_id?: string
+          cj_product_image?: string | null
+          cj_product_name?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          posted_platforms?: string[] | null
+          shopify_handle?: string | null
+          shopify_product_id?: string | null
+          sync_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cj_settings: {
+        Row: {
+          auto_ad_generation: boolean | null
+          auto_post_enabled: boolean | null
+          auto_sync_enabled: boolean | null
+          created_at: string
+          id: string
+          is_connected: boolean | null
+          last_sync_at: string | null
+          preferred_channels: string[] | null
+          products_loaded: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_ad_generation?: boolean | null
+          auto_post_enabled?: boolean | null
+          auto_sync_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          preferred_channels?: string[] | null
+          products_loaded?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_ad_generation?: boolean | null
+          auto_post_enabled?: boolean | null
+          auto_sync_enabled?: boolean | null
+          created_at?: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          preferred_channels?: string[] | null
+          products_loaded?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comment_automations: {
         Row: {
           comment_author: string | null
