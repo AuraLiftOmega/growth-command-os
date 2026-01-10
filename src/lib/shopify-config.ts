@@ -1,15 +1,34 @@
-// Shopify Store Configuration - AuraLift Essentials Store
-// Connected via Lovable Shopify integration (lovable-project-7fb70.myshopify.com)
-// Public domain: www.auraliftessentials.com
+/**
+ * SHOPIFY STORE CONFIGURATION - AURAOMEGA PRODUCTION
+ * 
+ * API Domain: lovable-project-7fb70.myshopify.com (Lovable Shopify Integration - DO NOT CHANGE)
+ * Public Domain: www.auraliftessentials.com (Customer-facing URLs)
+ * 
+ * LOCKED CONFIGURATION - NO TEST STORES, NO OVERRIDES
+ */
+
+// Lovable Shopify Integration - API calls use this domain
 export const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-7fb70.myshopify.com';
 export const SHOPIFY_STOREFRONT_TOKEN = 'd9830af538b34d418e1167726cf1f67a';
 export const SHOPIFY_API_VERSION = '2025-07';
 export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
-// AuraLift Essentials branding
+// AuraLift Essentials branding - Public-facing URLs
 export const AURALIFT_DOMAIN = 'www.auraliftessentials.com';
 export const AURALIFT_STORE_URL = 'https://www.auraliftessentials.com';
 export const AURALIFT_VENDOR = 'AuraLift Beauty';
+export const AURALIFT_STORE_NAME = 'AuraLift Essentials';
+
+// Product count - Synced from Shopify
+export const AURALIFT_PRODUCT_COUNT = 17;
+
+// Social accounts - CORRECT REAL ACCOUNTS ONLY
+export const AURALIFT_SOCIAL = {
+  tiktok: '@ryan.auralift',
+  instagram: '@auraliftessentials',
+  pinterest: 'AuraLift Essentials',
+  youtube: 'AuraLift Beauty',
+};
 
 // Fallback images for products when Shopify image is missing (using Unsplash URLs)
 export const PRODUCT_IMAGE_FALLBACKS: Record<string, string> = {

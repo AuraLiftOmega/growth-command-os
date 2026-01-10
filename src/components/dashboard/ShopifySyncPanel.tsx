@@ -65,11 +65,11 @@ export function ShopifySyncPanel() {
                 <h2 className="text-2xl font-display font-bold">Shopify Sync</h2>
                 <Badge className="bg-success/20 text-success border-success/30">
                   <CheckCircle className="w-3 h-3 mr-1" />
-                  Connected
+                  LIVE
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                AuraLift Essentials • lovable-project-7fb70.myshopify.com • LIVE
+                AuraLift Essentials • www.auraliftessentials.com • Products: 17+ • Revenue: LIVE
               </p>
             </div>
           </div>

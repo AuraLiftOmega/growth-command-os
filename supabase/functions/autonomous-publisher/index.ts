@@ -329,9 +329,9 @@ serve(async (req: Request) => {
 
       contentToPublish = {
         caption: creatives?.[0]?.script || 'Check out our products! 🔥',
-        hashtags: ['fyp', 'viral', 'trending', 'musthave', 'tiktokmademebuyit', 'skincare', 'beauty'],
+        hashtags: ['fyp', 'viral', 'trending', 'musthave', 'tiktokmademebuyit', 'skincare', 'beauty', 'auralift'],
         video_url: creatives?.[0]?.video_url,
-        product_url: 'https://lovable-project-7fb70.myshopify.com',
+        product_url: 'https://www.auraliftessentials.com',
       };
     }
 
