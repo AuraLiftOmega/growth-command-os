@@ -28,7 +28,7 @@ interface ShopifyLiveBannerProps {
 }
 
 export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
-  const { products, isLoading, lastFetched, refetch, error } = useShopifyProducts({
+  const { products, isLoading, lastFetched, refetch, error, source } = useShopifyProducts({
     vendor: 'AuraLift Beauty',
     autoLoad: true
   });
@@ -66,7 +66,8 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
     return date.toLocaleTimeString();
   };
 
-  const isConnected = !error && products.length > 0;
+  const isConnected = products.length > 0;
+  const hasError = !!error || source === 'fallback';
 
   if (compact) {
     return (
@@ -144,6 +145,8 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {AURALIFT_DOMAIN} • {formatTime(lastFetched)} • {products.length} products
+              {source === 'fallback' && <span className="text-warning ml-1">(cached)</span>}
+              {source === 'edge' && <span className="text-blue-400 ml-1">(edge)</span>}
             </p>
           </div>
         </div>
