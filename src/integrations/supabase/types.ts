@@ -2020,6 +2020,69 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_tokens: {
+        Row: {
+          access_token_encrypted: string | null
+          api_key_encrypted: string | null
+          connection_type: string
+          created_at: string
+          error_message: string | null
+          id: string
+          integration_category: string
+          integration_name: string
+          is_connected: boolean | null
+          last_sync_at: string | null
+          metadata: Json | null
+          refresh_token_encrypted: string | null
+          scopes: string[] | null
+          sync_status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          api_key_encrypted?: string | null
+          connection_type: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          integration_category: string
+          integration_name: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          api_key_encrypted?: string | null
+          connection_type?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          integration_category?: string
+          integration_name?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       language_violations: {
         Row: {
           content: string
@@ -3872,6 +3935,51 @@ export type Database = {
           severity?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          method: string
+          payload: Json | null
+          processed: boolean | null
+          processing_time_ms: number | null
+          response_body: Json | null
+          response_status: number | null
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          method: string
+          payload?: Json | null
+          processed?: boolean | null
+          processing_time_ms?: number | null
+          response_body?: Json | null
+          response_status?: number | null
+          source: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          method?: string
+          payload?: Json | null
+          processed?: boolean | null
+          processing_time_ms?: number | null
+          response_body?: Json | null
+          response_status?: number | null
+          source?: string
+          user_id?: string | null
         }
         Relationships: []
       }

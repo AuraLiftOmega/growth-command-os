@@ -13,6 +13,7 @@ import {
   Target,
   Github,
   Sparkles,
+  Plug,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,6 +70,12 @@ const mainNavItems = [
     icon: Share2,
     path: "/dashboard/social-channels",
     badge: "Live",
+  },
+  {
+    title: "Integrations",
+    icon: Plug,
+    path: "/dashboard/integrations",
+    badge: "40+",
   },
   {
     title: "Revenue",
