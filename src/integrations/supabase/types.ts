@@ -2107,6 +2107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      grok_ceo_logs: {
+        Row: {
+          actions_taken: Json | null
+          created_at: string
+          execution_status: string | null
+          grok_response: Json | null
+          id: string
+          profit_projection: number | null
+          query: string
+          strategy_json: Json | null
+          user_id: string
+        }
+        Insert: {
+          actions_taken?: Json | null
+          created_at?: string
+          execution_status?: string | null
+          grok_response?: Json | null
+          id?: string
+          profit_projection?: number | null
+          query: string
+          strategy_json?: Json | null
+          user_id: string
+        }
+        Update: {
+          actions_taken?: Json | null
+          created_at?: string
+          execution_status?: string | null
+          grok_response?: Json | null
+          id?: string
+          profit_projection?: number | null
+          query?: string
+          strategy_json?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       integration_tokens: {
         Row: {
           access_token_encrypted: string | null
