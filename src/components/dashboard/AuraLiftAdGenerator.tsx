@@ -269,13 +269,13 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
 
     try {
       setProgress(20);
-      setStatus('🎤 Generating voiceover with ElevenLabs...');
-      if (forceLive) setForceGenerateStatus('🎤 Generating voiceover with ElevenLabs...');
+      setStatus('🎤 Generating voiceover with ElevenLabs Sarah...');
+      if (forceLive) setForceGenerateStatus('🎤 Generating voiceover with ElevenLabs Sarah...');
       await new Promise(r => setTimeout(r, 500));
       
       setProgress(40);
-      setStatus(forceLive ? '🎥 Creating HeyGen avatar video (waiting up to 10 min)...' : '🎥 Creating HeyGen avatar video...');
-      if (forceLive) setForceGenerateStatus('🎥 Submitting to HeyGen API (real generation)...');
+      setStatus(forceLive ? '🎥 Creating D-ID Pro avatar video (waiting up to 10 min)...' : '🎥 Creating D-ID Pro avatar video...');
+      if (forceLive) setForceGenerateStatus('🎥 Submitting to D-ID Pro API (real generation)...');
       
       const { data, error } = await supabase.functions.invoke('generate-auralift-ad', {
         body: {
@@ -297,12 +297,12 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       // Handle credits warning
       if (data?.credits_warning) {
         setCreditsWarning(data.credits_warning);
-        toast.warning('⚠️ HeyGen Credits Warning', {
+        toast.warning('⚠️ D-ID Credits Warning', {
           description: data.credits_warning,
           duration: 10000,
           action: {
-            label: 'Upgrade',
-            onClick: () => window.open('https://app.heygen.com/settings/plan', '_blank')
+            label: 'Upgrade D-ID Pro',
+            onClick: () => window.open('https://www.d-id.com/pricing', '_blank')
           }
         });
       }
@@ -334,13 +334,13 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
         if (forceLive) setForceGenerateStatus('✅ Force live generation complete!');
         
         const statusMessage = data.status === 'completed' 
-          ? '🎬 Real HeyGen video ready!' 
+          ? '🎬 Real D-ID Pro video ready!' 
           : data.status === 'processing'
-          ? '🎬 Video processing... check back in 2-5 min'
+          ? '🎬 D-ID video processing... check back in 2-5 min'
           : data.status === 'credits_low'
-          ? '⚠️ HeyGen credits low - upgrade needed'
-          : data.status === 'heygen_error'
-          ? '❌ HeyGen error - check logs'
+          ? '⚠️ D-ID credits low - upgrade to Pro'
+          : data.status === 'did_error'
+          ? '❌ D-ID error - check logs'
           : data.message || '🎬 AI Ad generated!';
 
         toast.success(statusMessage, {
