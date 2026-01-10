@@ -5,3 +5,4 @@ export { Web3LoyaltyPanel } from './Web3LoyaltyPanel';
 export { OmegaBrainPanel } from './OmegaBrainPanel';
 export { AgentActivityLog } from './AgentActivityLog';
 export { EmergingLayerDashboard } from './EmergingLayerDashboard';
+export { OmegaCEOControl } from './OmegaCEOControl';

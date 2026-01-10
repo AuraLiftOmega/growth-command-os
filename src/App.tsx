@@ -12,6 +12,7 @@ import Store from "./pages/Store";
 import NotFound from "./pages/NotFound";
 import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
+import CEOControl from "./pages/CEOControl";
 import WarRoom from "./pages/WarRoom";
 import OAuthCallback from "./pages/OAuthCallback";
 import Revenue from "./pages/Revenue";
@@ -114,6 +115,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <WarRoom />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* CEO Control Dashboard */}
+      <Route 
+        path="/ceo-control" 
+        element={
+          <ProtectedRoute>
+            <CEOControl />
           </ProtectedRoute>
         } 
       />
