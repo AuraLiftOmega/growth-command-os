@@ -11,6 +11,7 @@ import { IntegrationsHub } from "@/components/integrations";
 import { LiveProfitEngine } from "@/components/autonomous";
 import { EmergingLayerDashboard } from "@/components/omega";
 import { SuperGrokCEODashboard } from "@/components/dashboard/SuperGrokCEODashboard";
+import { CJDropshippingDashboard } from "@/components/dashboard/CJDropshippingDashboard";
 
 const Dashboard = () => {
   return (
@@ -27,6 +28,7 @@ const Dashboard = () => {
         <Route path="profit-engine" element={<LiveProfitEngine />} />
         <Route path="emerging-layer" element={<EmergingLayerDashboard />} />
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
+        <Route path="cj-dropshipping" element={<CJDropshippingDashboard />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

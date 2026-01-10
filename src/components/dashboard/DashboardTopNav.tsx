@@ -25,7 +25,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { DOMINION_LOGO_URL } from "@/lib/store-config";
-import { ShopifySyncIndicator } from "@/components/dashboard/ShopifySyncIndicator";
+import { ShopifyLiveBanner } from "@/components/dashboard/ShopifyLiveBanner";
 
 interface DashboardTopNavProps {
   onCreateAd?: () => void;
@@ -63,8 +63,8 @@ export function DashboardTopNav({ onCreateAd }: DashboardTopNavProps) {
             className="h-8 w-auto lg:hidden" 
           />
 
-          {/* Sync Status */}
-          <ShopifySyncIndicator compact />
+          {/* Live Shopify Sync Banner */}
+          <ShopifyLiveBanner compact />
 
           {/* Search */}
           <div className="hidden md:flex relative">
