@@ -44,8 +44,22 @@ import {
   ChevronRight,
   LayoutGrid,
   List,
-  Rocket
+  Rocket,
+  Send
 } from 'lucide-react';
+
+// TikTok & Pinterest icons
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+  </svg>
+);
+
+const PinterestIcon = () => (
+  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+    <path d="M12 0a12 12 0 00-4.37 23.17c-.1-.94-.19-2.38.04-3.41l1.36-5.76s-.35-.69-.35-1.72c0-1.61.94-2.82 2.1-2.82.99 0 1.47.74 1.47 1.63 0 .99-.63 2.48-.96 3.86-.27 1.16.58 2.1 1.72 2.1 2.07 0 3.66-2.18 3.66-5.33 0-2.79-2.01-4.74-4.87-4.74-3.32 0-5.27 2.49-5.27 5.07 0 1 .39 2.08.87 2.66a.35.35 0 01.08.34c-.09.37-.29 1.16-.33 1.32-.05.21-.17.26-.39.16-1.46-.68-2.37-2.82-2.37-4.54 0-3.7 2.68-7.09 7.74-7.09 4.06 0 7.22 2.9 7.22 6.76 0 4.04-2.55 7.29-6.08 7.29-1.19 0-2.31-.62-2.69-1.35l-.73 2.79c-.26 1.02-.98 2.29-1.46 3.07A12 12 0 1012 0z"/>
+  </svg>
+);
 import { AuraLiftAdGenerator } from './AuraLiftAdGenerator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -161,6 +175,12 @@ export function VideoAdStudioPage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isCloningVoice, setIsCloningVoice] = useState(false);
   
+  // Pinterest batch posting state
+  const [isBatchPostingPinterest, setIsBatchPostingPinterest] = useState(false);
+  const [batchPostProgress, setBatchPostProgress] = useState(0);
+  const [pinterestConnected, setPinterestConnected] = useState(false);
+  const [lastPinterestPost, setLastPinterestPost] = useState<{ time: string; url: string } | null>(null);
+  
   const { products, isLoading: loadingProducts } = useShopifyProducts({
     vendor: 'AuraLift Beauty',
     autoLoad: true
@@ -188,9 +208,43 @@ export function VideoAdStudioPage() {
     }
   }, [user]);
 
+  // Check Pinterest connection
+  const checkPinterestConnection = useCallback(async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('platform_accounts')
+      .select('is_connected')
+      .eq('user_id', user.id)
+      .eq('platform', 'pinterest')
+      .single();
+    
+    if (data?.is_connected) {
+      setPinterestConnected(true);
+    }
+    
+    // Get last Pinterest post
+    const { data: posts } = await supabase
+      .from('social_posts')
+      .select('posted_at, post_url')
+      .eq('user_id', user.id)
+      .eq('channel', 'pinterest')
+      .eq('status', 'published')
+      .order('posted_at', { ascending: false })
+      .limit(1);
+    
+    if (posts && posts.length > 0) {
+      setLastPinterestPost({
+        time: posts[0].posted_at,
+        url: posts[0].post_url
+      });
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchVideos();
-  }, [fetchVideos]);
+    checkPinterestConnection();
+  }, [fetchVideos, checkPinterestConnection]);
 
   // Fetch HeyGen avatars
   const fetchAvatars = async () => {
@@ -416,6 +470,82 @@ export function VideoAdStudioPage() {
         return 'bg-destructive/20 text-destructive';
       default:
         return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  // Batch post all generated videos to Pinterest
+  const batchPostToPinterest = async () => {
+    if (!user) {
+      toast.error('Please sign in');
+      return;
+    }
+
+    // Get videos with video_url that haven't been posted to Pinterest yet
+    const videosToPost = videos.filter(v => 
+      v.video_url && 
+      (v.status === 'completed' || v.status === 'ready_to_publish' || v.status === 'active')
+    ).slice(0, 5); // Max 5 at a time
+
+    if (videosToPost.length === 0) {
+      toast.error('No videos ready for Pinterest posting');
+      return;
+    }
+
+    setIsBatchPostingPinterest(true);
+    setBatchPostProgress(0);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < videosToPost.length; i++) {
+      const video = videosToPost[i];
+      setBatchPostProgress(Math.round(((i + 1) / videosToPost.length) * 100));
+
+      try {
+        // Extract product info from video name
+        const productName = video.name.replace(' - AI Video Ad', '').replace(' - Video Ad', '');
+        const productHandle = productName.toLowerCase().replace(/\s+/g, '-');
+
+        const { data, error } = await supabase.functions.invoke('pinterest-publish', {
+          body: {
+            video_url: video.video_url,
+            title: productName,
+            product_name: productName,
+            product_handle: productHandle,
+            thumbnail_url: video.thumbnail_url,
+            creative_id: video.id,
+            board_name: 'AuraLift Skincare Favorites',
+            optimize_caption: true
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.success) {
+          successCount++;
+          toast.success(`📌 Posted: ${productName}`, { duration: 2000 });
+        } else {
+          throw new Error(data?.error || 'Post failed');
+        }
+      } catch (err: any) {
+        failCount++;
+        console.error(`Pinterest batch post error for ${video.name}:`, err);
+      }
+
+      // Small delay between posts
+      await new Promise(r => setTimeout(r, 1000));
+    }
+
+    setIsBatchPostingPinterest(false);
+    setBatchPostProgress(0);
+
+    if (successCount > 0) {
+      toast.success(`📌 Batch Pinterest Post Complete!`, {
+        description: `${successCount} posted, ${failCount} failed`
+      });
+      checkPinterestConnection(); // Refresh last post info
+    } else {
+      toast.error('All Pinterest posts failed');
     }
   };
 
