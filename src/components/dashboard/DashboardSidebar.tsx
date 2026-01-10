@@ -15,6 +15,7 @@ import {
   Sparkles,
   Plug,
   DollarSign,
+  Globe,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,6 +90,12 @@ const mainNavItems = [
     icon: DollarSign,
     path: "/dashboard/profit-engine",
     badge: "95%",
+  },
+  {
+    title: "Emerging Layer",
+    icon: Globe,
+    path: "/dashboard/emerging-layer",
+    badge: "Web3",
   },
   {
     title: "Sales Analytics",
