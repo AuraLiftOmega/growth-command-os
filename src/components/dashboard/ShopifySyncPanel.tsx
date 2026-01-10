@@ -1,7 +1,8 @@
 /**
- * SHOPIFY SYNC PANEL
+ * SHOPIFY SYNC PANEL - PER-USER DYNAMIC
  * 
- * Real-time sync status and product management for connected Shopify store
+ * Real-time sync status and product management for user's connected Shopify stores
+ * NO HARDCODED STORES - All data fetched per-user from database
  */
 
 import { useState } from 'react';
@@ -16,252 +17,229 @@ import {
   ShoppingBag,
   TrendingUp,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Store,
+  Plus,
+  Sparkles
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { useUserShopifyConnections } from '@/hooks/useUserShopifyConnections';
+import { useNavigate } from 'react-router-dom';
 
 export function ShopifySyncPanel() {
-  const { products, isLoading, error, lastFetched, refetch } = useShopifyProducts({ 
-    vendor: 'AuraLift Beauty',
-    autoLoad: true 
-  });
-  const [isSyncing, setIsSyncing] = useState(false);
+  const navigate = useNavigate();
+  const { 
+    connections, 
+    products, 
+    isLoading, 
+    hasConnections, 
+    syncProducts,
+    refetch 
+  } = useUserShopifyConnections();
+  
+  const [syncingId, setSyncingId] = useState<string | null>(null);
 
-  const handleSync = async () => {
-    setIsSyncing(true);
+  const handleSync = async (connectionId: string) => {
+    setSyncingId(connectionId);
     try {
-      await refetch();
-      toast.success('Shopify products synced successfully!', {
-        description: `${products.length} products loaded`
-      });
+      await syncProducts(connectionId);
+      toast.success('Shopify products synced successfully!');
     } catch (err) {
       toast.error('Sync failed', {
         description: 'Could not fetch products from Shopify'
       });
     } finally {
-      setIsSyncing(false);
+      setSyncingId(null);
     }
   };
 
-  const totalInventoryValue = products.reduce((sum, p) => sum + p.price, 0);
-  const availableProducts = products.filter(p => p.available).length;
+  const handleSyncAll = async () => {
+    for (const connection of connections) {
+      await handleSync(connection.id);
+    }
+  };
+
+  const totalProducts = products.length;
+  const totalRevenue = connections.reduce((sum, c) => sum + (c.total_revenue || 0), 0);
+
+  // No connections - show connect prompt
+  if (!isLoading && !hasConnections) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="relative inline-block mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto">
+            <Store className="h-10 w-10 text-green-500" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+            <Sparkles className="w-3.5 h-3.5 text-white" />
+          </div>
+        </div>
+        
+        <h3 className="text-xl font-semibold mb-2">Connect Your Shopify Store</h3>
+        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+          Link your Shopify store to sync products, generate AI video ads, 
+          and track sales — all from one dashboard.
+        </p>
+        
+        <Button 
+          size="lg"
+          className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500"
+          onClick={() => navigate('/dashboard/settings?tab=shopify')}
+        >
+          <Store className="w-5 h-5" />
+          Connect Shopify Store
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Sync Status Header */}
-      <Card className="p-6 bg-gradient-to-br from-primary/10 to-chart-2/10 border-primary/20">
+      <Card className="p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
               <ShoppingBag className="w-7 h-7 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-display font-bold">Shopify Sync</h2>
-                <Badge className="bg-success/20 text-success border-success/30">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  LIVE
-                </Badge>
+                {hasConnections && (
+                  <Badge className="bg-green-500/20 text-green-600 border-green-500/30">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    {connections.length} Store{connections.length !== 1 ? 's' : ''} Connected
+                  </Badge>
+                )}
               </div>
               <p className="text-muted-foreground">
-                AuraLift Essentials • lovable-project-7fb70.myshopify.com • 22 Products (13 AuraLift Beauty) • LIVE
+                {totalProducts} products synced • ${totalRevenue.toLocaleString()} total revenue
               </p>
             </div>
           </div>
           
-          <Button 
-            onClick={handleSync} 
-            disabled={isSyncing || isLoading}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${isSyncing || isLoading ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Now'}
-          </Button>
-        </div>
-
-        {lastFetched && (
-          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            Last synced: {lastFetched.toLocaleTimeString()}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/dashboard/settings?tab=shopify')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Store
+            </Button>
+            <Button 
+              onClick={handleSyncAll} 
+              disabled={isLoading || syncingId !== null}
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncingId ? 'animate-spin' : ''}`} />
+              {syncingId ? 'Syncing...' : 'Sync All'}
+            </Button>
           </div>
-        )}
+        </div>
       </Card>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="w-5 h-5 text-primary" />
+      {/* Connected Stores List */}
+      <div className="space-y-4">
+        {connections.map((connection) => (
+          <Card key={connection.id} className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10">
+                  <Store className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{connection.shop_name || connection.shop_domain}</span>
+                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/30">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Connected
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{connection.shop_domain}</p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Package className="h-3 w-3" />
+                      {connection.products_count || 0} products
+                    </span>
+                    <span className="flex items-center gap-1 text-xs text-green-600">
+                      <DollarSign className="h-3 w-3" />
+                      ${(connection.total_revenue || 0).toLocaleString()}
+                    </span>
+                    {connection.last_sync_at && (
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        Last sync: {new Date(connection.last_sync_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{products.length}</p>
-                <p className="text-sm text-muted-foreground">Total Products</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-        >
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{availableProducts}</p>
-                <p className="text-sm text-muted-foreground">In Stock</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-chart-2/10 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-chart-2" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">${totalInventoryValue.toFixed(0)}</p>
-                <p className="text-sm text-muted-foreground">Catalog Value</p>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-chart-3/10 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-chart-3" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  ${products.length > 0 ? (totalInventoryValue / products.length).toFixed(0) : 0}
-                </p>
-                <p className="text-sm text-muted-foreground">Avg Price</p>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleSync(connection.id)}
+                  disabled={syncingId === connection.id}
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncingId === connection.id ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <a 
+                    href={`https://${connection.shop_domain}/admin`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
               </div>
             </div>
           </Card>
-        </motion.div>
+        ))}
       </div>
 
-      {/* Products Grid */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Synced Products</h3>
-          <Badge variant="outline">{products.length} products</Badge>
-        </div>
-
-        {error && (
-          <div className="flex items-center gap-3 p-4 mb-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-destructive" />
-            <p className="text-sm text-destructive">{error}</p>
+      {/* Products Preview */}
+      {products.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Recent Products
+            </h3>
+            <Badge variant="outline">{products.length} total</Badge>
           </div>
-        )}
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12">
-            <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h4 className="font-medium text-lg mb-2">No products found</h4>
-            <p className="text-muted-foreground mb-4">
-              Create a product by telling me what you want to sell!
-            </p>
-          </div>
-        ) : (
-          <ScrollArea className="h-[400px]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {products.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+          
+          <ScrollArea className="h-[200px]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {products.slice(0, 8).map((product) => (
+                <div 
+                  key={product.id} 
+                  className="p-3 rounded-lg border bg-card hover:shadow-md transition-shadow"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-square relative bg-muted">
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
-                        </div>
-                      )}
-                      <Badge 
-                        className={`absolute top-2 right-2 ${
-                          product.available 
-                            ? 'bg-success/90 text-white' 
-                            : 'bg-muted-foreground/90 text-white'
-                        }`}
-                      >
-                        {product.available ? 'In Stock' : 'Out of Stock'}
-                      </Badge>
+                  {product.images?.[0]?.url ? (
+                    <img 
+                      src={product.images[0].url} 
+                      alt={product.title}
+                      className="w-full h-20 object-cover rounded mb-2"
+                    />
+                  ) : (
+                    <div className="w-full h-20 bg-muted rounded mb-2 flex items-center justify-center">
+                      <ImageIcon className="w-6 h-6 text-muted-foreground" />
                     </div>
-                    
-                    <div className="p-4">
-                      <h4 className="font-semibold truncate">{product.title}</h4>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-lg font-bold text-primary">
-                          ${product.price.toFixed(2)}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {product.vendor}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                        {product.description?.slice(0, 80)}...
-                      </p>
-                      
-                      <div className="flex gap-2 mt-3">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="flex-1 text-xs"
-                          onClick={() => window.open(`/store#${product.handle}`, '_blank')}
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          View in Store
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
+                  )}
+                  <p className="text-xs font-medium line-clamp-1">{product.title}</p>
+                  <p className="text-xs text-green-600">${product.price?.toFixed(2) || '0.00'}</p>
+                </div>
               ))}
             </div>
           </ScrollArea>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
