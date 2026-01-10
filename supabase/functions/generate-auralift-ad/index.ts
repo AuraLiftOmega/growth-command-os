@@ -6,40 +6,40 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// AuraLift product catalog with real Shopify IDs
+// AuraLift product catalog with REAL Shopify IDs (created Jan 2026)
 const AURALIFT_PRODUCTS = {
-  "radiance-vitamin-c-serum": {
-    id: "10511372452145",
+  "radiance-vitamin-c-serum-1": {
+    id: "10518697279793",
     title: "Radiance Vitamin C Serum",
-    description: "Brightens skin, fights dark spots, radiant glow in weeks. Premium Vitamin C formula with hyaluronic acid for maximum absorption.",
+    description: "Brightens skin, fights dark spots, radiant glow in weeks. Premium Vitamin C formula with hyaluronic acid.",
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800",
     price: "$38.00"
   },
-  "hydra-glow-retinol-night-cream": {
-    id: "10511372484913",
+  "hydra-glow-retinol-night-cream-1": {
+    id: "10518697312561",
     title: "Hydra-Glow Retinol Night Cream",
-    description: "Repairs skin overnight, reduces fine lines, wake up refreshed",
+    description: "Repairs skin overnight, reduces fine lines, wake up refreshed. Advanced 0.5% retinol formula.",
     image: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800",
     price: "$44.00"
   },
-  "ultra-hydration-hyaluronic-serum": {
-    id: "10511372550449",
+  "ultra-hydration-hyaluronic-serum-1": {
+    id: "10518697345329",
     title: "Ultra Hydration Hyaluronic Serum",
-    description: "Deep hydration, plumps skin, locks in moisture all day",
+    description: "Deep hydration, plumps skin, locks in moisture all day. Triple-weight hyaluronic acid.",
     image: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800",
     price: "$36.00"
   },
-  "omega-glow-collagen-peptide-moisturizer": {
-    id: "10511372812593",
+  "omega-glow-collagen-peptide-moisturizer-1": {
+    id: "10518697410865",
     title: "Omega Glow Collagen Peptide Moisturizer",
-    description: "Firms skin, boosts collagen, youthful elasticity restored",
+    description: "Firms skin, boosts collagen, youthful elasticity restored. Plant-derived peptides.",
     image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800",
     price: "$48.00"
   },
-  "luxe-rose-quartz-face-roller-set": {
-    id: "10511372747057",
+  "luxe-rose-quartz-face-roller-set-1": {
+    id: "10518697443633",
     title: "Luxe Rose Quartz Face Roller Set",
-    description: "Depuffs, promotes circulation, luxurious spa experience at home",
+    description: "Depuffs, promotes circulation, luxurious spa experience at home. Premium rose quartz.",
     image: "https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=800",
     price: "$32.00"
   }
