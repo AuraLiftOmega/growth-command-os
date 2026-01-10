@@ -11,6 +11,7 @@ import {
   Activity,
   Target,
   Brain,
+  Rocket,
 } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,8 @@ import { useLiveMetrics } from "@/hooks/useLiveMetrics";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { ShopifySyncStatus } from "@/components/dashboard/ShopifySyncStatus";
 import { OmegaAISidebar } from "@/components/dashboard/OmegaAISidebar";
+import { LiveRevenuePanel } from "@/components/dashboard/LiveRevenuePanel";
+import { ShopifySyncIndicator } from "@/components/dashboard/ShopifySyncIndicator";
 import { STORE_CONFIG, DOMINION_LOGO_URL } from "@/lib/store-config";
 
 interface StatCardProps {
@@ -281,11 +284,20 @@ export function DashboardHome() {
         </motion.div>
       </div>
 
-      {/* Revenue Chart */}
+      {/* Live Revenue Panel */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.35 }}
+      >
+        <LiveRevenuePanel />
+      </motion.div>
+
+      {/* Revenue Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
       >
         <RevenueChart />
       </motion.div>

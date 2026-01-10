@@ -1084,23 +1084,29 @@ export function VideoAdStudioPage() {
               </div>
 
               <div className="pt-4 border-t space-y-2">
-                <h4 className="font-medium mb-2">Actions</h4>
+                <h4 className="font-medium mb-2">Publish to Social</h4>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="gap-2">
-                    <Edit3 className="w-4 h-4" />
-                    Edit
+                  <Button className="gap-2 bg-black hover:bg-black/80 text-white">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+                    </svg>
+                    Post to TikTok
                   </Button>
+                  <Button className="gap-2 bg-red-600 hover:bg-red-700 text-white">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                      <path d="M12 0a12 12 0 00-4.37 23.17c-.1-.94-.19-2.38.04-3.41l1.36-5.76s-.35-.69-.35-1.72c0-1.61.94-2.82 2.1-2.82.99 0 1.47.74 1.47 1.63 0 .99-.63 2.48-.96 3.86-.27 1.16.58 2.1 1.72 2.1 2.07 0 3.66-2.18 3.66-5.33 0-2.79-2.01-4.74-4.87-4.74-3.32 0-5.27 2.49-5.27 5.07 0 1 .39 2.08.87 2.66a.35.35 0 01.08.34c-.09.37-.29 1.16-.33 1.32-.05.21-.17.26-.39.16-1.46-.68-2.37-2.82-2.37-4.54 0-3.7 2.68-7.09 7.74-7.09 4.06 0 7.22 2.9 7.22 6.76 0 4.04-2.55 7.29-6.08 7.29-1.19 0-2.31-.62-2.69-1.35l-.73 2.79c-.26 1.02-.98 2.29-1.46 3.07A12 12 0 1012 0z"/>
+                    </svg>
+                    Post to Pinterest
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   <Button variant="outline" className="gap-2">
                     <Download className="w-4 h-4" />
                     Download
                   </Button>
                   <Button variant="outline" className="gap-2">
                     <Share2 className="w-4 h-4" />
-                    Share
-                  </Button>
-                  <Button variant="outline" className="gap-2 text-destructive">
-                    <Trash2 className="w-4 h-4" />
-                    Delete
+                    Share Link
                   </Button>
                 </div>
               </div>
