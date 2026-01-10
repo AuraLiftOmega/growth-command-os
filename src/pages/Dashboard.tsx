@@ -8,6 +8,7 @@ import { SalesAnalyticsPanel } from "@/components/dashboard/SalesAnalyticsPanel"
 import { SocialChannelsDashboard } from "@/components/social";
 import { SettingsPage } from "@/components/dashboard/SettingsPage";
 import { IntegrationsHub } from "@/components/integrations";
+import { LiveProfitEngine } from "@/components/autonomous";
 
 const Dashboard = () => {
   return (
@@ -21,6 +22,7 @@ const Dashboard = () => {
         <Route path="social-channels/*" element={<SocialChannelsDashboard />} />
         <Route path="analytics" element={<SalesAnalyticsPanel />} />
         <Route path="integrations" element={<IntegrationsHub />} />
+        <Route path="profit-engine" element={<LiveProfitEngine />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
