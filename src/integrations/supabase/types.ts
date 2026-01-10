@@ -669,6 +669,48 @@ export type Database = {
         }
         Relationships: []
       }
+      blockchain_logs: {
+        Row: {
+          amount: number | null
+          block_number: number | null
+          chain: string | null
+          confirmed: boolean | null
+          created_at: string
+          currency: string | null
+          id: string
+          metadata: Json | null
+          tx_hash: string | null
+          tx_type: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          block_number?: number | null
+          chain?: string | null
+          confirmed?: boolean | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          tx_hash?: string | null
+          tx_type?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          block_number?: number | null
+          chain?: string | null
+          confirmed?: boolean | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          tx_hash?: string | null
+          tx_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_reminders: {
         Row: {
           booking_id: string
@@ -2208,6 +2250,48 @@ export type Database = {
           },
         ]
       }
+      metaverse_deployments: {
+        Row: {
+          config: Json | null
+          created_at: string
+          deployment_type: string
+          id: string
+          interactions_count: number | null
+          location: Json | null
+          platform: string
+          revenue_generated: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          deployment_type: string
+          id?: string
+          interactions_count?: number | null
+          location?: Json | null
+          platform: string
+          revenue_generated?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          deployment_type?: string
+          id?: string
+          interactions_count?: number | null
+          location?: Json | null
+          platform?: string
+          revenue_generated?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       oauth_states: {
         Row: {
           created_at: string | null
@@ -3166,6 +3250,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      robot_deployments: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          revenue_attributed: number | null
+          robot_type: string
+          status: string | null
+          task_type: string | null
+          tasks_completed: number | null
+          telemetry: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          revenue_attributed?: number | null
+          robot_type: string
+          status?: string | null
+          task_type?: string | null
+          tasks_completed?: number | null
+          telemetry?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          revenue_attributed?: number | null
+          robot_type?: string
+          status?: string | null
+          task_type?: string | null
+          tasks_completed?: number | null
+          telemetry?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       rollout_status: {
         Row: {
