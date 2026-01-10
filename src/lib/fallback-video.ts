@@ -49,7 +49,7 @@ export const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       source: 'pexels'
     },
     static_image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
-    voiceover_script: 'Discover Radiance Vitamin C Serum from AuraLift Essentials. Brightens skin, fights dark spots, and gives you that radiant glow in weeks. Shop now at auraliftessentials.com.',
+    voiceover_script: 'Discover Radiance Vitamin C Serum. Brightens skin, fights dark spots, and gives you that radiant glow in weeks. Shop now!',
     color_theme: '#ff9800',
     match_quality: 'high'
   },
@@ -72,7 +72,7 @@ export const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       source: 'pexels'
     },
     static_image: 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
-    voiceover_script: 'Transform your skin overnight with Hydra-Glow Retinol Night Cream. Repairs, rejuvenates, and reduces fine lines while you sleep. Wake up refreshed. Shop AuraLift Essentials.',
+    voiceover_script: 'Transform your skin overnight with Hydra-Glow Retinol Night Cream. Repairs, rejuvenates, and reduces fine lines while you sleep. Wake up refreshed. Shop now!',
     color_theme: '#7c4dff',
     match_quality: 'high'
   },
@@ -95,7 +95,7 @@ export const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       source: 'pexels'
     },
     static_image: 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
-    voiceover_script: 'Quench your skin with Ultra Hydration Hyaluronic Serum. Deep moisture that plumps, smooths, and locks in hydration all day. Your skin will thank you. Shop AuraLift Essentials.',
+    voiceover_script: 'Quench your skin with Ultra Hydration Hyaluronic Serum. Deep moisture that plumps, smooths, and locks in hydration all day. Your skin will thank you. Shop now!',
     color_theme: '#03a9f4',
     match_quality: 'high'
   },
@@ -166,7 +166,7 @@ export const GENERIC_FALLBACK: FallbackVideoConfig = {
     source: 'pexels'
   },
   static_image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
-  voiceover_script: 'Discover premium skincare from AuraLift Essentials. Radiant, hydrated, youthful skin starts here. Shop now at auraliftessentials.com.',
+  voiceover_script: 'Discover premium skincare. Radiant, hydrated, youthful skin starts here. Shop now!',
   color_theme: '#ff9800',
   match_quality: 'category'
 };

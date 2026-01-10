@@ -286,15 +286,16 @@ export const PINTEREST_CAPTIONS: Record<string, { title: string; description: st
 /**
  * Get Pinterest-optimized caption for a product
  */
-export function getPinterestCaption(productHandle: string, productTitle?: string): { title: string; description: string; hashtags: string[] } {
+export function getPinterestCaption(productHandle: string, productTitle?: string, storeDomain?: string): { title: string; description: string; hashtags: string[] } {
   const cached = PINTEREST_CAPTIONS[productHandle];
   if (cached) return cached;
   
-  // Generate generic caption
-  const title = productTitle || 'AuraLift Premium Skincare';
+  // Generate generic caption - dynamic, no hardcoded domain
+  const title = productTitle || 'Premium Product';
+  const shopUrl = storeDomain ? `Shop now at ${storeDomain}` : 'Link in bio';
   return {
     title: `${title} ✨`,
-    description: `Discover premium skincare from AuraLift Essentials. Transform your routine with professional-grade formulas. Shop now at auraliftessentials.com`,
-    hashtags: ['#Skincare', '#AuraLift', '#Beauty', '#GlowUp', '#SkincareRoutine', '#CleanBeauty']
+    description: `Discover premium products. Transform your routine with professional-grade formulas. ${shopUrl}`,
+    hashtags: ['#Skincare', '#Beauty', '#GlowUp', '#SkincareRoutine', '#CleanBeauty']
   };
 }

@@ -42,6 +42,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useShopifyProducts, type ParsedShopifyProduct } from '@/hooks/useShopifyProducts';
+import { useActiveStore } from '@/hooks/useActiveStore';
+import { generateAdScript } from '@/lib/store-config';
 
 // TikTok & Pinterest icons
 const TikTokIcon = () => (
@@ -97,22 +99,28 @@ const PRODUCT_EMOJIS: Record<string, string> = {
   'luxe-rose-quartz-face-roller-set': '💎',
 };
 
-// Script variations by emotion - AURALIFT ESSENTIALS domain
-const SCRIPT_VARIATIONS = {
+// Script variations by emotion - DYNAMIC per user store
+const createScriptVariations = (domain?: string, storeName?: string) => ({
   excited: (title: string, desc: string) => 
-    `OMG you NEED to try ${title}! ${desc} - I literally can't live without it! Shop www.auraliftessentials.com!`,
+    `OMG you NEED to try ${title}! ${desc} - I literally can't live without it! ${domain ? `Shop ${domain}!` : 'Link in bio!'}`,
   calm: (title: string, desc: string) => 
-    `Discover ${title} from AuraLift Essentials. ${desc}. Radiant, hydrated, youthful skin. Shop now at www.auraliftessentials.com!`,
+    `Discover ${title} from ${storeName || 'our store'}. ${desc}. Radiant, hydrated, youthful skin. ${domain ? `Shop now at ${domain}!` : 'Link in bio!'}`,
   urgent: (title: string, desc: string) => 
-    `STOP scrolling! ${title} is selling out fast. ${desc}. Get yours before it's gone - www.auraliftessentials.com!`,
-};
+    `STOP scrolling! ${title} is selling out fast. ${desc}. Get yours before it's gone - ${domain || 'Link in bio'}!`,
+});
 
 export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps) {
   const { user } = useAuth();
+  const { activeStore } = useActiveStore();
   
-  // Fetch real AuraLift products from Shopify
+  // Create script variations with user's store domain
+  const SCRIPT_VARIATIONS = createScriptVariations(
+    activeStore?.storeDomain,
+    activeStore?.storeName
+  );
+  
+  // Fetch products from user's connected store
   const { products: shopifyProducts, isLoading: loadingProducts, refetch: refetchProducts } = useShopifyProducts({
-    vendor: 'AuraLift Beauty',
     autoLoad: true
   });
   
@@ -149,7 +157,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const generatedScript = selectedProduct 
     ? (customScript || SCRIPT_VARIATIONS[selectedEmotion](
         selectedProduct.title, 
-        selectedProduct.description || `${selectedProduct.productType} from AuraLift Beauty`
+        selectedProduct.description || `${selectedProduct.productType || 'Product'}`
       ))
     : '';
 

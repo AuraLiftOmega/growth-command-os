@@ -1,9 +1,21 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Globe } from "lucide-react";
-import { STORE_CONFIG } from "@/lib/store-config";
+import { Mail, Phone, MapPin, Globe, Store } from "lucide-react";
+import { PLATFORM_CONFIG } from "@/lib/store-config";
 import { DominionFooterLogo } from "@/components/DominionLogo";
+import { useActiveStore } from "@/hooks/useActiveStore";
 
 export function StoreFooter() {
+  const { activeStore } = useActiveStore();
+  
+  // Use connected store info or platform defaults
+  const storeName = activeStore?.storeName || PLATFORM_CONFIG.name;
+  const storeDomain = activeStore?.storeDomain || PLATFORM_CONFIG.domain;
+  const storeUrl = activeStore?.storeDomain 
+    ? `https://${activeStore.storeDomain}` 
+    : PLATFORM_CONFIG.fullUrl;
+  const storeDescription = PLATFORM_CONFIG.description;
+  const storeEmail = PLATFORM_CONFIG.email;
+
   return (
     <footer className="border-t border-border/40 bg-card/30 mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -11,22 +23,19 @@ export function StoreFooter() {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/store" className="inline-block">
-              <span className="text-2xl font-bold gradient-text">{STORE_CONFIG.name}</span>
+              <span className="text-2xl font-bold gradient-text">{storeName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              {STORE_CONFIG.description}
+              {storeDescription}
             </p>
-            <div className="flex items-center gap-2 text-sm text-primary">
-              <Globe className="w-4 h-4" />
-              <a 
-                href={STORE_CONFIG.fullUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                {STORE_CONFIG.domain}
-              </a>
-            </div>
+            {activeStore && (
+              <div className="flex items-center gap-2 text-sm text-primary">
+                <Store className="w-4 h-4" />
+                <span className="text-muted-foreground">
+                  Connected to Shopify
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Shop Links */}
@@ -70,11 +79,7 @@ export function StoreFooter() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>{STORE_CONFIG.email}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                <span>{STORE_CONFIG.phone}</span>
+                <span>{storeEmail}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
@@ -85,7 +90,7 @@ export function StoreFooter() {
         </div>
 
         <div className="border-t border-border/40 mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} {STORE_CONFIG.name}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
           <DominionFooterLogo />
         </div>
       </div>
