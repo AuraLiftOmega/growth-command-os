@@ -1,5 +1,6 @@
 /**
- * Platform Channel Card - Individual social/sales channel with OAuth, stats, and posting
+ * Platform Channel Card - Enhanced social/sales channel with one-click OAuth
+ * Clean UI with status indicators, reconnect support, and real-time sync
  */
 
 import { useState } from "react";
@@ -18,6 +19,10 @@ import {
   Unlink,
   Settings,
   Zap,
+  AlertTriangle,
+  Shield,
+  Clock,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,11 +64,15 @@ interface PlatformChannelCardProps {
   platform: PlatformConfig;
   isConnected: boolean;
   isTestMode?: boolean;
-  healthStatus: "healthy" | "degraded" | "disconnected";
+  healthStatus: "healthy" | "degraded" | "disconnected" | "expired";
   handle?: string;
+  avatar?: string;
+  lastSyncAt?: string;
+  expiresAt?: string;
   stats?: PlatformStats;
   onConnect: (platformId: string) => Promise<void>;
   onDisconnect: (platformId: string) => Promise<void>;
+  onReconnect?: (platformId: string) => Promise<void>;
   onPost: (platformId: string) => void;
   isLoading?: boolean;
 }
@@ -80,29 +89,55 @@ export function PlatformChannelCard({
   isTestMode,
   healthStatus,
   handle,
+  avatar,
+  lastSyncAt,
+  expiresAt,
   stats,
   onConnect,
   onDisconnect,
+  onReconnect,
   onPost,
   isLoading,
 }: PlatformChannelCardProps) {
   const { user } = useAuth();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Check if token is expiring soon (within 24 hours)
+  const isExpiringSoon = expiresAt ? 
+    new Date(expiresAt).getTime() - Date.now() < 24 * 60 * 60 * 1000 : false;
+  
+  const isExpired = expiresAt ? new Date(expiresAt) < new Date() : false;
 
   const handleConnect = async () => {
     if (!user) {
-      toast.error("Please sign in first");
+      toast.error("Please sign in to connect your accounts securely");
       return;
     }
     setIsConnecting(true);
     try {
       await onConnect(platform.id);
-      toast.success(`${platform.name} connected!`);
     } catch (err: any) {
       toast.error(err.message || `Failed to connect ${platform.name}`);
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleReconnect = async () => {
+    if (!onReconnect) {
+      await handleConnect();
+      return;
+    }
+    setIsReconnecting(true);
+    try {
+      await onReconnect(platform.id);
+      toast.success(`${platform.name} reconnected!`);
+    } catch (err) {
+      toast.error("Failed to reconnect");
+    } finally {
+      setIsReconnecting(false);
     }
   };
 
@@ -116,12 +151,24 @@ export function PlatformChannelCard({
     }
   };
 
-  const statusColor =
-    healthStatus === "healthy"
-      ? "bg-success"
-      : healthStatus === "degraded"
-      ? "bg-warning"
-      : "bg-muted-foreground";
+  const getStatusInfo = () => {
+    if (isExpired || healthStatus === "expired") {
+      return { color: "bg-destructive", text: "Expired", icon: AlertTriangle };
+    }
+    if (isExpiringSoon) {
+      return { color: "bg-warning", text: "Expiring Soon", icon: Clock };
+    }
+    if (healthStatus === "healthy") {
+      return { color: "bg-success", text: "Connected", icon: CheckCircle2 };
+    }
+    if (healthStatus === "degraded") {
+      return { color: "bg-warning", text: "Degraded", icon: RefreshCw };
+    }
+    return { color: "bg-muted-foreground", text: "Disconnected", icon: XCircle };
+  };
+
+  const statusInfo = getStatusInfo();
+  const StatusIcon = statusInfo.icon;
 
   return (
     <>
@@ -145,10 +192,27 @@ export function PlatformChannelCard({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className={`w-11 h-11 rounded-xl bg-gradient-to-br ${platform.gradientFrom} ${platform.gradientTo} flex items-center justify-center text-2xl shadow-lg`}
-                >
-                  {platform.icon}
+                {/* Platform icon or user avatar if connected */}
+                <div className="relative">
+                  {isConnected && avatar ? (
+                    <img 
+                      src={avatar} 
+                      alt={handle || platform.name}
+                      className="w-11 h-11 rounded-xl object-cover shadow-lg ring-2 ring-background"
+                    />
+                  ) : (
+                    <div
+                      className={`w-11 h-11 rounded-xl bg-gradient-to-br ${platform.gradientFrom} ${platform.gradientTo} flex items-center justify-center text-2xl shadow-lg`}
+                    >
+                      {platform.icon}
+                    </div>
+                  )}
+                  {/* Connection status indicator */}
+                  {isConnected && (
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full ${statusInfo.color} border-2 border-background flex items-center justify-center`}>
+                      <StatusIcon className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -158,9 +222,20 @@ export function PlatformChannelCard({
                         TEST
                       </Badge>
                     )}
+                    {isConnected && (
+                      <Badge 
+                        variant={isExpired || healthStatus === "expired" ? "destructive" : isExpiringSoon ? "outline" : "default"} 
+                        className="text-[9px] px-1.5"
+                      >
+                        {statusInfo.text}
+                      </Badge>
+                    )}
                   </CardTitle>
                   {handle ? (
-                    <p className="text-xs text-muted-foreground">{handle}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {handle}
+                    </p>
                   ) : (
                     <p className="text-[10px] text-muted-foreground capitalize">
                       {platform.type} Channel
@@ -171,16 +246,15 @@ export function PlatformChannelCard({
 
               <div className="flex items-center gap-2">
                 {isConnected && (
-                  <div className="flex items-center gap-1">
-                    <div className={`w-2 h-2 rounded-full ${statusColor} ${
-                      healthStatus === "healthy" ? "animate-pulse" : ""
-                    }`} />
-                    {healthStatus === "healthy" ? (
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                    ) : healthStatus === "degraded" ? (
-                      <RefreshCw className="w-4 h-4 text-warning" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex flex-col items-end">
+                    <div className="flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-success" />
+                      <span className="text-[9px] text-muted-foreground">OAuth</span>
+                    </div>
+                    {lastSyncAt && (
+                      <span className="text-[9px] text-muted-foreground">
+                        Synced {new Date(lastSyncAt).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
                 )}
@@ -189,6 +263,38 @@ export function PlatformChannelCard({
           </CardHeader>
 
           <CardContent className="p-4 space-y-4">
+            {/* Expired/Expiring Banner */}
+            {isConnected && (isExpired || isExpiringSoon) && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className={`p-2.5 rounded-lg ${isExpired ? "bg-destructive/10 border border-destructive/20" : "bg-warning/10 border border-warning/20"}`}
+              >
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className={`w-4 h-4 ${isExpired ? "text-destructive" : "text-warning"}`} />
+                  <span className="text-xs font-medium">
+                    {isExpired ? "Connection expired" : "Token expiring soon"}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-auto h-7 text-xs"
+                    onClick={handleReconnect}
+                    disabled={isReconnecting}
+                  >
+                    {isReconnecting ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        Reconnect
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
             {/* Connected State */}
             {isConnected ? (
               <>
@@ -274,6 +380,7 @@ export function PlatformChannelCard({
                     size="sm"
                     className={`flex-1 bg-gradient-to-r ${platform.gradientFrom} ${platform.gradientTo}`}
                     onClick={() => onPost(platform.id)}
+                    disabled={isExpired}
                   >
                     <Play className="w-3 h-3 mr-1.5" />
                     Post Ad
@@ -282,9 +389,17 @@ export function PlatformChannelCard({
               </>
             ) : (
               /* Disconnected State */
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* Secure OAuth Badge */}
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                  <Shield className="w-4 h-4 text-success" />
+                  <span className="text-xs text-muted-foreground">
+                    Secure OAuth login — your password stays with {platform.name}
+                  </span>
+                </div>
+
                 {/* Features Preview */}
-                <div className="flex flex-wrap gap-1 mb-2">
+                <div className="flex flex-wrap gap-1">
                   {platform.apiFeatures.slice(0, 4).map((feature) => (
                     <Badge
                       key={feature}
@@ -299,20 +414,23 @@ export function PlatformChannelCard({
                 <Button
                   onClick={handleConnect}
                   disabled={isConnecting || isLoading}
-                  className={`w-full bg-gradient-to-r ${platform.gradientFrom} ${platform.gradientTo} hover:opacity-90`}
+                  className={`w-full bg-gradient-to-r ${platform.gradientFrom} ${platform.gradientTo} hover:opacity-90 shadow-lg`}
                 >
                   {isConnecting ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Connecting...
+                      Redirecting to {platform.name}...
                     </>
                   ) : (
                     <>
                       <Zap className="w-4 h-4 mr-2" />
-                      Connect {platform.name}
+                      Connect with {platform.name}
                     </>
                   )}
                 </Button>
+                <p className="text-[10px] text-center text-muted-foreground">
+                  You'll be redirected to {platform.name} to authorize access
+                </p>
               </div>
             )}
           </CardContent>
@@ -334,18 +452,50 @@ export function PlatformChannelCard({
 
           <div className="space-y-4">
             {/* Connection Status */}
-            <div className="p-3 rounded-lg bg-muted/50">
+            <div className={`p-3 rounded-lg ${isExpired ? "bg-destructive/10" : "bg-muted/50"}`}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Connection Status</span>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${statusColor}`} />
-                  <span className="text-sm capitalize">{healthStatus}</span>
+                  <div className={`w-2 h-2 rounded-full ${statusInfo.color}`} />
+                  <span className="text-sm">{statusInfo.text}</span>
                 </div>
               </div>
               {handle && (
-                <p className="text-xs text-muted-foreground mt-1">{handle}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {avatar && (
+                    <img src={avatar} alt={handle} className="w-6 h-6 rounded-full" />
+                  )}
+                  <p className="text-xs text-muted-foreground">{handle}</p>
+                </div>
+              )}
+              {lastSyncAt && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Last synced: {new Date(lastSyncAt).toLocaleString()}
+                </p>
+              )}
+              {expiresAt && (
+                <p className={`text-xs mt-1 ${isExpired ? "text-destructive" : "text-muted-foreground"}`}>
+                  {isExpired ? "Expired" : "Expires"}: {new Date(expiresAt).toLocaleString()}
+                </p>
               )}
             </div>
+
+            {/* Reconnect if expired */}
+            {(isExpired || isExpiringSoon) && (
+              <Button
+                onClick={handleReconnect}
+                disabled={isReconnecting}
+                className="w-full"
+                variant={isExpired ? "destructive" : "outline"}
+              >
+                {isReconnecting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Reconnect Account
+              </Button>
+            )}
 
             {/* Features */}
             <div>
@@ -358,6 +508,14 @@ export function PlatformChannelCard({
                     {feature}
                   </Badge>
                 ))}
+              </div>
+            </div>
+
+            {/* Security Info */}
+            <div className="p-2 rounded-lg bg-success/5 border border-success/20">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-success" />
+                <span className="text-xs text-success">Securely connected via OAuth 2.0</span>
               </div>
             </div>
 
