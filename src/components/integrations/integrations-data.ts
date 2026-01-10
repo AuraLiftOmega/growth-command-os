@@ -1,5 +1,48 @@
 import { Integration } from "./IntegrationCard";
 
+// Map of integration IDs to their corresponding secret names for auto-detection
+export const INTEGRATION_SECRET_MAP: Record<string, string[]> = {
+  slack: ["SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"],
+  discord: ["DISCORD_BOT_TOKEN"],
+  gmail: ["GMAIL_API_KEY"],
+  google_calendar: ["GOOGLE_CALENDAR_API_KEY"],
+  google_drive: ["GOOGLE_DRIVE_API_KEY"],
+  google_sheets: ["GOOGLE_SHEETS_API_KEY"],
+  google_docs: ["GOOGLE_DOCS_API_KEY"],
+  hubspot: ["HUBSPOT_API_KEY"],
+  pipedrive: ["PIPEDRIVE_API_KEY"],
+  salesforce: ["SALESFORCE_API_KEY"],
+  mailchimp: ["MAILCHIMP_API_KEY"],
+  activecampaign: ["ACTIVECAMPAIGN_API_KEY"],
+  asana: ["ASANA_API_KEY"],
+  clickup: ["CLICKUP_API_KEY"],
+  monday: ["MONDAY_API_KEY"],
+  trello: ["TRELLO_API_KEY"],
+  jira: ["JIRA_API_KEY"],
+  notion: ["NOTION_API_KEY"],
+  airtable: ["AIRTABLE_API_KEY"],
+  todoist: ["TODOIST_API_KEY"],
+  telegram: ["TELEGRAM_BOT_TOKEN"],
+  whatsapp: ["WHATSAPP_API_KEY"],
+  openai: ["OPENAI_API_KEY"],
+  youtube: ["YOUTUBE_API_KEY"],
+  calendly: ["CALENDLY_API_KEY"],
+  typeform: ["TYPEFORM_API_KEY"],
+  jotform: ["JOTFORM_API_KEY"],
+  webflow: ["WEBFLOW_API_KEY"],
+  motion: ["MOTION_API_KEY"],
+  tldv: ["TLDV_API_KEY"],
+  leadconnector: ["LEADCONNECTOR_API_KEY"],
+  heygen: ["HEYGEN_API_KEY"],
+  elevenlabs: ["ELEVENLABS_API_KEY"],
+  pinterest: ["PINTEREST_APP_ID", "PINTEREST_APP_SECRET"],
+  tiktok: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"],
+  resend: ["RESEND_API_KEY"],
+  stripe: ["STRIPE_SECRET_KEY"],
+  geekbot: ["GEEKBOT_API_KEY"],
+  replicate: ["REPLICATE_API_TOKEN"],
+};
+
 export const INTEGRATION_CATEGORIES = {
   project_management: {
     label: "Project Management",
