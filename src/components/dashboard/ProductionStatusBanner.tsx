@@ -2,12 +2,12 @@
  * PRODUCTION STATUS BANNER
  * 
  * Real-time status display for all connected systems:
- * - Shopify (real products from lovable-project-7fb70.myshopify.com)
+ * - Shopify (per-user connected stores)
  * - CJ Dropshipping
- * - HeyGen/D-ID video generation
- * - Social channels (TikTok Shop, Pinterest)
+ * - D-ID video generation
+ * - Social channels
  * - Super Grok CEO
- * - Lifetime access status
+ * - Subscription status
  */
 
 import { useState, useEffect } from 'react';
@@ -24,8 +24,7 @@ import {
   Package,
   Crown,
   Zap,
-  ExternalLink,
-  ShoppingBag
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +32,7 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { storefrontApiRequest, PRODUCTS_QUERY, SHOPIFY_STORE_PERMANENT_DOMAIN } from '@/lib/shopify-config';
+import { useUserShopifyConnections } from '@/hooks/useUserShopifyConnections';
 
 interface SystemStatus {
   name: string;
@@ -48,6 +47,7 @@ interface SystemStatus {
 
 export function ProductionStatusBanner() {
   const { user } = useAuth();
+  const { connections: shopifyConnections, products: shopifyProducts, hasConnections } = useUserShopifyConnections();
   const [systems, setSystems] = useState<SystemStatus[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLifetimeAccess, setIsLifetimeAccess] = useState(false);
@@ -70,32 +70,18 @@ export function ProductionStatusBanner() {
       }
     }
 
-    // 1. Shopify Status
-    try {
-      const shopifyData = await storefrontApiRequest(PRODUCTS_QUERY, { first: 50 });
-      const productCount = shopifyData?.data?.products?.edges?.length || 0;
-      const auraliftProducts = shopifyData?.data?.products?.edges?.filter(
-        (p: any) => p.node?.vendor === 'AuraLift Beauty'
-      )?.length || 0;
-
-      statuses.push({
-        name: 'Shopify Store',
-        status: productCount > 0 ? 'connected' : 'partial',
-        details: productCount > 0 
-          ? `${productCount} products (${auraliftProducts} AuraLift)` 
-          : 'No products loaded',
-        icon: Store,
-        count: productCount,
-        link: `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/admin`
-      });
-    } catch (err) {
-      statuses.push({
-        name: 'Shopify Store',
-        status: 'disconnected',
-        details: 'Connection error',
-        icon: Store
-      });
-    }
+    // 1. Shopify Status (per-user connections)
+    const productCount = shopifyProducts.length;
+    statuses.push({
+      name: 'Shopify Store',
+      status: hasConnections ? 'connected' : 'partial',
+      details: hasConnections 
+        ? `${shopifyConnections.length} store${shopifyConnections.length > 1 ? 's' : ''} • ${productCount} products` 
+        : 'Connect your store to start',
+      icon: Store,
+      count: productCount,
+      link: hasConnections ? undefined : '/dashboard/settings'
+    });
 
     // 2. CJ Dropshipping Status
     if (user) {
@@ -120,7 +106,7 @@ export function ProductionStatusBanner() {
         count: cjLogs?.length || 0
       });
 
-      // 3. Video Generation (HeyGen/D-ID)
+      // 3. Video Generation (D-ID)
       const { data: ads } = await supabase
         .from('ads')
         .select('id, status, provider')
@@ -129,7 +115,7 @@ export function ProductionStatusBanner() {
       const completedAds = ads?.filter(a => a.status === 'completed')?.length || 0;
 
       statuses.push({
-        name: 'Video Gen (HeyGen/D-ID)',
+        name: 'Video Gen (D-ID Pro)',
         status: completedAds > 0 ? 'connected' : 'partial',
         details: completedAds > 0 
           ? `${completedAds} videos generated` 
@@ -139,22 +125,22 @@ export function ProductionStatusBanner() {
       });
 
       // 4. Social Channels
-      const { data: socialTokens } = await supabase
-        .from('social_tokens')
-        .select('channel, is_connected')
+      const { data: platformAccounts } = await supabase
+        .from('platform_accounts')
+        .select('platform, is_connected')
         .eq('user_id', user.id);
 
-      const connectedPlatforms = socialTokens?.filter(t => t.is_connected)?.length || 0;
-      const platformNames = socialTokens?.map(t => t.channel).join(', ') || 'None';
+      const connectedPlatforms = platformAccounts?.filter(t => t.is_connected)?.length || 0;
 
       statuses.push({
         name: 'Social Channels',
         status: connectedPlatforms > 0 ? 'connected' : 'partial',
         details: connectedPlatforms > 0 
-          ? `${connectedPlatforms} connected (${platformNames})` 
-          : 'TikTok Shop + Pinterest ready',
+          ? `${connectedPlatforms} connected` 
+          : 'Connect TikTok, Instagram, etc.',
         icon: Share2,
-        count: connectedPlatforms
+        count: connectedPlatforms,
+        link: '/dashboard/social-channels'
       });
 
       // 5. Super Grok CEO
@@ -184,7 +170,7 @@ export function ProductionStatusBanner() {
 
   useEffect(() => {
     checkAllSystems();
-  }, [user]);
+  }, [user, hasConnections, shopifyProducts.length]);
 
   const handleRefresh = async () => {
     toast.loading('Syncing all systems...', { id: 'refresh-systems' });
@@ -249,13 +235,13 @@ export function ProductionStatusBanner() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg">AURAOMEGA Production Mode</h3>
+                <h3 className="font-semibold text-lg">DOMINION Production Mode</h3>
                 <Badge className="bg-green-500 text-white animate-pulse">
                   LIVE
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {connectedCount}/{totalCount} systems active • Real revenue mode
+                {connectedCount}/{totalCount} systems active • Multi-tenant SaaS
               </p>
             </div>
           </div>
@@ -310,12 +296,10 @@ export function ProductionStatusBanner() {
                         </p>
                         {system.link && (
                           <a 
-                            href={system.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
+                            href={system.link}
                             className="text-xs text-primary hover:underline flex items-center gap-1 mt-1"
                           >
-                            Open <ExternalLink className="w-3 h-3" />
+                            Connect <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
                       </div>

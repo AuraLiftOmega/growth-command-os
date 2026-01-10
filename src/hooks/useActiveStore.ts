@@ -1,10 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useUserStore } from './useUserStore';
-import { 
-  SHOPIFY_STORE_PERMANENT_DOMAIN, 
-  SHOPIFY_STOREFRONT_TOKEN 
-} from '@/lib/shopify-config';
 
 export type StoreRole = 'platform' | 'personal' | 'customer';
 
@@ -17,7 +13,7 @@ export interface ActiveStoreConfig {
 }
 
 interface ActiveStoreState {
-  activeStoreId: string | null; // null = use platform store
+  activeStoreId: string | null;
   setActiveStoreId: (id: string | null) => void;
 }
 
@@ -35,18 +31,20 @@ export function useActiveStore() {
   const { stores, primaryStore } = useUserStore();
   const { activeStoreId, setActiveStoreId } = useActiveStoreState();
 
-  // Platform store config (for selling DOMINION software)
-  const platformStore: ActiveStoreConfig = {
-    storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-    storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
-    storeName: 'DOMINION Platform',
-    role: 'platform',
-  };
-
-  // Get active store config
-  const getActiveStore = (): ActiveStoreConfig => {
-    if (!activeStoreId) {
-      return platformStore;
+  // No platform store - users connect their own
+  const getActiveStore = (): ActiveStoreConfig | null => {
+    if (!activeStoreId && !primaryStore) {
+      return null;
+    }
+    
+    if (!activeStoreId && primaryStore) {
+      return {
+        storeDomain: primaryStore.store_domain,
+        storefrontToken: primaryStore.storefront_access_token,
+        storeName: primaryStore.store_name,
+        role: 'personal',
+        storeId: primaryStore.id,
+      };
     }
 
     const selectedStore = stores.find(s => s.id === activeStoreId);

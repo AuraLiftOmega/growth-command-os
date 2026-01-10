@@ -1,39 +1,15 @@
 /**
- * SHOPIFY STORE CONFIGURATION - AURAOMEGA PRODUCTION
+ * SHOPIFY STORE CONFIGURATION - DOMINION SaaS
  * 
- * API Domain: lovable-project-7fb70.myshopify.com (Lovable Shopify Integration - DO NOT CHANGE)
- * Public Domain: www.auraliftessentials.com (Customer-facing URLs)
- * 
- * LOCKED CONFIGURATION - NO TEST STORES, NO OVERRIDES
+ * FULLY DYNAMIC PER-USER CONFIGURATION
+ * All store references are fetched from user_shopify_connections table
+ * No hardcoded stores - each user connects their own store via OAuth
  */
 
-// Lovable Shopify Integration - API calls use this domain
-export const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-7fb70.myshopify.com';
-export const SHOPIFY_STOREFRONT_TOKEN = 'd9830af538b34d418e1167726cf1f67a';
+// API version - shared across all user stores
 export const SHOPIFY_API_VERSION = '2025-07';
-export const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 
-// AuraLift Essentials branding - Public-facing URLs
-export const AURALIFT_DOMAIN = 'www.auraliftessentials.com';
-export const AURALIFT_STORE_URL = 'https://www.auraliftessentials.com';
-export const AURALIFT_VENDOR = 'AuraLift Beauty';
-export const AURALIFT_STORE_NAME = 'AuraLift Essentials';
-
-// Product count - Synced from Shopify (22 total, 17+ AuraLift Beauty)
-export const AURALIFT_PRODUCT_COUNT = 22;
-
-// Social accounts - CORRECT REAL ACCOUNTS ONLY (LOCKED)
-export const AURALIFT_SOCIAL = {
-  tiktok: '@ryan.auralift',
-  tiktokUrl: 'https://www.tiktok.com/@ryan.auralift',
-  instagram: '@auraliftessentials',
-  instagramUrl: 'https://www.instagram.com/auraliftessentials/',
-  pinterest: 'AuraLift Beauty',
-  pinterestUrl: 'https://www.pinterest.com/auraliftbeauty/',
-  youtube: 'AuraLift Beauty',
-};
-
-// Video generation engine - D-ID Pro ONLY (NO HeyGen)
+// Video generation engine config (shared)
 export const VIDEO_ENGINE = {
   provider: 'D-ID Pro',
   apiKey: 'DID_API_KEY',
@@ -42,26 +18,31 @@ export const VIDEO_ENGINE = {
   defaultAvatar: 'amy',
 };
 
-// Fallback images for products when Shopify image is missing (using Unsplash URLs)
+// Fallback images for products when image is missing
 export const PRODUCT_IMAGE_FALLBACKS: Record<string, string> = {
-  'radiance-vitamin-c-serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
-  'hydra-glow-retinol-night-cream': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
-  'ultra-hydration-hyaluronic-serum': 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
-  'omega-glow-collagen-peptide-moisturizer': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
-  'luxe-rose-quartz-face-roller-set': 'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=800',
+  'vitamin-c-serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
+  'retinol-cream': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
+  'hyaluronic-serum': 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
+  'collagen-moisturizer': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
+  'face-roller': 'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=800',
 };
 
-// Default fallback for unknown products
 const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800';
 
 // Helper to get product image with fallback
 export function getProductImage(handle: string, shopifyImageUrl?: string): string {
-  // Return Shopify image if it exists and is a valid URL
   if (shopifyImageUrl && shopifyImageUrl.startsWith('http')) {
     return shopifyImageUrl;
   }
-  // Return fallback based on product handle, or default
-  return PRODUCT_IMAGE_FALLBACKS[handle] || DEFAULT_FALLBACK;
+  
+  // Try to match partial handle
+  for (const [key, url] of Object.entries(PRODUCT_IMAGE_FALLBACKS)) {
+    if (handle.toLowerCase().includes(key)) {
+      return url;
+    }
+  }
+  
+  return DEFAULT_FALLBACK;
 }
 
 export interface ShopifyProduct {
@@ -111,32 +92,42 @@ export interface ShopifyProduct {
   };
 }
 
-// PURGED: No demo fallback - return empty if Shopify unavailable
+// No demo products - users must connect their own stores
 export const DEMO_PRODUCTS: never[] = [];
 
-export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
+/**
+ * Dynamic Storefront API request - requires user's store credentials
+ */
+export async function storefrontApiRequest(
+  storeDomain: string,
+  storefrontToken: string,
+  query: string, 
+  variables: Record<string, unknown> = {}
+) {
+  const url = `https://${storeDomain}/api/${SHOPIFY_API_VERSION}/graphql.json`;
+  
   try {
-    const response = await fetch(SHOPIFY_STOREFRONT_URL, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN
+        'X-Shopify-Storefront-Access-Token': storefrontToken
       },
       body: JSON.stringify({ query, variables }),
     });
 
     if (response.status === 401) {
-      console.error('Shopify 401: Token expired - NO DEMO FALLBACK');
-      return { data: { products: { edges: [] } }, error: 'Token expired' };
+      console.error('Shopify 401: Token expired');
+      return { data: { products: { edges: [] } }, error: 'Token expired - reconnect store' };
     }
 
     if (response.status === 402) {
-      console.error('Shopify 402: Payment required - NO DEMO FALLBACK');
-      return { data: { products: { edges: [] } }, error: 'Payment required' };
+      console.error('Shopify 402: Payment required');
+      return { data: { products: { edges: [] } }, error: 'Payment required - upgrade Shopify plan' };
     }
 
     if (!response.ok) {
-      console.error(`Shopify HTTP error: ${response.status} - NO DEMO FALLBACK`);
+      console.error(`Shopify HTTP error: ${response.status}`);
       return { data: { products: { edges: [] } }, error: `HTTP ${response.status}` };
     }
 
@@ -149,7 +140,7 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
 
     return data;
   } catch (error) {
-    console.error('Shopify API request failed - NO DEMO FALLBACK:', error);
+    console.error('Shopify API request failed:', error);
     return { data: { products: { edges: [] } }, error };
   }
 }

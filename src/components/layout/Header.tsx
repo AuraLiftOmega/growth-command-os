@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { DominionLogo } from "@/components/DominionLogo";
 import { Badge } from "@/components/ui/badge";
-import { DOMAINS, DUAL_DOMAIN_BANNER } from "@/lib/domains.config";
+import { DOMAINS } from "@/lib/domains.config";
+
+// Banner configuration
+const SHOW_DOMAIN_BANNER = true;
 
 export const Header = () => {
   return (
     <div className="flex flex-col">
       {/* Dual-Domain Production Banner */}
-      {DUAL_DOMAIN_BANNER.enabled && (
+      {SHOW_DOMAIN_BANNER && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

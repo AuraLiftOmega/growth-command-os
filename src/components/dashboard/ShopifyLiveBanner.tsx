@@ -1,6 +1,6 @@
 /**
- * SHOPIFY LIVE BANNER - Top-level sync status with revenue tracking
- * Shows connected store (AuraLift Essentials), products, last sync, and today's revenue
+ * SHOPIFY LIVE BANNER - Per-user store sync status
+ * Shows connected user stores, products, last sync, and revenue
  */
 
 import { useState, useEffect } from 'react';
@@ -15,40 +15,35 @@ import {
   WifiOff,
   ExternalLink,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Store
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useShopifyProducts } from '@/hooks/useShopifyProducts';
-import { AURALIFT_DOMAIN, AURALIFT_STORE_URL } from '@/lib/shopify-config';
+import { useUserShopifyConnections } from '@/hooks/useUserShopifyConnections';
 
 interface ShopifyLiveBannerProps {
   compact?: boolean;
 }
 
 export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
-  const { products, isLoading, lastFetched, refetch, error, source } = useShopifyProducts({
-    vendor: 'AuraLift Beauty',
-    autoLoad: true
-  });
-
+  const { connections, products, isLoading, hasConnections, refetch, primaryConnection } = useUserShopifyConnections();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [todayRevenue, setTodayRevenue] = useState(2847.50); // Demo revenue
+  const [todayRevenue, setTodayRevenue] = useState(0);
   
-  // Simulate revenue updates
+  // Get revenue from primary connection
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTodayRevenue(prev => prev + Math.random() * 15);
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (primaryConnection?.total_revenue) {
+      setTodayRevenue(primaryConnection.total_revenue);
+    }
+  }, [primaryConnection]);
 
   const handleSyncNow = async () => {
     setIsSyncing(true);
     try {
       await refetch();
-      toast.success(`✅ Synced ${products.length} AuraLift products from Shopify`);
+      toast.success(`✅ Synced ${products.length} products from your stores`);
     } catch (err) {
       toast.error('Sync failed - check connection');
     } finally {
@@ -56,8 +51,9 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
     }
   };
 
-  const formatTime = (date: Date | null) => {
-    if (!date) return 'Never';
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return 'Never';
+    const date = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     
@@ -66,8 +62,30 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
     return date.toLocaleTimeString();
   };
 
-  const isConnected = products.length > 0;
-  const hasError = !!error || source === 'fallback';
+  if (!hasConnections) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-lg p-4"
+      >
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-lg bg-primary/20">
+            <Store className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium">Connect Your Shopify Store</p>
+            <p className="text-sm text-muted-foreground">
+              Link your store to start generating AI video ads and tracking sales
+            </p>
+          </div>
+          <Button variant="default" size="sm" asChild>
+            <a href="/dashboard/settings">Connect Store</a>
+          </Button>
+        </div>
+      </motion.div>
+    );
+  }
 
   if (compact) {
     return (
@@ -78,21 +96,19 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
       >
         <Badge 
           variant="outline" 
-          className={`gap-1.5 px-3 py-1 ${isConnected ? 'border-success/30 bg-success/5 text-success' : 'border-destructive/30 text-destructive'}`}
+          className="gap-1.5 px-3 py-1 border-success/30 bg-success/5 text-success"
         >
           {isLoading || isSyncing ? (
             <RefreshCw className="w-3 h-3 animate-spin" />
-          ) : isConnected ? (
-            <Wifi className="w-3 h-3" />
           ) : (
-            <WifiOff className="w-3 h-3" />
+            <Wifi className="w-3 h-3" />
           )}
           <span className="hidden sm:inline">Shopify</span> Live
         </Badge>
         <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
           <span>{products.length} products</span>
           <span className="text-muted-foreground/50">•</span>
-          <span className="text-success font-medium">${todayRevenue.toFixed(0)} today</span>
+          <span className="text-success font-medium">${todayRevenue.toFixed(0)} revenue</span>
         </div>
         <Button 
           variant="ghost" 
@@ -116,49 +132,42 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Left: Connection Status */}
         <div className="flex items-center gap-4">
-          <div className={`p-2.5 rounded-lg ${isConnected ? 'bg-success/20' : 'bg-destructive/20'}`}>
-            <ShoppingBag className={`w-5 h-5 ${isConnected ? 'text-success' : 'text-destructive'}`} />
+          <div className="p-2.5 rounded-lg bg-success/20">
+            <ShoppingBag className="w-5 h-5 text-success" />
           </div>
           
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-primary" />
-                AuraLift Essentials
+                {primaryConnection?.shop_name || 'Your Store'}
               </span>
               {(isLoading || isSyncing) ? (
                 <Badge variant="secondary" className="gap-1 text-xs animate-pulse">
                   <RefreshCw className="w-3 h-3 animate-spin" />
                   Syncing...
                 </Badge>
-              ) : isConnected ? (
+              ) : (
                 <Badge className="gap-1 text-xs bg-success/20 text-success hover:bg-success/30 border-0">
                   <CheckCircle className="w-3 h-3" />
                   Live
                 </Badge>
-              ) : (
-                <Badge variant="destructive" className="gap-1 text-xs">
-                  <AlertCircle className="w-3 h-3" />
-                  Error
-                </Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {AURALIFT_DOMAIN} • {formatTime(lastFetched)} • {products.length} products
-              {source === 'fallback' && <span className="text-warning ml-1">(cached)</span>}
-              {source === 'edge' && <span className="text-blue-400 ml-1">(edge)</span>}
+              {primaryConnection?.shop_domain} • {formatTime(primaryConnection?.last_sync_at || null)} • {products.length} products
             </p>
           </div>
         </div>
 
-        {/* Center: Revenue */}
+        {/* Center: Stats */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded bg-primary/10">
               <DollarSign className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Today's Revenue</p>
+              <p className="text-xs text-muted-foreground">Revenue</p>
               <p className="text-lg font-bold text-success">${todayRevenue.toFixed(2)}</p>
             </div>
           </div>
@@ -168,8 +177,8 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
               <TrendingUp className="w-4 h-4 text-accent" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Conversion</p>
-              <p className="text-lg font-bold">4.2%</p>
+              <p className="text-xs text-muted-foreground">Stores</p>
+              <p className="text-lg font-bold">{connections.length}</p>
             </div>
           </div>
         </div>
@@ -191,29 +200,9 @@ export function ShopifyLiveBanner({ compact = false }: ShopifyLiveBannerProps) {
             size="sm"
             asChild
           >
-            <a 
-              href={AURALIFT_STORE_URL} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="gap-2"
-            >
+            <a href="/dashboard/settings" className="gap-2">
               <ExternalLink className="w-4 h-4" />
-              Store
-            </a>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-          >
-            <a 
-              href="https://admin.shopify.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Admin
+              Manage
             </a>
           </Button>
         </div>
