@@ -68,7 +68,7 @@ const DID_SOURCE_IMAGES = {
   default: "https://create-images-results.d-id.com/DefaultPresenters/amy_1.jpg"
 };
 
-// FALLBACK VIDEO SYSTEM - Reliable stock footage when HeyGen fails
+// FALLBACK VIDEO SYSTEM - Reliable stock footage when D-ID is unavailable
 // All videos verified working, 9:16 vertical format for TikTok/Pinterest
 interface FallbackVideoConfig {
   primary_video: { url: string; thumbnail: string; title: string; duration: number };
@@ -178,7 +178,7 @@ const GENERIC_FALLBACK: FallbackVideoConfig = {
   match_quality: 'category'
 };
 
-// Generate stock video with ElevenLabs voiceover when HeyGen fails
+// Generate stock video with ElevenLabs voiceover when D-ID is unavailable
 async function generateStockVideoAd(
   supabase: any,
   userId: string,
@@ -273,7 +273,7 @@ async function generateStockVideoAd(
     stock_video_id: `fallback-${product.handle}-${Date.now()}`,
     mode: "stock_video_fallback",
     match_quality: matchQuality,
-    fallback_reason: "HeyGen unavailable - using high-match stock video with ElevenLabs voiceover"
+    fallback_reason: "D-ID unavailable - using high-match stock video with ElevenLabs voiceover"
   };
 }
 
@@ -522,7 +522,7 @@ serve(async (req) => {
       avatar 
     });
 
-    // Step 1: Try ElevenLabs voiceover, fallback to HeyGen built-in voice
+    // Step 1: Try ElevenLabs voiceover, fallback to D-ID built-in voice
     console.log("\n=== STEP 1: VOICEOVER ===");
     
     let voiceoverUrl: string | null = null;
