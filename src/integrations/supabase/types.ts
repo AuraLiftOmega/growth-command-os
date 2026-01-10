@@ -3981,6 +3981,7 @@ export type Database = {
           stores_used: number
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
+          tier: string | null
           trial_ends_at: string | null
           updated_at: string
           user_id: string
@@ -4000,6 +4001,7 @@ export type Database = {
           stores_used?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          tier?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id: string
@@ -4019,6 +4021,7 @@ export type Database = {
           stores_used?: number
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
+          tier?: string | null
           trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
@@ -4134,6 +4137,80 @@ export type Database = {
         }
         Relationships: []
       }
+      user_products: {
+        Row: {
+          compare_at_price: number | null
+          connection_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          handle: string | null
+          id: string
+          images: Json | null
+          options: Json | null
+          price: number | null
+          product_type: string | null
+          shopify_product_id: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          variants: Json | null
+          vendor: string | null
+        }
+        Insert: {
+          compare_at_price?: number | null
+          connection_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          handle?: string | null
+          id?: string
+          images?: Json | null
+          options?: Json | null
+          price?: number | null
+          product_type?: string | null
+          shopify_product_id: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          variants?: Json | null
+          vendor?: string | null
+        }
+        Update: {
+          compare_at_price?: number | null
+          connection_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          handle?: string | null
+          id?: string
+          images?: Json | null
+          options?: Json | null
+          price?: number | null
+          product_type?: string | null
+          shopify_product_id?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          variants?: Json | null
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_products_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "user_shopify_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           accepted_at: string | null
@@ -4164,6 +4241,57 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
           workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      user_shopify_connections: {
+        Row: {
+          access_token_encrypted: string
+          connected_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          orders_count: number | null
+          products_count: number | null
+          refresh_token_encrypted: string | null
+          scopes: string[] | null
+          shop_domain: string
+          shop_name: string | null
+          total_revenue: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          connected_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          orders_count?: number | null
+          products_count?: number | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          shop_domain: string
+          shop_name?: string | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          connected_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          orders_count?: number | null
+          products_count?: number | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[] | null
+          shop_domain?: string
+          shop_name?: string | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

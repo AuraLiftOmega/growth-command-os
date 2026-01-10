@@ -18,6 +18,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import Revenue from "./pages/Revenue";
 import AcceptInvite from "./pages/AcceptInvite";
 import UsersManagement from "./pages/UsersManagement";
+import ShopifyCallback from "./pages/ShopifyCallback";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -145,8 +146,9 @@ const AppRoutes = () => {
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
       
-      {/* OAuth callback route */}
+      {/* OAuth callback routes */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Route path="/oauth/shopify-callback" element={<ShopifyCallback />} />
       
       {/* Invite acceptance route (public) */}
       <Route path="/invite/:token" element={<AcceptInvite />} />
