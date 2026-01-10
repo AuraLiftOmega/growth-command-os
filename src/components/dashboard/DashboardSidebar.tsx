@@ -18,6 +18,7 @@ import {
   Globe,
   Package,
   Truck,
+  Users,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -116,6 +117,12 @@ const mainNavItems = [
     icon: BarChart3,
     path: "/dashboard/analytics",
     badge: null,
+  },
+  {
+    title: "Users & Roles",
+    icon: Users,
+    path: "/dashboard/users",
+    badge: "RBAC",
   },
 ];
 
