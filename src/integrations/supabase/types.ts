@@ -573,6 +573,57 @@ export type Database = {
         }
         Relationships: []
       }
+      autonomous_posting_rules: {
+        Row: {
+          channels: string[] | null
+          content_template: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          performance_threshold: Json | null
+          posting_schedule: Json | null
+          posts_created: number | null
+          revenue_generated: number | null
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channels?: string[] | null
+          content_template?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          performance_threshold?: Json | null
+          posting_schedule?: Json | null
+          posts_created?: number | null
+          revenue_generated?: number | null
+          trigger_config?: Json | null
+          trigger_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channels?: string[] | null
+          content_template?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          performance_threshold?: Json | null
+          posting_schedule?: Json | null
+          posts_created?: number | null
+          revenue_generated?: number | null
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_reminders: {
         Row: {
           booking_id: string
@@ -3134,6 +3185,147 @@ export type Database = {
           profile_url?: string | null
           refresh_token_encrypted?: string | null
           token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      social_posts: {
+        Row: {
+          ad_id: string | null
+          caption: string | null
+          channel: string
+          comments: number | null
+          created_at: string
+          creative_id: string | null
+          error_message: string | null
+          hashtags: string[] | null
+          id: string
+          likes: number | null
+          metadata: Json | null
+          post_id: string | null
+          post_url: string | null
+          posted_at: string | null
+          revenue_attributed: number | null
+          scheduled_at: string | null
+          shares: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          views: number | null
+        }
+        Insert: {
+          ad_id?: string | null
+          caption?: string | null
+          channel: string
+          comments?: number | null
+          created_at?: string
+          creative_id?: string | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          metadata?: Json | null
+          post_id?: string | null
+          post_url?: string | null
+          posted_at?: string | null
+          revenue_attributed?: number | null
+          scheduled_at?: string | null
+          shares?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          views?: number | null
+        }
+        Update: {
+          ad_id?: string | null
+          caption?: string | null
+          channel?: string
+          comments?: number | null
+          created_at?: string
+          creative_id?: string | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          likes?: number | null
+          metadata?: Json | null
+          post_id?: string | null
+          post_url?: string | null
+          posted_at?: string | null
+          revenue_attributed?: number | null
+          scheduled_at?: string | null
+          shares?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_ad_id_fkey"
+            columns: ["ad_id"]
+            isOneToOne: false
+            referencedRelation: "ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "creatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_tokens: {
+        Row: {
+          access_token_encrypted: string | null
+          account_avatar: string | null
+          account_id: string | null
+          account_name: string | null
+          channel: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_connected: boolean | null
+          last_sync_at: string | null
+          metadata: Json | null
+          refresh_token_encrypted: string | null
+          scope: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          account_avatar?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          channel: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          refresh_token_encrypted?: string | null
+          scope?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          account_avatar?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          channel?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          metadata?: Json | null
+          refresh_token_encrypted?: string | null
+          scope?: string | null
           updated_at?: string
           user_id?: string
         }
