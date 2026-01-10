@@ -1,6 +1,7 @@
 /**
  * Social Channels Dashboard - Main component for /dashboard/social-channels
  * With Auto-Connect for TikTok & Pinterest using stored secrets
+ * Enhanced with Shopify OAuth integration and AI suggestions
  */
 
 import { useState, useEffect } from "react";
@@ -40,7 +41,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlatformConnections } from "@/hooks/usePlatformConnections";
 import { useAutoSocialConnect } from "@/hooks/useAutoSocialConnect";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
+import { useUserShopifyConnections } from "@/hooks/useUserShopifyConnections";
 import { PlatformChannelCard, type PlatformConfig } from "./PlatformChannelCard";
+import { ShopifyChannelCard } from "./ShopifyChannelCard";
+import { AISuggestionBanner, useAISuggestions } from "./AISuggestionBanner";
 import { PostAdModal } from "./PostAdModal";
 import { SocialAnalyticsPanel } from "./SocialAnalyticsPanel";
 import { AutonomousModePanel } from "./AutonomousModePanel";
@@ -201,12 +205,22 @@ export function SocialChannelsDashboard() {
     isPinterestConnected 
   } = useAutoSocialConnect();
   const { tokens, initiateOAuth, isConnected: isSocialTokenConnected, getToken, fetchTokens } = useSocialTokens();
+  const { hasConnections: hasShopifyConnection, totalProducts } = useUserShopifyConnections();
   const location = useLocation();
   
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [targetPlatform, setTargetPlatform] = useState("");
   const [targetPlatformName, setTargetPlatformName] = useState("");
   const [activeChannel, setActiveChannel] = useState<string>("all");
+
+  // AI suggestions based on current state
+  const aiSuggestions = useAISuggestions({
+    hasShopify: hasShopifyConnection,
+    hasSocialConnected: tokens.some(t => t.is_connected) || isTikTokConnected || isPinterestConnected,
+    hasVideos: false, // Would check from creatives table
+    totalProducts,
+    connectedChannels: tokens.filter(t => t.is_connected).length,
+  });
 
   // Check TikTok Shop connection
   const isTikTokShopConnected = isSocialTokenConnected('tiktok_shop');
@@ -607,6 +621,15 @@ export function SocialChannelsDashboard() {
 
         {/* Social Channels Tab */}
         <TabsContent value="social" className="space-y-4">
+          {/* AI Suggestions for Social */}
+          {aiSuggestions.length > 0 && (
+            <AISuggestionBanner 
+              suggestions={aiSuggestions.filter(s => 
+                s.id === 'connect-social' || s.id === 'cross-post'
+              )} 
+            />
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {SOCIAL_PLATFORMS.map((platform, index) => {
               const connection = getPlatformConnection(platform.id);
@@ -640,21 +663,40 @@ export function SocialChannelsDashboard() {
 
         {/* Sales Channels Tab */}
         <TabsContent value="sales" className="space-y-4">
+          {/* AI Suggestions for Sales */}
+          {aiSuggestions.length > 0 && (
+            <AISuggestionBanner 
+              suggestions={aiSuggestions.filter(s => 
+                s.id === 'connect-shopify' || s.id === 'bestseller-focus'
+              )} 
+            />
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {SALES_PLATFORMS.map((platform, index) => {
+            {/* Enhanced Shopify Card - First Position */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0 }}
+            >
+              <ShopifyChannelCard />
+            </motion.div>
+            
+            {/* Other Sales Platforms */}
+            {SALES_PLATFORMS.filter(p => p.id !== 'shopify').map((platform, index) => {
               const connection = getPlatformConnection(platform.id);
               return (
                 <motion.div
                   key={platform.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: (index + 1) * 0.05 }}
                 >
                   <PlatformChannelCard
                     platform={platform}
-                    isConnected={connection?.is_connected || platform.id === "shopify"}
-                    healthStatus={platform.id === "shopify" ? "healthy" : (connection?.health_status || "disconnected")}
-                    handle={platform.id === "shopify" ? "AuraLift Essentials" : connection?.handle}
+                    isConnected={connection?.is_connected || false}
+                    healthStatus={connection?.health_status || "disconnected"}
+                    handle={connection?.handle}
                     avatar={(connection as any)?.avatar}
                     lastSyncAt={(connection as any)?.last_sync_at}
                     expiresAt={(connection as any)?.expires_at}
