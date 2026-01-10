@@ -142,6 +142,16 @@ const SOCIAL_PLATFORMS: PlatformConfig[] = [
     type: "social",
     apiFeatures: ["Posts", "Articles", "Video", "Ads"],
   },
+  {
+    id: "threads",
+    name: "Threads",
+    icon: "🧵",
+    color: "#000000",
+    gradientFrom: "from-gray-800",
+    gradientTo: "to-black",
+    type: "social",
+    apiFeatures: ["Text Posts", "Images", "Videos", "Cross-Post"],
+  },
 ];
 
 const SALES_PLATFORMS: PlatformConfig[] = [
