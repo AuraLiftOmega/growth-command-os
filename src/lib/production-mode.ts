@@ -70,13 +70,24 @@ export function getRequiredKeys(): PlatformKeyStatus[] {
   return REQUIRED_PLATFORM_KEYS.filter(k => !k.configured);
 }
 
-// Shopify Store Configuration - LIVE
+// Shopify Store Configuration - LIVE (LOCKED - NO OVERRIDES)
 export const SHOPIFY_STORE = {
+  // API domain (Lovable Shopify integration)
   domain: 'lovable-project-7fb70.myshopify.com',
+  // Public domain for customer links
+  publicDomain: 'www.auraliftessentials.com',
   name: 'AuraLift Essentials',
-  productCount: 15,
+  productCount: 17,
   connected: true,
   live: true,
+};
+
+// REAL Social Accounts - LOCKED
+export const SOCIAL_ACCOUNTS = {
+  tiktok: { handle: '@ryan.auralift', connected: true, live: true },
+  instagram: { handle: '@auraliftessentials', connected: true, live: true },
+  pinterest: { handle: 'AuraLift Essentials', connected: true, live: true },
+  youtube: { handle: 'AuraLift Beauty', connected: true, live: true },
 };
 
 // Stripe Configuration - LIVE MODE ONLY - NO TEST MODE
