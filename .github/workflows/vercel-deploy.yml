@@ -1,4 +1,4 @@
-name: Deploy to Vercel
+name: Deploy to Vercel (profitreaper.com + omegaalpha.io)
 
 on:
   push:
@@ -9,6 +9,10 @@ on:
     branches:
       - main
       - master
+
+# Dual-domain deployment:
+# Primary: profitreaper.com
+# Alias: omegaalpha.io
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
