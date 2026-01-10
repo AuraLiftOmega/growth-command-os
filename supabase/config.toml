@@ -155,3 +155,6 @@ verify_jwt = false
 
 [functions.vercel-ai-gateway]
 verify_jwt = false
+
+[functions.force-did-generation]
+verify_jwt = false
