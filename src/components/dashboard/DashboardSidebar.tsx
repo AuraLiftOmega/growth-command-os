@@ -43,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OmegaAIBrain } from "./OmegaAIBrain";
 import { GitHubExportButton } from "./GitHubExportButton";
+import { DominionLogo } from "@/components/DominionLogo";
 
 const mainNavItems = [
   {
@@ -101,19 +102,11 @@ export function DashboardSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
-            <Zap className="w-5 h-5 text-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-lg tracking-tight">DOMINION</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                Revenue OS
-              </span>
-            </div>
-          )}
-        </div>
+        <DominionLogo 
+          size={collapsed ? "sm" : "md"} 
+          showText={!collapsed} 
+          linkTo="/dashboard" 
+        />
       </SidebarHeader>
 
       <SidebarContent className="scrollbar-thin">

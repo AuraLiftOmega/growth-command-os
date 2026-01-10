@@ -2,7 +2,8 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { TrendingUp, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { DominionLogo } from "@/components/DominionLogo";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -94,10 +95,8 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-chart-2 flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-primary-foreground" />
-            </div>
+          <div className="flex items-center justify-center mb-6">
+            <DominionLogo size="xl" />
           </div>
           <h1 className="text-3xl font-bold mb-2">DOMINION</h1>
           <p className="text-muted-foreground">

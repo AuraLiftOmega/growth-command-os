@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Globe } from "lucide-react";
 import { STORE_CONFIG } from "@/lib/store-config";
+import { DominionFooterLogo } from "@/components/DominionLogo";
 
 export function StoreFooter() {
   return (
@@ -83,8 +84,9 @@ export function StoreFooter() {
           </div>
         </div>
 
-        <div className="border-t border-border/40 mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t border-border/40 mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} {STORE_CONFIG.name}. All rights reserved.</p>
+          <DominionFooterLogo />
         </div>
       </div>
     </footer>
