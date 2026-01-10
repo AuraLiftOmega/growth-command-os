@@ -122,3 +122,6 @@ verify_jwt = false
 
 [functions.blockchain-log]
 verify_jwt = false
+
+[functions.super-grok-ceo]
+verify_jwt = false
