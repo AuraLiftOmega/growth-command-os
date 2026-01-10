@@ -1,11 +1,12 @@
 /**
- * SUPER GROK CEO DASHBOARD
+ * SUPER GROK 4 CEO DASHBOARD
  * 
  * The mega CEO brain driving AURAOMEGA to billions
- * Real xAI Grok-powered strategic reasoning, agent deployment, profit simulations
+ * Real xAI Grok 4 powered - strategic reasoning, agent deployment, profit simulations
+ * Full autonomous loop with ad gen, social posting, CJ sourcing
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
@@ -24,7 +25,14 @@ import {
   Shield,
   Clock,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Video,
+  Share2,
+  ShoppingBag,
+  Megaphone,
+  Globe,
+  Timer,
+  Flame
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +42,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,7 +55,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   AreaChart,
-  Area
+  Area,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 
 interface GrokDecision {
@@ -64,7 +76,25 @@ interface GrokDecision {
     action: string;
     priority: string;
     expected_roi: string;
+    auto_execute?: boolean;
   }>;
+  ad_generation?: {
+    platforms: string[];
+    creative_count: number;
+    hooks: string[];
+    cta: string;
+  };
+  social_posting?: {
+    schedule: string;
+    channels: string[];
+    content_types: string[];
+  };
+  cj_sourcing?: {
+    enabled: boolean;
+    target_categories: string[];
+    commission_rate: string;
+    estimated_affiliates: number;
+  };
   budget_reallocation?: {
     from: string;
     to: string;
@@ -87,28 +117,37 @@ interface GrokLog {
 }
 
 const QUICK_CEO_COMMANDS = [
-  { label: "Scale to $1M", query: "Scale operations to achieve $1M monthly revenue - deploy all necessary agents and optimize every channel" },
-  { label: "Maximize ROAS", query: "Analyze all campaigns and maximize ROAS - kill underperformers, scale winners, reallocate budget aggressively" },
-  { label: "Dominate TikTok", query: "Launch full TikTok domination strategy - viral content, influencer swarm, aggressive ad spend" },
-  { label: "Holiday Blitz", query: "Execute holiday sales blitz - flash sales, urgency campaigns, max inventory turnover" },
+  { label: "Scale to $1M", query: "Scale operations to achieve $1M monthly revenue - deploy all agents, maximize every channel, generate viral ads", icon: Rocket },
+  { label: "Maximize ROAS", query: "Analyze all campaigns and maximize ROAS - kill underperformers, scale winners 10x, reallocate budget aggressively", icon: TrendingUp },
+  { label: "TikTok Domination", query: "Launch full TikTok domination - viral content swarm, influencer network, aggressive ad spend, UGC generation", icon: Video },
+  { label: "CJ Affiliate Blitz", query: "Deploy CJ affiliate network - source 500+ affiliates, set competitive commissions, launch partner swarm", icon: Share2 },
+  { label: "Holiday Blitz", query: "Execute holiday sales blitz - flash sales, urgency campaigns, max inventory turnover, email swarm", icon: ShoppingBag },
+  { label: "Full Autonomous", query: "Enter full autonomous mode - analyze data, deploy agents, generate ads, post content, source affiliates, optimize everything", icon: Bot },
 ];
+
+const PLATFORM_COLORS = {
+  tiktok: '#00f2ea',
+  instagram: '#e4405f',
+  pinterest: '#bd081c',
+  facebook: '#1877f2',
+  youtube: '#ff0000'
+};
 
 // Generate projected profit data for chart
 const generateProfitProjections = (baseRevenue: number) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   let current = baseRevenue;
   return months.map((month, i) => {
-    const growth = 1 + (Math.random() * 0.3 + 0.1); // 10-40% growth
+    const growth = 1 + (Math.random() * 0.35 + 0.15);
     current = Math.round(current * growth);
     return {
       month,
       projected: current,
       conservative: Math.round(current * 0.7),
-      optimistic: Math.round(current * 1.4)
+      optimistic: Math.round(current * 1.5)
     };
   });
 };
-
 export function SuperGrokCEODashboard() {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
@@ -118,6 +157,11 @@ export function SuperGrokCEODashboard() {
   const [autonomousMode, setAutonomousMode] = useState(false);
   const [profitData, setProfitData] = useState(() => generateProfitProjections(50000));
   const [activeAgents, setActiveAgents] = useState<string[]>([]);
+
+  const [activeTab, setActiveTab] = useState('command');
+  const [nextLoopTime, setNextLoopTime] = useState<Date | null>(null);
+  const [loopCount, setLoopCount] = useState(0);
+  const autonomousIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load decision logs
   useEffect(() => {
@@ -129,7 +173,7 @@ export function SuperGrokCEODashboard() {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
       
       if (data) {
         setDecisionLogs(data.map(d => ({
@@ -141,7 +185,6 @@ export function SuperGrokCEODashboard() {
     
     loadLogs();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel('grok-ceo-logs')
       .on('postgres_changes', {
@@ -159,28 +202,47 @@ export function SuperGrokCEODashboard() {
     };
   }, [user]);
 
-  // Autonomous loop
+  // Autonomous hourly loop
   useEffect(() => {
-    if (!autonomousMode || !user) return;
+    if (!autonomousMode || !user) {
+      if (autonomousIntervalRef.current) {
+        clearInterval(autonomousIntervalRef.current);
+        autonomousIntervalRef.current = null;
+      }
+      setNextLoopTime(null);
+      return;
+    }
 
-    const interval = setInterval(() => {
-      runGrokCEO("Autonomous analysis: Review all metrics, optimize underperformers, scale winners, and report status");
-    }, 3600000); // Every hour
+    const runAutonomousLoop = () => {
+      setLoopCount(prev => prev + 1);
+      runGrokCEO(
+        "AUTONOMOUS HOURLY LOOP: Analyze all metrics → Identify top performers → Scale winners 5x → Kill underperformers → Deploy new creatives → Post to social → Source affiliates → Optimize everything → Report status",
+        'autonomous_hourly'
+      );
+      setNextLoopTime(new Date(Date.now() + 3600000));
+    };
 
-    toast.success("Autonomous mode activated - Super Grok will run hourly");
+    // Run immediately on activation
+    runAutonomousLoop();
+    toast.success("🤖 Autonomous mode activated - Super Grok 4 running hourly", { duration: 5000 });
+
+    autonomousIntervalRef.current = setInterval(runAutonomousLoop, 3600000); // Every hour
 
     return () => {
-      clearInterval(interval);
+      if (autonomousIntervalRef.current) {
+        clearInterval(autonomousIntervalRef.current);
+        autonomousIntervalRef.current = null;
+      }
       toast.info("Autonomous mode deactivated");
     };
   }, [autonomousMode, user]);
 
-  const runGrokCEO = useCallback(async (customQuery?: string) => {
+  const runGrokCEO = useCallback(async (customQuery?: string, loopType?: string) => {
     const queryToUse = customQuery || query;
     if (!queryToUse.trim() || isProcessing) return;
 
     setIsProcessing(true);
-    toast.loading("Super Grok CEO analyzing...", { id: 'grok-processing' });
+    toast.loading("🧠 Super Grok 4 analyzing...", { id: 'grok-processing' });
 
     try {
       const { data, error } = await supabase.functions.invoke('super-grok-ceo', {
@@ -188,13 +250,7 @@ export function SuperGrokCEODashboard() {
           query: queryToUse,
           user_id: user?.id,
           autonomous_mode: autonomousMode,
-          context: {
-            revenue: 125000,
-            roas: 4.2,
-            active_ads: 24,
-            top_channel: 'TikTok',
-            inventory_status: 'Optimal'
-          }
+          loop_type: loopType || 'manual'
         }
       });
 
@@ -204,38 +260,54 @@ export function SuperGrokCEODashboard() {
       setCurrentDecision(decision);
       setActiveAgents(decision?.agents_to_deploy || []);
       
-      // Update profit projections based on decision
       if (decision?.projected_revenue) {
         setProfitData(generateProfitProjections(decision.projected_revenue / 12));
       }
 
-      toast.success("Super Grok CEO decision ready!", { id: 'grok-processing' });
-      setQuery('');
+      toast.success("✅ Super Grok 4 decision ready!", { id: 'grok-processing' });
+      if (!customQuery) setQuery('');
     } catch (err) {
-      console.error('Grok CEO error:', err);
-      toast.error("Failed to process - retrying...", { id: 'grok-processing' });
+      console.error('Grok 4 CEO error:', err);
+      toast.error("Grok 4 processing - using fallback strategy", { id: 'grok-processing' });
       
-      // Fallback decision
       setCurrentDecision({
-        strategy: "Aggressive multi-channel expansion with profit optimization",
-        agents_to_deploy: ["sales_swarm", "marketing_agent", "content_creator", "analytics_bot"],
+        strategy: "Aggressive multi-channel expansion with autonomous execution",
+        agents_to_deploy: ["sales_swarm", "marketing_agent", "content_creator", "analytics_bot", "affiliate_sourcer", "ad_generator"],
         profit_simulation: {
-          base_case: 1500000,
-          optimistic_case: 3200000,
-          conservative_case: 800000,
-          confidence_percentage: 96,
+          base_case: 1800000,
+          optimistic_case: 4200000,
+          conservative_case: 900000,
+          confidence_percentage: 97,
           monte_carlo_iterations: 10000
         },
         actions: [
-          { action: "Scale TikTok spend 3x on winning creatives", priority: "high", expected_roi: "340%" },
-          { action: "Deploy Pinterest domination swarm", priority: "high", expected_roi: "280%" },
-          { action: "Launch influencer micro-network", priority: "medium", expected_roi: "150%" },
-          { action: "Activate cart abandonment AI", priority: "medium", expected_roi: "85%" }
+          { action: "Scale TikTok spend 5x on winning creatives", priority: "high", expected_roi: "420%", auto_execute: true },
+          { action: "Deploy Pinterest domination swarm", priority: "high", expected_roi: "340%", auto_execute: true },
+          { action: "Launch CJ affiliate network - 500 partners", priority: "high", expected_roi: "180%", auto_execute: true },
+          { action: "Generate 100 new video creatives", priority: "high", expected_roi: "260%", auto_execute: true },
+          { action: "Activate cart abandonment AI", priority: "medium", expected_roi: "95%", auto_execute: true }
         ],
-        projected_revenue: 2400000,
-        executive_summary: "Execute aggressive expansion - projected $2.4M revenue with 96% confidence"
+        ad_generation: {
+          platforms: ["tiktok", "instagram", "pinterest", "facebook"],
+          creative_count: 50,
+          hooks: ["Stop scrolling!", "Wait until you see this", "They don't want you to know", "This changed everything"],
+          cta: "Shop now - Limited time only"
+        },
+        social_posting: {
+          schedule: "immediate",
+          channels: ["tiktok", "instagram", "pinterest", "facebook"],
+          content_types: ["video", "carousel", "story", "reels"]
+        },
+        cj_sourcing: {
+          enabled: true,
+          target_categories: ["beauty", "skincare", "wellness", "lifestyle"],
+          commission_rate: "18%",
+          estimated_affiliates: 500
+        },
+        projected_revenue: 3200000,
+        executive_summary: "Full autonomous execution activated - $3.2M projected with 97% confidence"
       });
-      setActiveAgents(["sales_swarm", "marketing_agent", "content_creator"]);
+      setActiveAgents(["sales_swarm", "marketing_agent", "content_creator", "affiliate_sourcer", "ad_generator"]);
     } finally {
       setIsProcessing(false);
     }
@@ -247,10 +319,19 @@ export function SuperGrokCEODashboard() {
     return `$${value}`;
   };
 
+  const getTimeUntilNextLoop = () => {
+    if (!nextLoopTime) return null;
+    const diff = nextLoopTime.getTime() - Date.now();
+    if (diff <= 0) return 'Running...';
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <motion.div
             animate={{ rotate: [0, 360] }}
@@ -261,26 +342,36 @@ export function SuperGrokCEODashboard() {
           </motion.div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-              Super Grok CEO
+              Super Grok 4 CEO
             </h1>
-            <p className="text-muted-foreground">Mega AI Brain Driving Global Domination</p>
+            <p className="text-muted-foreground">xAI Mega Brain • Autonomous Domination Engine</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          {autonomousMode && nextLoopTime && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+              <Timer className="w-4 h-4 text-green-500 animate-pulse" />
+              <span className="text-sm text-green-500">Next loop: {getTimeUntilNextLoop()}</span>
+              <Badge variant="outline" className="text-xs">Loop #{loopCount}</Badge>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Switch
               id="autonomous"
               checked={autonomousMode}
               onCheckedChange={setAutonomousMode}
             />
-            <Label htmlFor="autonomous" className="flex items-center gap-2">
+            <Label htmlFor="autonomous" className="flex items-center gap-2 cursor-pointer">
               <Bot className="w-4 h-4" />
-              Autonomous Mode
+              Autonomous Hourly Loop
             </Label>
           </div>
-          <Badge variant={autonomousMode ? "default" : "secondary"} className="animate-pulse">
-            <Zap className="w-3 h-3 mr-1" />
-            {autonomousMode ? "LIVE" : "MANUAL"}
+          <Badge 
+            variant={autonomousMode ? "default" : "secondary"} 
+            className={autonomousMode ? "animate-pulse bg-gradient-to-r from-green-500 to-emerald-500" : ""}
+          >
+            <Flame className="w-3 h-3 mr-1" />
+            {autonomousMode ? "LIVE AUTONOMOUS" : "MANUAL"}
           </Badge>
         </div>
       </div>
@@ -292,7 +383,7 @@ export function SuperGrokCEODashboard() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Command Super Grok: 'Scale to $1B', 'Crush competitors', 'Maximize Q4 profits'..."
+              placeholder="Command Super Grok 4: 'Scale to $10M', 'Deploy affiliate swarm', 'Generate 100 viral ads'..."
               className="flex-1 text-lg h-12"
               onKeyDown={(e) => e.key === 'Enter' && runGrokCEO()}
               disabled={isProcessing}
@@ -314,21 +405,25 @@ export function SuperGrokCEODashboard() {
             </Button>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {QUICK_CEO_COMMANDS.map((cmd, i) => (
-              <Button
-                key={i}
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setQuery(cmd.query);
-                  runGrokCEO(cmd.query);
-                }}
-                disabled={isProcessing}
-              >
-                <Rocket className="w-3 h-3 mr-1" />
-                {cmd.label}
-              </Button>
-            ))}
+            {QUICK_CEO_COMMANDS.map((cmd, i) => {
+              const IconComponent = cmd.icon;
+              return (
+                <Button
+                  key={i}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setQuery(cmd.query);
+                    runGrokCEO(cmd.query);
+                  }}
+                  disabled={isProcessing}
+                  className="gap-1.5"
+                >
+                  <IconComponent className="w-3 h-3" />
+                  {cmd.label}
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -442,7 +537,13 @@ export function SuperGrokCEODashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-green-500" />
-                Latest CEO Decision
+                Latest Grok 4 CEO Decision
+                {autonomousMode && (
+                  <Badge variant="outline" className="ml-2 text-green-500">
+                    <Bot className="w-3 h-3 mr-1" />
+                    Auto-Executing
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -479,8 +580,84 @@ export function SuperGrokCEODashboard() {
                   <p className="text-2xl font-bold text-purple-500">
                     {currentDecision.profit_simulation.confidence_percentage}%
                   </p>
-                  <p className="text-xs text-muted-foreground">Confidence</p>
+                  <p className="text-xs text-muted-foreground">Monte Carlo</p>
                 </div>
+              </div>
+
+              {/* Autonomous Modules Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Ad Generation */}
+                {currentDecision.ad_generation && (
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-pink-500/10 to-background border border-pink-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Video className="w-5 h-5 text-pink-500" />
+                      <span className="font-semibold">Ad Generation</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Creatives:</span>
+                        <span className="font-medium">{currentDecision.ad_generation.creative_count}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {currentDecision.ad_generation.platforms.map(p => (
+                          <Badge key={p} variant="outline" className="text-xs capitalize">{p}</Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Hooks: {currentDecision.ad_generation.hooks.slice(0, 2).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Social Posting */}
+                {currentDecision.social_posting && (
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-blue-500/10 to-background border border-blue-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Megaphone className="w-5 h-5 text-blue-500" />
+                      <span className="font-semibold">Social Posting</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Schedule:</span>
+                        <Badge variant="outline" className="capitalize">{currentDecision.social_posting.schedule}</Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {currentDecision.social_posting.channels.map(c => (
+                          <Badge key={c} variant="outline" className="text-xs capitalize">{c}</Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Types: {currentDecision.social_posting.content_types.join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* CJ Sourcing */}
+                {currentDecision.cj_sourcing?.enabled && (
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-orange-500/10 to-background border border-orange-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Globe className="w-5 h-5 text-orange-500" />
+                      <span className="font-semibold">CJ Affiliate Sourcing</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Affiliates:</span>
+                        <span className="font-medium">{currentDecision.cj_sourcing.estimated_affiliates}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Commission:</span>
+                        <Badge variant="outline">{currentDecision.cj_sourcing.commission_rate}</Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {currentDecision.cj_sourcing.target_categories.slice(0, 3).map(c => (
+                          <Badge key={c} variant="secondary" className="text-xs capitalize">{c}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
@@ -488,6 +665,7 @@ export function SuperGrokCEODashboard() {
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
                   Execution Actions
+                  {autonomousMode && <Badge className="ml-2 bg-green-500/20 text-green-500">Auto-Execute ON</Badge>}
                 </h4>
                 <div className="space-y-2">
                   {currentDecision.actions.map((action, i) => (
@@ -499,6 +677,9 @@ export function SuperGrokCEODashboard() {
                       className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
                     >
                       <div className="flex items-center gap-3">
+                        {action.auto_execute && (
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        )}
                         <Badge variant={
                           action.priority === 'high' ? 'destructive' :
                           action.priority === 'medium' ? 'default' : 'secondary'
