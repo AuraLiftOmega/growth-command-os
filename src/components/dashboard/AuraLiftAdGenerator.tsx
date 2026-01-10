@@ -773,6 +773,78 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               </>
               )}
             </Button>
+
+            {/* FORCE D-ID GENERATION - Radiance Vitamin C Serum */}
+            <Button
+              onClick={async () => {
+                if (!user) {
+                  toast.error('Please sign in to generate ads');
+                  return;
+                }
+                
+                setIsForceGenerating(true);
+                setForceGenerateStatus('🚀 FORCE GENERATING - bypassing all credit checks...');
+                setRealVideoUrl(null);
+                setRealThumbnailUrl(null);
+                
+                toast.info('🎬 Force D-ID Generation Started', {
+                  description: 'Generating Radiance Vitamin C Serum video (up to 10 min)...',
+                  duration: 10000
+                });
+                
+                try {
+                  setForceGenerateStatus('📤 Calling D-ID API directly...');
+                  
+                  const { data, error } = await supabase.functions.invoke('force-did-generation', {
+                    body: { avatar: 'amy' }
+                  });
+                  
+                  if (error) throw error;
+                  
+                  if (data?.success) {
+                    setRealVideoUrl(data.video_url);
+                    setRealThumbnailUrl(data.thumbnail_url);
+                    setForceGenerateStatus('✅ FORCE GENERATION COMPLETE!');
+                    
+                    toast.success('🎬 Force D-ID Video Ready!', {
+                      description: `Radiance Vitamin C Serum video generated with ${data.voice}`,
+                      duration: 10000,
+                      action: {
+                        label: 'Watch Video',
+                        onClick: () => window.open(data.video_url, '_blank')
+                      }
+                    });
+                    
+                    // Refresh ads list
+                    fetchRecentAds();
+                  } else {
+                    throw new Error(data?.error || 'Force generation failed');
+                  }
+                } catch (err: any) {
+                  console.error('Force D-ID error:', err);
+                  setForceGenerateStatus('❌ Force generation failed');
+                  toast.error('Force D-ID Generation Failed', {
+                    description: err.message || 'Check console for details'
+                  });
+                } finally {
+                  setIsForceGenerating(false);
+                }
+              }}
+              disabled={isGenerating || isForceGenerating || isBatchGenerating}
+              className="w-full bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 hover:from-red-700 hover:via-orange-600 hover:to-yellow-600 text-white font-bold shadow-lg"
+            >
+              {isForceGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {forceGenerateStatus}
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 mr-2" />
+                  ⚡ FORCE D-ID - Radiance Vitamin C Serum (No Credit Checks)
+                </>
+              )}
+            </Button>
             
             {/* Batch Generate All 5 Creatives Button */}
             <Button
