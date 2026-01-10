@@ -13,6 +13,8 @@ import {
   Brain,
   Rocket,
 } from "lucide-react";
+import { ProductionStatusBanner } from "@/components/dashboard/ProductionStatusBanner";
+import { LaunchControlPanel } from "@/components/dashboard/LaunchControlPanel";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -115,6 +117,9 @@ export function DashboardHome() {
 
   return (
     <div className="space-y-6">
+      {/* Production Status Banner */}
+      <ProductionStatusBanner />
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -291,6 +296,15 @@ export function DashboardHome() {
         transition={{ duration: 0.4, delay: 0.35 }}
       >
         <LiveRevenuePanel />
+      </motion.div>
+
+      {/* Launch Control Panel */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.35 }}
+      >
+        <LaunchControlPanel />
       </motion.div>
 
       {/* Revenue Chart */}

@@ -1,141 +1,275 @@
 /**
  * PRODUCTION STATUS BANNER
  * 
- * Shows real-time status of production systems:
- * - API connections
- * - Live vs simulated mode
- * - Missing keys needed for full operation
+ * Real-time status display for all connected systems:
+ * - Shopify (real products from lovable-project-7fb70.myshopify.com)
+ * - CJ Dropshipping
+ * - HeyGen/D-ID video generation
+ * - Social channels (TikTok Shop, Pinterest)
+ * - Super Grok CEO
+ * - Lifetime access status
  */
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Zap, 
-  Key,
-  TrendingUp,
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+  Store,
   Video,
-  CreditCard,
-  DollarSign
+  Share2,
+  Brain,
+  Package,
+  Crown,
+  Zap,
+  ExternalLink,
+  ShoppingBag
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { isProductionMode, REQUIRED_PLATFORM_KEYS, SHOPIFY_STORE } from '@/lib/production-mode';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { storefrontApiRequest, PRODUCTS_QUERY, SHOPIFY_STORE_PERMANENT_DOMAIN } from '@/lib/shopify-config';
 
 interface SystemStatus {
   name: string;
-  icon: typeof Zap;
-  status: 'live' | 'partial' | 'needs-keys';
-  description: string;
+  status: 'connected' | 'disconnected' | 'loading' | 'partial';
+  details: string;
+  icon: React.ElementType;
+  count?: number;
+  action?: () => void;
+  actionLabel?: string;
+  link?: string;
 }
 
 export function ProductionStatusBanner() {
+  const { user } = useAuth();
+  const [systems, setSystems] = useState<SystemStatus[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLifetimeAccess, setIsLifetimeAccess] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const systems: SystemStatus[] = [
-    {
-      name: 'Shopify Store',
-      icon: CreditCard,
-      status: 'live',
-      description: `LIVE: ${SHOPIFY_STORE.domain}`
-    },
-    {
-      name: 'AI Video Generation',
-      icon: Video,
-      status: 'live',
-      description: 'Replicate + ElevenLabs + Lovable AI'
-    },
-    {
-      name: 'TikTok Publishing',
-      icon: TrendingUp,
-      status: 'live',
-      description: 'OAuth keys configured'
-    },
-    {
-      name: 'Stripe Payments',
-      icon: DollarSign,
-      status: 'live',
-      description: 'Ready for transactions'
-    }
-  ];
+  const checkAllSystems = async () => {
+    setIsRefreshing(true);
+    const statuses: SystemStatus[] = [];
 
-  const liveCount = systems.filter(s => s.status === 'live').length;
-  const needsKeysCount = REQUIRED_PLATFORM_KEYS.filter(k => !k.configured).length;
+    // Check lifetime access
+    if (user) {
+      const { data: adminData } = await supabase
+        .from('admin_entitlements')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (adminData?.bypass_all_credit_checks) {
+        setIsLifetimeAccess(true);
+      }
+    }
+
+    // 1. Shopify Status
+    try {
+      const shopifyData = await storefrontApiRequest(PRODUCTS_QUERY, { first: 50 });
+      const productCount = shopifyData?.data?.products?.edges?.length || 0;
+      const auraliftProducts = shopifyData?.data?.products?.edges?.filter(
+        (p: any) => p.node?.vendor === 'AuraLift Beauty'
+      )?.length || 0;
+
+      statuses.push({
+        name: 'Shopify Store',
+        status: productCount > 0 ? 'connected' : 'partial',
+        details: productCount > 0 
+          ? `${productCount} products (${auraliftProducts} AuraLift)` 
+          : 'No products loaded',
+        icon: Store,
+        count: productCount,
+        link: `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/admin`
+      });
+    } catch (err) {
+      statuses.push({
+        name: 'Shopify Store',
+        status: 'disconnected',
+        details: 'Connection error',
+        icon: Store
+      });
+    }
+
+    // 2. CJ Dropshipping Status
+    if (user) {
+      const { data: cjSettings } = await supabase
+        .from('cj_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      const { data: cjLogs } = await supabase
+        .from('cj_logs')
+        .select('id')
+        .eq('user_id', user.id);
+
+      statuses.push({
+        name: 'CJ Dropshipping',
+        status: (cjSettings?.is_connected || (cjLogs?.length || 0) > 0) ? 'connected' : 'partial',
+        details: cjLogs?.length 
+          ? `${cjLogs.length} products sourced` 
+          : 'Ready to source',
+        icon: Package,
+        count: cjLogs?.length || 0
+      });
+
+      // 3. Video Generation (HeyGen/D-ID)
+      const { data: ads } = await supabase
+        .from('ads')
+        .select('id, status, provider')
+        .eq('user_id', user.id);
+
+      const completedAds = ads?.filter(a => a.status === 'completed')?.length || 0;
+
+      statuses.push({
+        name: 'Video Gen (HeyGen/D-ID)',
+        status: completedAds > 0 ? 'connected' : 'partial',
+        details: completedAds > 0 
+          ? `${completedAds} videos generated` 
+          : 'Ready to generate',
+        icon: Video,
+        count: completedAds
+      });
+
+      // 4. Social Channels
+      const { data: socialTokens } = await supabase
+        .from('social_tokens')
+        .select('channel, is_connected')
+        .eq('user_id', user.id);
+
+      const connectedPlatforms = socialTokens?.filter(t => t.is_connected)?.length || 0;
+      const platformNames = socialTokens?.map(t => t.channel).join(', ') || 'None';
+
+      statuses.push({
+        name: 'Social Channels',
+        status: connectedPlatforms > 0 ? 'connected' : 'partial',
+        details: connectedPlatforms > 0 
+          ? `${connectedPlatforms} connected (${platformNames})` 
+          : 'TikTok Shop + Pinterest ready',
+        icon: Share2,
+        count: connectedPlatforms
+      });
+
+      // 5. Super Grok CEO
+      const { data: grokLogs } = await supabase
+        .from('grok_ceo_logs')
+        .select('id, execution_status')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const activeStrategies = grokLogs?.length || 0;
+
+      statuses.push({
+        name: 'Super Grok CEO',
+        status: activeStrategies > 0 ? 'connected' : 'partial',
+        details: activeStrategies > 0 
+          ? `${activeStrategies} strategies deployed` 
+          : 'Ready for autonomous mode',
+        icon: Brain,
+        count: activeStrategies
+      });
+    }
+
+    setSystems(statuses);
+    setIsRefreshing(false);
+  };
+
+  useEffect(() => {
+    checkAllSystems();
+  }, [user]);
+
+  const handleRefresh = async () => {
+    toast.loading('Syncing all systems...', { id: 'refresh-systems' });
+    await checkAllSystems();
+    toast.success('All systems synced', { id: 'refresh-systems' });
+  };
 
   const getStatusColor = (status: SystemStatus['status']) => {
     switch (status) {
-      case 'live': return 'text-success';
-      case 'partial': return 'text-warning';
-      case 'needs-keys': return 'text-muted-foreground';
+      case 'connected': return 'text-green-500 bg-green-500/10 border-green-500/30';
+      case 'partial': return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30';
+      case 'disconnected': return 'text-red-500 bg-red-500/10 border-red-500/30';
+      case 'loading': return 'text-muted-foreground bg-muted/10 border-muted/30';
     }
   };
 
-  const getStatusBadge = (status: SystemStatus['status']) => {
+  const getStatusIcon = (status: SystemStatus['status']) => {
     switch (status) {
-      case 'live': return <Badge className="bg-success/20 text-success">LIVE</Badge>;
-      case 'partial': return <Badge className="bg-warning/20 text-warning">PARTIAL</Badge>;
-      case 'needs-keys': return <Badge variant="outline">NEEDS KEYS</Badge>;
+      case 'connected': return <CheckCircle2 className="w-4 h-4" />;
+      case 'partial': return <AlertCircle className="w-4 h-4" />;
+      case 'disconnected': return <AlertCircle className="w-4 h-4" />;
+      case 'loading': return <Loader2 className="w-4 h-4 animate-spin" />;
     }
   };
+
+  const connectedCount = systems.filter(s => s.status === 'connected').length;
+  const totalCount = systems.length;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mb-6"
+      className="space-y-4 mb-6"
     >
-      <Card className={cn(
-        "p-4 border-2",
-        isProductionMode() 
-          ? "border-success/30 bg-success/5" 
-          : "border-muted"
-      )}>
-        <div className="flex items-center justify-between">
+      {/* Lifetime Access Banner */}
+      {isLifetimeAccess && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-orange-500/20 border-2 border-amber-500/50"
+        >
+          <div className="flex items-center gap-3">
+            <Crown className="w-6 h-6 text-amber-500" />
+            <div className="flex-1">
+              <h3 className="font-bold text-amber-500">Lifetime Free Access Granted</h3>
+              <p className="text-sm text-muted-foreground">Unlimited Everything – No Credits, No Limits, No Paywalls</p>
+            </div>
+            <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/50">
+              <Zap className="w-3 h-3 mr-1" />
+              PREMIUM
+            </Badge>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Main Status Banner */}
+      <Card className="p-4 border-2 border-green-500/30 bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={cn(
-              "w-12 h-12 rounded-xl flex items-center justify-center",
-              isProductionMode() ? "bg-success/20" : "bg-muted"
-            )}>
-              <Zap className={cn(
-                "w-6 h-6",
-                isProductionMode() ? "text-success" : "text-muted-foreground"
-              )} />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-green-500/20">
+              <Zap className="w-6 h-6 text-green-500" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">AURAOMEGA Production Mode</h3>
-                <Badge className="bg-success text-success-foreground animate-pulse">
+                <h3 className="font-semibold text-lg">AURAOMEGA Production Mode</h3>
+                <Badge className="bg-green-500 text-white animate-pulse">
                   LIVE
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                {liveCount}/{systems.length} systems active • {needsKeysCount} keys needed for full power
+                {connectedCount}/{totalCount} systems active • Real revenue mode
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2">
-              {systems.map((sys, i) => {
-                const Icon = sys.icon;
-                return (
-                  <div 
-                    key={i}
-                    className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center",
-                      sys.status === 'live' ? "bg-success/20" :
-                      sys.status === 'partial' ? "bg-warning/20" : "bg-muted"
-                    )}
-                    title={`${sys.name}: ${sys.description}`}
-                  >
-                    <Icon className={cn("w-4 h-4", getStatusColor(sys.status))} />
-                  </div>
-                );
-              })}
-            </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Sync Now
+            </Button>
             <Button 
               variant="outline" 
               size="sm"
@@ -146,47 +280,52 @@ export function ProductionStatusBanner() {
           </div>
         </div>
 
-        {showDetails && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            className="mt-4 pt-4 border-t space-y-3"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-              {systems.map((sys, i) => {
-                const Icon = sys.icon;
-                return (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Icon className={cn("w-5 h-5", getStatusColor(sys.status))} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-sm">{sys.name}</span>
-                        {getStatusBadge(sys.status)}
+        {/* Expanded Details */}
+        <AnimatePresence>
+          {showDetails && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 pt-4 border-t border-border/50"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {systems.map((system, i) => (
+                  <motion.div
+                    key={system.name}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className={`p-3 rounded-lg border ${getStatusColor(system.status)} transition-all hover:scale-[1.02]`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <system.icon className="w-4 h-4 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-sm truncate">{system.name}</span>
+                          {getStatusIcon(system.status)}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          {system.details}
+                        </p>
+                        {system.link && (
+                          <a 
+                            href={system.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center gap-1 mt-1"
+                          >
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground truncate">{sys.description}</p>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {needsKeysCount > 0 && (
-              <div className="p-3 rounded-lg bg-muted/30 border border-dashed">
-                <div className="flex items-center gap-2 mb-2">
-                  <Key className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Required API Keys for Full Production:</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {REQUIRED_PLATFORM_KEYS.filter(k => !k.configured).map((key, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
-                      {key.key}
-                    </Badge>
-                  ))}
-                </div>
+                  </motion.div>
+                ))}
               </div>
-            )}
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Card>
     </motion.div>
   );
