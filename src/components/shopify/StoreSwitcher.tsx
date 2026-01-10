@@ -5,7 +5,6 @@ import {
   Check, 
   Plus,
   ExternalLink,
-  Crown,
   User,
   Users
 } from "lucide-react";
@@ -23,14 +22,34 @@ import { useActiveStore, StoreRole } from "@/hooks/useActiveStore";
 import { ConnectShopifyModal } from "@/components/settings/ConnectShopifyModal";
 
 const roleConfig: Record<StoreRole, { label: string; icon: typeof Store; color: string }> = {
-  platform: { label: 'Platform', icon: Crown, color: 'text-primary' },
+  platform: { label: 'Platform', icon: Store, color: 'text-primary' },
   personal: { label: 'My Store', icon: User, color: 'text-success' },
   customer: { label: 'Connected', icon: Users, color: 'text-accent' },
 };
 
 export function StoreSwitcher() {
-  const { activeStore, platformStore, userStores, setActiveStoreId, activeStoreId } = useActiveStore();
+  const { activeStore, userStores, setActiveStoreId, activeStoreId, hasConnectedStores } = useActiveStore();
   const [connectModalOpen, setConnectModalOpen] = useState(false);
+
+  // No store connected - show connect button
+  if (!hasConnectedStores || !activeStore) {
+    return (
+      <>
+        <Button
+          variant="outline"
+          onClick={() => setConnectModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-2 h-auto border-dashed border-primary/50 text-primary hover:bg-primary/10"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-sm font-medium">Connect Shopify</span>
+        </Button>
+        <ConnectShopifyModal 
+          open={connectModalOpen} 
+          onOpenChange={setConnectModalOpen} 
+        />
+      </>
+    );
+  }
 
   const RoleIcon = roleConfig[activeStore.role].icon;
 
@@ -62,72 +81,41 @@ export function StoreSwitcher() {
           </div>
           <DropdownMenuSeparator />
           
-          {/* Platform Store */}
-          <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-            Platform (Sells DOMINION)
-          </DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => setActiveStoreId(null)}
-            className="flex items-center gap-3 p-3 cursor-pointer"
-          >
-            <div className={`p-2 rounded-lg ${
-              activeStoreId === null ? 'bg-primary/20' : 'bg-secondary'
-            }`}>
-              <Crown className={`w-4 h-4 ${
-                activeStoreId === null ? 'text-primary' : 'text-muted-foreground'
-              }`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{platformStore.storeName}</p>
-              <p className="text-xs text-muted-foreground truncate">
-                {platformStore.storeDomain}
-              </p>
-            </div>
-            {activeStoreId === null && (
-              <Check className="w-4 h-4 text-primary" />
-            )}
-          </DropdownMenuItem>
-          
           {/* User's Connected Stores */}
-          {userStores.length > 0 && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                Your Connected Stores
-              </DropdownMenuLabel>
-              {userStores.map((store) => {
-                const config = roleConfig[store.role];
-                const Icon = config.icon;
-                const isActive = store.storeId === activeStoreId;
-                
-                return (
-                  <DropdownMenuItem
-                    key={store.storeId}
-                    onClick={() => setActiveStoreId(store.storeId || null)}
-                    className="flex items-center gap-3 p-3 cursor-pointer"
-                  >
-                    <div className={`p-2 rounded-lg ${
-                      isActive ? 'bg-success/20' : 'bg-secondary'
-                    }`}>
-                      <Icon className={`w-4 h-4 ${
-                        isActive ? 'text-success' : 'text-muted-foreground'
-                      }`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{store.storeName}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {store.storeDomain}
-                      </p>
-                    </div>
-                    {isActive && <Check className="w-4 h-4 text-success" />}
-                    <Badge variant="outline" className="text-[10px]">
-                      {config.label}
-                    </Badge>
-                  </DropdownMenuItem>
-                );
-              })}
-            </>
-          )}
+          <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+            Your Connected Stores
+          </DropdownMenuLabel>
+          {userStores.map((store) => {
+            const config = roleConfig[store.role];
+            const Icon = config.icon;
+            const isActive = store.storeId === activeStoreId;
+            
+            return (
+              <DropdownMenuItem
+                key={store.storeId}
+                onClick={() => setActiveStoreId(store.storeId || null)}
+                className="flex items-center gap-3 p-3 cursor-pointer"
+              >
+                <div className={`p-2 rounded-lg ${
+                  isActive ? 'bg-success/20' : 'bg-secondary'
+                }`}>
+                  <Icon className={`w-4 h-4 ${
+                    isActive ? 'text-success' : 'text-muted-foreground'
+                  }`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{store.storeName}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {store.storeDomain}
+                  </p>
+                </div>
+                {isActive && <Check className="w-4 h-4 text-success" />}
+                <Badge variant="outline" className="text-[10px]">
+                  {config.label}
+                </Badge>
+              </DropdownMenuItem>
+            );
+          })}
           
           <DropdownMenuSeparator />
           
@@ -141,23 +129,19 @@ export function StoreSwitcher() {
             <div className="flex-1">
               <p className="text-sm font-medium">Connect New Store</p>
               <p className="text-xs text-muted-foreground">
-                Add your Shopify store
+                Add another Shopify store
               </p>
             </div>
           </DropdownMenuItem>
 
-          {activeStore.role !== 'platform' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => window.open(`https://${activeStore.storeDomain}/admin`, '_blank')}
-                className="flex items-center gap-2 p-3 cursor-pointer"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span className="text-sm">Open Shopify Admin</span>
-              </DropdownMenuItem>
-            </>
-          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => window.open(`https://${activeStore.storeDomain}/admin`, '_blank')}
+            className="flex items-center gap-2 p-3 cursor-pointer"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span className="text-sm">Open Shopify Admin</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 

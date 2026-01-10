@@ -4,7 +4,8 @@ import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN, getProductImage } from "@/lib/shopify-config";
+import { ShopifyProduct, getProductImage } from "@/lib/shopify-config";
+import { useActiveStore } from "@/hooks/useActiveStore";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -16,6 +17,7 @@ interface ProductQuickViewProps {
 
 export function ProductQuickView({ product, open, onClose }: ProductQuickViewProps) {
   const node = product.node;
+  const { activeStore } = useActiveStore();
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -32,7 +34,7 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
     : [{ node: { url: fallbackImageUrl, altText: node.title } }];
 
   const handleAddToCart = () => {
-    if (!selectedVariant) return;
+    if (!selectedVariant || !activeStore) return;
 
     setIsAdding(true);
 
@@ -43,8 +45,8 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
       price: selectedVariant.price,
       quantity,
       selectedOptions: selectedVariant.selectedOptions,
-      storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-      storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
+      storeDomain: activeStore.storeDomain,
+      storefrontToken: activeStore.storefrontToken,
     });
 
     toast.success("Added to cart", {
@@ -175,7 +177,7 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
               <Button
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={isAdding || !selectedVariant?.availableForSale}
+                disabled={isAdding || !selectedVariant?.availableForSale || !activeStore}
                 className={isAdding ? "bg-success hover:bg-success" : "btn-power"}
               >
                 {isAdding ? (
