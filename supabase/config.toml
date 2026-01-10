@@ -125,3 +125,6 @@ verify_jwt = false
 
 [functions.super-grok-ceo]
 verify_jwt = false
+
+[functions.generate-did-ad]
+verify_jwt = false

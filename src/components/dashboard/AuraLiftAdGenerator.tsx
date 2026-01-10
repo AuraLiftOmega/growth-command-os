@@ -1,7 +1,8 @@
 /**
- * AURALIFT AD GENERATOR - Generate AI Ads with ElevenLabs + HeyGen
+ * AURALIFT AD GENERATOR - Generate AI Ads with D-ID Pro + ElevenLabs
  * 
  * Full viral ad flow with social posting to TikTok & Pinterest
+ * D-ID Pro: Real talking avatar videos, watermark-free, professional quality
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -548,7 +549,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
             <div>
               <h2 className="text-xl font-display">AuraLift AI Ad Generator</h2>
               <p className="text-sm text-muted-foreground font-normal">
-                ElevenLabs Voice + HeyGen Avatar → TikTok & Pinterest
+                D-ID Pro Avatar + ElevenLabs Voice → TikTok & Pinterest
               </p>
             </div>
           </CardTitle>
@@ -630,7 +631,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
             />
             <p className="text-xs text-muted-foreground flex items-center gap-2">
               <Clock className="w-3 h-3" />
-              ~15 seconds • <Mic className="w-3 h-3" /> Sarah (Warm Female) • <User className="w-3 h-3" /> Susan (Elegant Avatar)
+              ~15 seconds • <Mic className="w-3 h-3" /> Sarah (ElevenLabs) • <User className="w-3 h-3" /> Amy (D-ID Pro Avatar)
             </p>
           </div>
 
@@ -661,16 +662,16 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 exit={{ opacity: 0, height: 0 }}
                 className="p-4 rounded-lg bg-warning/10 border border-warning/30 text-sm"
               >
-                <p className="font-medium text-warning mb-1">⚠️ HeyGen Credits Warning</p>
+                <p className="font-medium text-warning mb-1">⚠️ D-ID Credits Warning</p>
                 <p className="text-muted-foreground">{creditsWarning}</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="mt-2"
-                  onClick={() => window.open('https://app.heygen.com/settings/plan', '_blank')}
+                  onClick={() => window.open('https://www.d-id.com/pricing', '_blank')}
                 >
                   <ExternalLink className="w-3 h-3 mr-1" />
-                  Upgrade HeyGen Pro ($99/mo)
+                  Upgrade D-ID Pro ($49/mo)
                 </Button>
               </motion.div>
             )}
@@ -687,11 +688,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               >
                 <div className="flex items-center gap-3 mb-2">
                   <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                  <span className="font-medium">Force Live Generation</span>
+                  <span className="font-medium">D-ID Pro Generation</span>
                 </div>
                 <p className="text-sm text-muted-foreground">{forceGenerateStatus}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  This may take up to 10 minutes while waiting for HeyGen video...
+                  Generating real D-ID talking avatar video (up to 10 minutes)...
                 </p>
               </motion.div>
             )}
@@ -733,7 +734,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               </Button>
             </div>
 
-            {/* Force Live Generate Button - Pre-filled for Radiance Vitamin C Serum */}
+            {/* D-ID Pro Generate Button - Pre-filled for Radiance Vitamin C Serum */}
             <Button
               onClick={() => {
                 // Pre-select Radiance Vitamin C Serum if available
@@ -753,22 +754,22 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               }}
               disabled={isGenerating || isForceGenerating}
               variant="destructive"
-              className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               {isForceGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {forceGenerateStatus || 'Force generating...'}
+                  {forceGenerateStatus || 'Generating D-ID video...'}
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  🔥 Generate & Upload Real Video (15 min wait)
+                  🎬 Generate with D-ID Pro (Real Avatar Video)
                 </>
               )}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Force Live: Uses real HeyGen API, falls back to stock videos if credits low (auto-approve)
+              D-ID Pro: Real talking avatar, watermark-free, professional quality (~2-10 min)
             </p>
             
             {/* Stock Video Fallback Mode Info - Prominent Banner */}
@@ -777,19 +778,19 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-amber-600">
                     <Video className="w-5 h-5" />
-                    <span className="font-bold">🎬 High-Match Fallback Active</span>
+                    <span className="font-bold">🎬 Stock Fallback Active</span>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30">
                     Pexels + ElevenLabs
                   </Badge>
                 </div>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-                  HeyGen credits low/unavailable — using product-matched Pexels stock video + ElevenLabs voiceover.
+                  D-ID credits low/unavailable — using product-matched Pexels stock video + ElevenLabs voiceover.
                 </p>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <CheckCircle className="w-3 h-3 text-green-500" />
-                    9:16 Vertical Format
+                    9:16 Vertical
                   </span>
                   <span className="flex items-center gap-1">
                     <CheckCircle className="w-3 h-3 text-green-500" />
@@ -809,7 +810,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 <div className="flex items-center gap-2 mb-3">
                   <CheckCircle className={`w-5 h-5 ${isStockFallbackMode ? 'text-amber-500' : 'text-success'}`} />
                   <span className={`font-semibold ${isStockFallbackMode ? 'text-amber-500' : 'text-success'}`}>
-                    {isStockFallbackMode ? '🎬 Fallback Video Ready!' : 'Real HeyGen Video Ready!'}
+                    {isStockFallbackMode ? '🎬 Fallback Video Ready!' : '🎬 D-ID Pro Video Ready!'}
                   </span>
                 </div>
                 
