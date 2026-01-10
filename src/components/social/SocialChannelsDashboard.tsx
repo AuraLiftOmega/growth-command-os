@@ -173,9 +173,14 @@ export function SocialChannelsDashboard() {
     localStorage.setItem("oauth_platform", platformId);
 
     try {
-      const { data, error } = await supabase.functions.invoke("platform-oauth", {
+      // Use social-oauth for social platforms, platform-oauth for sales channels
+      const isSocialPlatform = SOCIAL_PLATFORMS.some(p => p.id === platformId);
+      const functionName = isSocialPlatform ? "social-oauth" : "platform-oauth";
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: {
-          platform: platformId,
+          channel: platformId, // social-oauth uses 'channel'
+          platform: platformId, // platform-oauth uses 'platform'
           action: "authorize",
           redirect_uri: `${window.location.origin}/oauth/callback`,
         },
@@ -184,15 +189,24 @@ export function SocialChannelsDashboard() {
       if (error) throw error;
 
       if (data?.authUrl) {
+        toast.success(`Redirecting to ${platformId} login...`);
         window.location.href = data.authUrl;
+        return;
+      }
+
+      if (data?.requires_credentials) {
+        toast.error(`${platformId} OAuth not configured. Contact admin.`);
         return;
       }
 
       // Fallback: simulate connection for demo
       await connectPlatform(platformId);
+      toast.success(`${platformId} connected in demo mode`);
     } catch (err: any) {
+      console.error(`[SocialChannels] OAuth error for ${platformId}:`, err);
       // For demo, simulate success
       await connectPlatform(platformId);
+      toast.success(`${platformId} connected (demo mode)`);
     }
   };
 
