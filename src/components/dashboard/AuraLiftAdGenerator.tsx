@@ -152,6 +152,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       ))
     : '';
 
+  // Force live generation state
+  const [isForceGenerating, setIsForceGenerating] = useState(false);
+  const [forceGenerateStatus, setForceGenerateStatus] = useState<string>('');
+  const [creditsWarning, setCreditsWarning] = useState<string | null>(null);
+
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
     if (!user) return;
@@ -232,7 +237,7 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   }, [generatedAd?.id, fetchSocialPosts]);
 
   // Generate ad with selected product and emotion
-  const generateAd = async (testMode: boolean = false) => {
+  const generateAd = async (testMode: boolean = false, forceLive: boolean = false) => {
     if (!user) {
       toast.error('Please sign in to generate ads');
       return;
@@ -243,17 +248,25 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       return;
     }
 
-    setIsGenerating(true);
+    if (forceLive) {
+      setIsForceGenerating(true);
+      setForceGenerateStatus('Initializing force live generation...');
+      setCreditsWarning(null);
+    } else {
+      setIsGenerating(true);
+    }
     setProgress(0);
     setStatus('Initializing...');
 
     try {
       setProgress(20);
       setStatus('🎤 Generating voiceover with ElevenLabs...');
+      if (forceLive) setForceGenerateStatus('🎤 Generating voiceover with ElevenLabs...');
       await new Promise(r => setTimeout(r, 500));
       
       setProgress(40);
-      setStatus('🎥 Creating HeyGen avatar video...');
+      setStatus(forceLive ? '🎥 Creating HeyGen avatar video (waiting up to 10 min)...' : '🎥 Creating HeyGen avatar video...');
+      if (forceLive) setForceGenerateStatus('🎥 Submitting to HeyGen API (real generation)...');
       
       const { data, error } = await supabase.functions.invoke('generate-auralift-ad', {
         body: {
@@ -261,17 +274,33 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
           product_title: selectedProduct.title,
           product_image: selectedProduct.imageUrl,
           script: generatedScript,
-          test_mode: testMode,
+          test_mode: testMode && !forceLive,
+          force_live: forceLive,
+          wait_for_video: forceLive, // Wait for video completion when forcing live
           voice: 'sarah',
-          avatar: 'susan',
+          avatar: 'professional_female_skincare',
           emotion: selectedEmotion
         }
       });
 
       if (error) throw error;
 
+      // Handle credits warning
+      if (data?.credits_warning) {
+        setCreditsWarning(data.credits_warning);
+        toast.warning('⚠️ HeyGen Credits Warning', {
+          description: data.credits_warning,
+          duration: 10000,
+          action: {
+            label: 'Upgrade',
+            onClick: () => window.open('https://app.heygen.com/settings/plan', '_blank')
+          }
+        });
+      }
+
       setProgress(80);
       setStatus('💾 Saving to database...');
+      if (forceLive) setForceGenerateStatus('💾 Video received, saving...');
 
       if (data?.ad) {
         const newAd = { ...data.ad, created_at: new Date().toISOString() } as GeneratedAd;
@@ -280,11 +309,22 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
         
         setProgress(100);
         setStatus('✅ Ad generated successfully!');
+        if (forceLive) setForceGenerateStatus('✅ Force live generation complete!');
         
-        toast.success(data.message || '🎬 AI Ad generated!', {
-          description: testMode 
+        const statusMessage = data.status === 'completed' 
+          ? '🎬 Real HeyGen video ready!' 
+          : data.status === 'processing'
+          ? '🎬 Video processing... check back in 2-5 min'
+          : data.status === 'credits_low'
+          ? '⚠️ HeyGen credits low - upgrade needed'
+          : data.message || '🎬 AI Ad generated!';
+
+        toast.success(statusMessage, {
+          description: data.video_url 
+            ? 'Video preview ready below'
+            : testMode 
             ? 'Voiceover preview ready below'
-            : 'Video will be ready in 2-5 minutes'
+            : data.credits_warning || 'Video will be ready in 2-5 minutes'
         });
 
         fetchRecentAds();
@@ -293,11 +333,13 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
     } catch (err) {
       console.error('Ad generation error:', err);
       setStatus('❌ Generation failed');
+      if (forceLive) setForceGenerateStatus('❌ Force generation failed');
       toast.error('Failed to generate ad', {
         description: err instanceof Error ? err.message : 'Please try again'
       });
     } finally {
       setIsGenerating(false);
+      setIsForceGenerating(false);
     }
   };
 
@@ -587,39 +629,120 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
             )}
           </AnimatePresence>
 
+          {/* Credits Warning */}
+          <AnimatePresence>
+            {creditsWarning && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 rounded-lg bg-warning/10 border border-warning/30 text-sm"
+              >
+                <p className="font-medium text-warning mb-1">⚠️ HeyGen Credits Warning</p>
+                <p className="text-muted-foreground">{creditsWarning}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => window.open('https://app.heygen.com/settings/plan', '_blank')}
+                >
+                  <ExternalLink className="w-3 h-3 mr-1" />
+                  Upgrade HeyGen Pro ($99/mo)
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Force Live Generation Progress */}
+          <AnimatePresence>
+            {isForceGenerating && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 rounded-lg bg-primary/10 border border-primary/30"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="font-medium">Force Live Generation</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{forceGenerateStatus}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This may take up to 10 minutes while waiting for HeyGen video...
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Generate Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              <Button
+                onClick={() => generateAd(true)}
+                disabled={isGenerating || isForceGenerating}
+                variant="outline"
+                className="flex-1"
+              >
+                {isGenerating ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Mic className="w-4 h-4 mr-2" />
+                )}
+                Test (Voiceover Only)
+              </Button>
+              
+              <Button
+                onClick={() => generateAd(false)}
+                disabled={isGenerating || isForceGenerating}
+                className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Video className="w-4 h-4 mr-2" />
+                    Generate Full Ad
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Force Live Generate Button - Pre-filled for Radiance Vitamin C Serum */}
             <Button
-              onClick={() => generateAd(true)}
-              disabled={isGenerating}
-              variant="outline"
-              className="flex-1"
+              onClick={() => {
+                // Pre-select Radiance Vitamin C Serum if available
+                const radianceProduct = shopifyProducts.find(p => 
+                  p.handle === 'radiance-vitamin-c-serum' || 
+                  p.title.toLowerCase().includes('vitamin c')
+                );
+                if (radianceProduct) {
+                  setSelectedProduct(radianceProduct);
+                }
+                // Force live generation with wait
+                generateAd(false, true);
+              }}
+              disabled={isGenerating || isForceGenerating}
+              variant="destructive"
+              className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
             >
-              {isGenerating ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Mic className="w-4 h-4 mr-2" />
-              )}
-              Test (Voiceover Only)
-            </Button>
-            
-            <Button
-              onClick={() => generateAd(false)}
-              disabled={isGenerating}
-              className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-            >
-              {isGenerating ? (
+              {isForceGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  {forceGenerateStatus || 'Force generating...'}
                 </>
               ) : (
                 <>
-                  <Video className="w-4 h-4 mr-2" />
-                  Generate Full Ad
+                  <Zap className="w-4 h-4 mr-2" />
+                  🔥 Force Live Generate (Real HeyGen - Wait for Video)
                 </>
               )}
             </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              Force Live: Uses real HeyGen API (not test mode), waits up to 10 min for video completion
+            </p>
           </div>
         </CardContent>
       </Card>
