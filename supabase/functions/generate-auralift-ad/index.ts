@@ -105,10 +105,20 @@ serve(async (req) => {
       throw new Error("Product not found");
     }
 
-    // Generate the ad script
-    const script = `Discover ${product.title} from AuraLift Essentials. ${product.description}. Radiant, hydrated, youthful skin. Shop now at auraliftessentials.com!`;
+    // Use custom script if provided, otherwise generate
+    const { script: customScript, emotion = 'calm' } = await req.json().catch(() => ({}));
+    
+    let script = customScript;
+    if (!script) {
+      const scriptTemplates: Record<string, string> = {
+        excited: `OMG you NEED to try ${product.title}! ${product.description} - I literally can't live without it! Shop auraliftessentials.com!`,
+        calm: `Discover ${product.title} from AuraLift Essentials. ${product.description}. Radiant, hydrated, youthful skin. Shop now at auraliftessentials.com!`,
+        urgent: `STOP scrolling! ${product.title} is selling out fast. ${product.description}. Get yours before it's gone - auraliftessentials.com!`,
+      };
+      script = scriptTemplates[emotion] || scriptTemplates.calm;
+    }
 
-    console.log(`Generating ad for: ${product.title}, test_mode: ${test_mode}`);
+    console.log(`Generating ad for: ${product.title}, test_mode: ${test_mode}, emotion: ${emotion}`);
 
     // Step 1: Generate voiceover with ElevenLabs
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
@@ -133,7 +143,7 @@ serve(async (req) => {
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
-            style: 0.4,
+            style: emotion === 'excited' ? 0.6 : emotion === 'urgent' ? 0.7 : 0.4,
             use_speaker_boost: true,
           },
         }),
@@ -147,7 +157,6 @@ serve(async (req) => {
     }
 
     const audioBuffer = await ttsResponse.arrayBuffer();
-    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
     
     // Upload voiceover to Supabase Storage
     const voiceoverFileName = `voiceover_${product.handle}_${Date.now()}.mp3`;
