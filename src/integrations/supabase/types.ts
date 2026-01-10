@@ -3061,6 +3061,42 @@ export type Database = {
           },
         ]
       }
+      self_heal_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string
+          error_type: string
+          fix_action: string
+          fix_result: string | null
+          id: string
+          metadata: Json | null
+          success: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message: string
+          error_type: string
+          fix_action: string
+          fix_result?: string | null
+          id?: string
+          metadata?: Json | null
+          success?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string
+          error_type?: string
+          fix_action?: string
+          fix_result?: string | null
+          id?: string
+          metadata?: Json | null
+          success?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       shopify_products: {
         Row: {
           compare_at_price: number | null

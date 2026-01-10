@@ -14,6 +14,8 @@ import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
 import WarRoom from "./pages/WarRoom";
 import OAuthCallback from "./pages/OAuthCallback";
+import Revenue from "./pages/Revenue";
+import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +118,16 @@ const AppRoutes = () => {
         } 
       />
       
+      {/* Revenue Dashboard */}
+      <Route 
+        path="/dashboard/revenue" 
+        element={
+          <ProtectedRoute>
+            <Revenue />
+          </ProtectedRoute>
+        } 
+      />
+      
       {/* Public routes for store and pricing */}
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
@@ -136,6 +148,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <FloatingSelfHeal />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

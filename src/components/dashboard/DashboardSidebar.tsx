@@ -71,6 +71,12 @@ const mainNavItems = [
     badge: "Live",
   },
   {
+    title: "Revenue",
+    icon: BarChart3,
+    path: "/dashboard/revenue",
+    badge: "Live",
+  },
+  {
     title: "Sales Analytics",
     icon: BarChart3,
     path: "/dashboard/analytics",
