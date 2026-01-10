@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Store } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { StoreProductCard } from "./StoreProductCard";
 import { ProductQuickView } from "./ProductQuickView";
 import { 
@@ -7,6 +9,7 @@ import {
   storefrontApiRequest, 
   PRODUCTS_QUERY 
 } from "@/lib/shopify-config";
+import { useActiveStore } from "@/hooks/useActiveStore";
 
 interface StoreProductGridProps {
   category?: string;
@@ -19,6 +22,7 @@ export function StoreProductGrid({
   limit = 20,
   showQuickView = true 
 }: StoreProductGridProps) {
+  const { activeStore, hasConnectedStores } = useActiveStore();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,19 +30,29 @@ export function StoreProductGrid({
 
   useEffect(() => {
     async function loadProducts() {
+      if (!activeStore) {
+        setIsLoading(false);
+        setProducts([]);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       
       try {
-        // Build query - filter by AuraLift Beauty vendor OR category
-        let query = 'vendor:"AuraLift Beauty"';
+        // Build query - filter by category if specified
+        let query = undefined;
         if (category && category !== 'all') {
-          // If category is specified, use product_type filter
           query = `product_type:"${category}"`;
         }
         
         console.log('Loading products with query:', query);
-        const data = await storefrontApiRequest(PRODUCTS_QUERY, { first: limit, query });
+        const data = await storefrontApiRequest(
+          activeStore.storeDomain,
+          activeStore.storefrontToken,
+          PRODUCTS_QUERY, 
+          { first: limit, query }
+        );
         
         if (data?.data?.products?.edges) {
           console.log('Products loaded:', data.data.products.edges.length);
@@ -58,12 +72,27 @@ export function StoreProductGrid({
     }
 
     loadProducts();
-  }, [category, limit]);
+  }, [category, limit, activeStore]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!hasConnectedStores) {
+    return (
+      <div className="text-center py-20">
+        <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Store Connected</h3>
+        <p className="text-muted-foreground mb-4">
+          Connect your Shopify store to display products
+        </p>
+        <Button asChild>
+          <Link to="/dashboard/social-channels">Connect Shopify Store</Link>
+        </Button>
       </div>
     );
   }

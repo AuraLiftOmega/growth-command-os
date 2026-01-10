@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ShoppingCart, Plus, Minus, Check, ChevronLeft, Truck, Shield, RefreshCw } from "lucide-react";
+import { Loader2, ShoppingCart, Plus, Minus, Check, ChevronLeft, Truck, Shield, RefreshCw, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { useCartStore } from "@/stores/cart-store";
+import { useActiveStore } from "@/hooks/useActiveStore";
 import { 
   storefrontApiRequest, 
-  PRODUCT_BY_HANDLE_QUERY,
-  SHOPIFY_STORE_PERMANENT_DOMAIN,
-  SHOPIFY_STOREFRONT_TOKEN
+  PRODUCT_BY_HANDLE_QUERY
 } from "@/lib/shopify-config";
 import { toast } from "sonner";
 
@@ -61,6 +59,7 @@ interface ProductNode {
 
 export default function Product() {
   const { handle } = useParams<{ handle: string }>();
+  const { activeStore, hasConnectedStores } = useActiveStore();
   const [product, setProduct] = useState<ProductNode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -72,12 +71,20 @@ export default function Product() {
 
   useEffect(() => {
     async function loadProduct() {
-      if (!handle) return;
+      if (!handle || !activeStore) {
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       try {
-        const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
-        setProduct(data.data.productByHandle);
+        const data = await storefrontApiRequest(
+          activeStore.storeDomain,
+          activeStore.storefrontToken,
+          PRODUCT_BY_HANDLE_QUERY, 
+          { handle }
+        );
+        setProduct(data?.data?.productByHandle || null);
       } catch (error) {
         console.error('Error loading product:', error);
       } finally {
@@ -86,7 +93,7 @@ export default function Product() {
     }
 
     loadProduct();
-  }, [handle]);
+  }, [handle, activeStore]);
 
   if (isLoading) {
     return (
@@ -95,6 +102,25 @@ export default function Product() {
         <div className="flex items-center justify-center py-32">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
+      </div>
+    );
+  }
+
+  if (!hasConnectedStores) {
+    return (
+      <div className="min-h-screen bg-background">
+        <StoreHeader />
+        <div className="container mx-auto px-4 py-32 text-center">
+          <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <h1 className="text-2xl font-bold mb-4">No Store Connected</h1>
+          <p className="text-muted-foreground mb-4">
+            Connect your Shopify store to view products
+          </p>
+          <Button asChild>
+            <Link to="/dashboard/social-channels">Connect Shopify Store</Link>
+          </Button>
+        </div>
+        <StoreFooter />
       </div>
     );
   }
@@ -118,7 +144,7 @@ export default function Product() {
   const images = product.images.edges;
 
   const handleAddToCart = () => {
-    if (!selectedVariant) return;
+    if (!selectedVariant || !activeStore) return;
 
     setIsAdding(true);
 
@@ -129,8 +155,8 @@ export default function Product() {
       price: selectedVariant.price,
       quantity,
       selectedOptions: selectedVariant.selectedOptions,
-      storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-      storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
+      storeDomain: activeStore.storeDomain,
+      storefrontToken: activeStore.storefrontToken,
     });
 
     toast.success("Added to cart", {

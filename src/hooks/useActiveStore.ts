@@ -49,7 +49,14 @@ export function useActiveStore() {
 
     const selectedStore = stores.find(s => s.id === activeStoreId);
     if (!selectedStore) {
-      return platformStore;
+      // Return primary store or null
+      return primaryStore ? {
+        storeDomain: primaryStore.store_domain,
+        storefrontToken: primaryStore.storefront_access_token,
+        storeName: primaryStore.store_name,
+        role: 'personal',
+        storeId: primaryStore.id,
+      } : null;
     }
 
     return {
@@ -70,12 +77,11 @@ export function useActiveStore() {
     storeId: s.id,
   }));
 
-  // All available stores
-  const allStores: ActiveStoreConfig[] = [platformStore, ...userStores];
+  // All available stores (user connected only)
+  const allStores: ActiveStoreConfig[] = [...userStores];
 
   return {
     activeStore: getActiveStore(),
-    platformStore,
     userStores,
     allStores,
     setActiveStoreId,

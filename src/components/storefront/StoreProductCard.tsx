@@ -5,7 +5,8 @@ import { ShoppingCart, Eye, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, SHOPIFY_STORE_PERMANENT_DOMAIN, SHOPIFY_STOREFRONT_TOKEN, getProductImage } from "@/lib/shopify-config";
+import { ShopifyProduct, getProductImage } from "@/lib/shopify-config";
+import { useActiveStore } from "@/hooks/useActiveStore";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
 
@@ -17,6 +18,7 @@ interface StoreProductCardProps {
 
 export function StoreProductCard({ product, index = 0, onQuickView }: StoreProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const { activeStore } = useActiveStore();
   const addItem = useCartStore((s) => s.addItem);
 
   const node = product.node;
@@ -24,11 +26,11 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
   const shopifyImageUrl = node.images.edges[0]?.node?.url;
   const price = node.priceRange.minVariantPrice;
   
-  // Get image with local fallback for AuraLift products
+  // Get image with local fallback for products
   const productImageUrl = getProductImage(node.handle, shopifyImageUrl);
 
   const handleAddToCart = async () => {
-    if (!firstVariant) {
+    if (!firstVariant || !activeStore) {
       toast.error("Product unavailable");
       return;
     }
@@ -42,8 +44,8 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
       price: firstVariant.price,
       quantity: 1,
       selectedOptions: firstVariant.selectedOptions,
-      storeDomain: SHOPIFY_STORE_PERMANENT_DOMAIN,
-      storefrontToken: SHOPIFY_STOREFRONT_TOKEN,
+      storeDomain: activeStore.storeDomain,
+      storefrontToken: activeStore.storefrontToken,
     });
 
     toast.success("Added to cart", {
@@ -143,7 +145,7 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
             <Button
               size="sm"
               onClick={handleAddToCart}
-              disabled={isAdding || !firstVariant?.availableForSale}
+              disabled={isAdding || !firstVariant?.availableForSale || !activeStore}
               className={isAdding ? "bg-success hover:bg-success" : "btn-power"}
             >
               {isAdding ? (

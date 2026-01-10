@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2, Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { storefrontApiRequest, PRODUCTS_QUERY, ShopifyProduct } from "@/lib/shopify-config";
+import { useActiveStore } from "@/hooks/useActiveStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductSearchProps {
@@ -12,6 +13,7 @@ interface ProductSearchProps {
 }
 
 export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps) {
+  const { activeStore, hasConnectedStores } = useActiveStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +24,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
 
   // Debounced search
   useEffect(() => {
-    if (query.length < 2) {
+    if (query.length < 2 || !activeStore) {
       setResults([]);
       return;
     }
@@ -30,11 +32,13 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const data = await storefrontApiRequest(PRODUCTS_QUERY, {
-          first: 6,
-          query: query,
-        });
-        setResults(data.data.products.edges || []);
+        const data = await storefrontApiRequest(
+          activeStore.storeDomain,
+          activeStore.storefrontToken,
+          PRODUCTS_QUERY,
+          { first: 6, query: query }
+        );
+        setResults(data?.data?.products?.edges || []);
       } catch (error) {
         console.error("Search error:", error);
         setResults([]);
@@ -44,7 +48,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, activeStore]);
 
   // Close on click outside
   useEffect(() => {
@@ -73,6 +77,17 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
       onClose?.();
     }
   };
+
+  if (!hasConnectedStores) {
+    return (
+      <div className={`relative ${isMobile ? 'w-full' : ''}`}>
+        <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+          <Store className="h-4 w-4" />
+          <span>Connect store to search</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={`relative ${isMobile ? 'w-full' : ''}`}>
