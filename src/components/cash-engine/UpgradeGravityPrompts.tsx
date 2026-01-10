@@ -129,7 +129,7 @@ export const InlineUpgradeGravity = ({
 
   if (!isNearLimit) return null;
 
-  const nextTier = currentTier === 'core' ? 'SCALE' : 'DOMINION';
+  const nextTier = currentTier === 'core' ? 'SCALE' : 'AURAOMEGA';
 
   return (
     <motion.div

@@ -89,7 +89,7 @@ export function SuperDashboard({ className }: SuperDashboardProps) {
             </motion.div>
             <div>
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-display font-bold">DOMINION SUPER APP</h2>
+                <h2 className="text-xl font-display font-bold">AURAOMEGA SUPER APP</h2>
                 <Badge className="bg-success/20 text-success animate-pulse">LIVE</Badge>
               </div>
               <p className="text-sm text-muted-foreground">

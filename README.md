@@ -1,4 +1,6 @@
-# Welcome to your Lovable project
+# AURAOMEGA – Autonomous Revenue Operating System
+
+> **Replace agencies, media buyers, and content teams with one system that learns and scales revenue autonomously.**
 
 ## Project info
 
@@ -59,6 +61,16 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Lovable Cloud (Supabase)
+
+## Key Features
+
+- **Live Shopify Integration**: Real-time sync with AuraLift Essentials store
+- **AI Video Ad Generation**: HeyGen & ElevenLabs powered content creation
+- **Social Channels**: TikTok, Pinterest, Instagram, YouTube publishing
+- **Omega AI Brain**: 9-agent autonomous optimization system
+- **Self-Healing System**: Auto-fixes errors, token expiry, sync issues
+- **Revenue Dashboard**: Real-time MRR, ROAS, channel performance
 
 ## How can I deploy this project?
 
@@ -74,10 +86,11 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/c
 
 ## Screenshots
 
-![Dashboard](/screenshots/dashboard.png)
+![AURAOMEGA Dashboard](/screenshots/dashboard.png)
 ![Video Ad Studio](/screenshots/video-ad-studio.png)
 ![Social Channels](/screenshots/social-channels.png)
-![CEO Brain](/screenshots/ceo-brain.png)
+![Omega Brain](/screenshots/omega-brain.png)
+![Revenue Dashboard](/screenshots/revenue-dashboard.png)
 
 ---
 

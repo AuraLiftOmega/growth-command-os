@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 export const StrategicDoctrine = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [northStar, setNorthStar] = useState(
-    "DOMINION is an AI commerce operating system that replaces agencies, media buyers, and content teams with one system that learns and scales revenue autonomously."
+    "AURAOMEGA is an AI commerce operating system that replaces agencies, media buyers, and content teams with one system that learns and scales revenue autonomously."
   );
   const [marketCategory] = useState("Autonomous Revenue Infrastructure");
 

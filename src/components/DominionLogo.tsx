@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-interface DominionLogoProps {
+interface AuraOmegaLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   showText?: boolean;
   linkTo?: string;
@@ -18,13 +18,18 @@ const sizeClasses = {
   xl: "h-16 max-h-16 md:h-24 md:max-h-24",
 };
 
-export function DominionLogo({
+// Keep old export for backward compatibility
+export function DominionLogo(props: AuraOmegaLogoProps) {
+  return <AuraOmegaLogo {...props} />;
+}
+
+export function AuraOmegaLogo({
   size = "md",
   showText = false,
   linkTo,
   className,
   animated = false,
-}: DominionLogoProps) {
+}: AuraOmegaLogoProps) {
   const logoContent = (
     <div
       className={cn(
@@ -35,7 +40,7 @@ export function DominionLogo({
     >
       <img
         src={LOGO_URL}
-        alt="Dominion AI - Autonomous Revenue Operating System"
+        alt="AURAOMEGA - Autonomous Revenue Operating System"
         className={cn(
           sizeClasses[size],
           "w-auto object-contain",
@@ -46,7 +51,7 @@ export function DominionLogo({
       {showText && (
         <div className="flex flex-col">
           <span className="font-bold text-lg tracking-tight text-foreground">
-            DOMINION
+            AURAOMEGA
           </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
             Revenue OS
@@ -68,17 +73,17 @@ export function DominionLogo({
 }
 
 // Loading spinner with logo
-export function DominionLoading() {
+export function AuraOmegaLoading() {
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-6 z-50">
       <img
         src={LOGO_URL}
-        alt="Dominion AI - Autonomous Revenue Operating System"
+        alt="AURAOMEGA - Autonomous Revenue Operating System"
         className="h-16 md:h-24 w-auto object-contain animate-pulse"
         loading="eager"
       />
       <div className="flex flex-col items-center gap-2">
-        <span className="text-xl font-bold tracking-tight">DOMINION</span>
+        <span className="text-xl font-bold tracking-tight">AURAOMEGA</span>
         <span className="text-sm text-muted-foreground">Loading...</span>
       </div>
       <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
@@ -89,19 +94,29 @@ export function DominionLoading() {
   );
 }
 
+// Keep old export for backward compatibility
+export function DominionLoading() {
+  return <AuraOmegaLoading />;
+}
+
 // Footer logo variant
-export function DominionFooterLogo() {
+export function AuraOmegaFooterLogo() {
   return (
     <div className="flex items-center gap-3">
       <img
         src={LOGO_URL}
-        alt="Dominion AI"
+        alt="AURAOMEGA"
         className="h-6 w-auto object-contain opacity-80"
         loading="lazy"
       />
       <span className="text-xs text-muted-foreground">
-        Powered by <span className="font-semibold text-foreground">Dominion AI</span>
+        Powered by <span className="font-semibold text-foreground">AURAOMEGA</span>
       </span>
     </div>
   );
+}
+
+// Keep old export for backward compatibility
+export function DominionFooterLogo() {
+  return <AuraOmegaFooterLogo />;
 }
