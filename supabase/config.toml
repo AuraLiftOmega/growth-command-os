@@ -152,3 +152,6 @@ verify_jwt = false
 
 [functions.social-oauth]
 verify_jwt = false
+
+[functions.vercel-ai-gateway]
+verify_jwt = false
