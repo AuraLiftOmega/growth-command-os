@@ -39,6 +39,7 @@ import {
   Crown,
   Sparkles
 } from 'lucide-react';
+import { CampaignLauncher } from './CampaignLauncher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -521,6 +522,9 @@ export function SuperGrokCEODashboard() {
           </div>
         </div>
       </div>
+
+      {/* CAMPAIGN LAUNCHER - One-Click Viral Campaign */}
+      <CampaignLauncher />
 
       {/* Enhanced Profit Guarantee Calculator */}
       <Card className="border-2 border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-background">
