@@ -303,76 +303,112 @@ serve(async (req) => {
       avatar 
     });
 
-    // Step 1: Generate voiceover with ElevenLabs
-    console.log("\n=== STEP 1: ELEVENLABS VOICEOVER ===");
+    // Step 1: Try ElevenLabs voiceover, fallback to HeyGen built-in voice
+    console.log("\n=== STEP 1: VOICEOVER ===");
+    
+    let voiceoverUrl: string | null = null;
+    let useHeyGenVoice = false;
+    let elevenLabsError: string | null = null;
+    
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
-    if (!ELEVENLABS_API_KEY) {
-      throw new Error("ELEVENLABS_API_KEY not configured. Add it in Supabase secrets.");
-    }
+    
+    if (ELEVENLABS_API_KEY) {
+      const voiceKey = (voice as keyof typeof ELEVENLABS_VOICES) || 'sarah';
+      const voiceIdLocal = ELEVENLABS_VOICES[voiceKey] || ELEVENLABS_VOICES.sarah;
+      
+      console.log(`Trying ElevenLabs voice: ${voiceKey} (${voiceIdLocal})`);
+      
+      try {
+        const ttsResponse = await fetch(
+          `https://api.elevenlabs.io/v1/text-to-speech/${voiceIdLocal}?output_format=mp3_44100_128`,
+          {
+            method: "POST",
+            headers: {
+              "xi-api-key": ELEVENLABS_API_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: script,
+              model_id: "eleven_multilingual_v2",
+              voice_settings: {
+                stability: 0.5,
+                similarity_boost: 0.75,
+                style: emotion === 'excited' ? 0.6 : emotion === 'urgent' ? 0.7 : 0.4,
+                use_speaker_boost: true,
+              },
+            }),
+          }
+        );
 
-    const voiceKey = (voice as keyof typeof ELEVENLABS_VOICES) || 'sarah';
-    const voiceId = ELEVENLABS_VOICES[voiceKey] || ELEVENLABS_VOICES.sarah;
-    
-    console.log(`Voice: ${voiceKey} (${voiceId})`);
-    console.log(`Calling ElevenLabs TTS API...`);
-    
-    const ttsResponse = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: script,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: emotion === 'excited' ? 0.6 : emotion === 'urgent' ? 0.7 : 0.4,
-            use_speaker_boost: true,
-          },
-        }),
+        if (ttsResponse.ok) {
+          const audioBuffer = await ttsResponse.arrayBuffer();
+          console.log(`✅ ElevenLabs voiceover generated: ${audioBuffer.byteLength} bytes`);
+          
+          // Upload voiceover to Supabase Storage
+          const voiceoverFileName = `voiceover_${product.handle}_${Date.now()}.mp3`;
+          console.log(`Uploading to storage: ${voiceoverFileName}`);
+          
+          const { error: uploadError } = await supabase.storage
+            .from("creatives")
+            .upload(voiceoverFileName, audioBuffer, {
+              contentType: "audio/mpeg",
+              upsert: true,
+            });
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from("creatives")
+            .getPublicUrl(voiceoverFileName);
+
+          voiceoverUrl = publicUrl;
+          console.log(`✅ Voiceover uploaded: ${voiceoverUrl}`);
+        } else {
+          const errorText = await ttsResponse.text();
+          console.warn(`⚠️ ElevenLabs failed: ${ttsResponse.status} - ${errorText}`);
+          elevenLabsError = errorText;
+          
+          // Check if it's a paid plan required error
+          if (errorText.includes("unusual_activity") || errorText.includes("Paid Plan") || errorText.includes("Free Tier")) {
+            console.log("📢 ElevenLabs requires paid plan - falling back to HeyGen built-in voice");
+            useHeyGenVoice = true;
+          } else {
+            useHeyGenVoice = true;
+          }
+          
+          await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS failed, using HeyGen voice", { 
+            error: errorText, 
+            status: ttsResponse.status,
+            fallback: "heygen_voice"
+          });
+        }
+      } catch (err) {
+        console.error("ElevenLabs error:", err);
+        elevenLabsError = String(err);
+        useHeyGenVoice = true;
+        await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS error, using HeyGen voice", { 
+          error: String(err),
+          fallback: "heygen_voice"
+        });
       }
-    );
-
-    if (!ttsResponse.ok) {
-      const errorText = await ttsResponse.text();
-      console.error("ElevenLabs error:", errorText);
-      await logToDecisionLog(supabase, user.id, "auralift_ad_error", "ElevenLabs TTS failed", { error: errorText, status: ttsResponse.status });
-      throw new Error(`ElevenLabs TTS failed: ${ttsResponse.status} - ${errorText}`);
+    } else {
+      console.log("⚠️ ELEVENLABS_API_KEY not configured - using HeyGen built-in voice");
+      useHeyGenVoice = true;
     }
-
-    const audioBuffer = await ttsResponse.arrayBuffer();
-    console.log(`✅ Voiceover generated: ${audioBuffer.byteLength} bytes`);
-    
-    // Upload voiceover to Supabase Storage
-    const voiceoverFileName = `voiceover_${product.handle}_${Date.now()}.mp3`;
-    console.log(`Uploading to storage: ${voiceoverFileName}`);
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("creatives")
-      .upload(voiceoverFileName, audioBuffer, {
-        contentType: "audio/mpeg",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-    }
-
-    const { data: { publicUrl: voiceoverUrl } } = supabase.storage
-      .from("creatives")
-      .getPublicUrl(voiceoverFileName);
-
-    console.log(`✅ Voiceover uploaded: ${voiceoverUrl}`);
 
     let heygenVideoId: string | null = null;
     let videoUrl: string | null = null;
     let thumbnailUrl: string | null = null;
     let videoStatus = test_mode && !force_live ? "voiceover_only" : "processing";
     let creditsWarning: string | null = null;
+    
+    // If ElevenLabs failed, note it
+    if (elevenLabsError) {
+      console.log(`\n⚠️ ElevenLabs issue detected - will use HeyGen's built-in voice`);
+      console.log(`ElevenLabs error: ${elevenLabsError.substring(0, 200)}...`);
+    }
 
     // Step 2: If not test mode (or force_live), generate HeyGen video
     const shouldGenerateVideo = !test_mode || force_live;
@@ -411,7 +447,26 @@ serve(async (req) => {
             const avatarId = HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default;
             console.log(`\nCreating HeyGen video...`);
             console.log(`Avatar ID: ${avatarId}`);
-            console.log(`Voiceover URL: ${voiceoverUrl}`);
+            console.log(`Using ElevenLabs voiceover: ${!useHeyGenVoice}`);
+            console.log(`Voiceover URL: ${voiceoverUrl || 'using HeyGen voice'}`);
+            
+            // Build voice configuration - use HeyGen built-in voice if ElevenLabs failed
+            let voiceConfig;
+            if (useHeyGenVoice || !voiceoverUrl) {
+              // Use HeyGen's built-in voice
+              console.log(`Using HeyGen built-in voice (ElevenLabs unavailable)`);
+              voiceConfig = {
+                type: "text",
+                input_text: script,
+                voice_id: "en-US-GuyNeural", // HeyGen built-in voice
+              };
+            } else {
+              // Use uploaded ElevenLabs voiceover
+              voiceConfig = {
+                type: "audio",
+                audio_url: voiceoverUrl,
+              };
+            }
             
             const heygenPayload = {
               video_inputs: [{
@@ -420,10 +475,7 @@ serve(async (req) => {
                   avatar_id: avatarId,
                   avatar_style: "normal",
                 },
-                voice: {
-                  type: "audio",
-                  audio_url: voiceoverUrl,
-                },
+                voice: voiceConfig,
                 background: {
                   type: "color",
                   value: "#f8f4f0", // Soft cream background for skincare
@@ -522,6 +574,10 @@ serve(async (req) => {
     console.log(`\n=== STEP 3: SAVE TO DATABASE ===`);
     const adName = `${product.title} - AI Video Ad`;
     
+    // Determine voice info for metadata
+    const usedVoiceKey = useHeyGenVoice ? "heygen-builtin" : voice;
+    const usedVoiceId = useHeyGenVoice ? "en-US-GuyNeural" : ELEVENLABS_VOICES[voice as keyof typeof ELEVENLABS_VOICES] || "unknown";
+    
     const adRecord = {
       user_id: user.id,
       name: adName,
@@ -539,8 +595,10 @@ serve(async (req) => {
       duration_seconds: 15,
       provider: "heygen",
       metadata: {
-        voice: voiceKey,
-        voice_id: voiceId,
+        voice: usedVoiceKey,
+        voice_id: usedVoiceId,
+        used_heygen_voice: useHeyGenVoice,
+        elevenlabs_error: elevenLabsError ? elevenLabsError.substring(0, 200) : null,
         avatar,
         avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
         product_handle: product.handle,
@@ -622,8 +680,9 @@ serve(async (req) => {
         status: videoStatus,
         credits_warning: creditsWarning,
         generation_details: {
-          voice: voiceKey,
-          voice_id: voiceId,
+          voice: usedVoiceKey,
+          voice_id: usedVoiceId,
+          used_heygen_voice: useHeyGenVoice,
           avatar,
           avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
           emotion,
