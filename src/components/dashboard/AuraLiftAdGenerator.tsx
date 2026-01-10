@@ -170,6 +170,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchResults, setBatchResults] = useState<any[]>([]);
+  
+  // Clean & Launch state
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [launchStatus, setLaunchStatus] = useState<string>('');
+  const [launchResults, setLaunchResults] = useState<any>(null);
 
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
@@ -915,6 +920,121 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 </>
               )}
             </Button>
+
+            {/* 🚀 CLEAN & LAUNCH SEQUENCE - Full Production Deploy */}
+            <Button
+              onClick={async () => {
+                if (!user) {
+                  toast.error('Please sign in to launch');
+                  return;
+                }
+                
+                setIsLaunching(true);
+                setLaunchStatus('🚀 Initiating Clean & Launch Sequence...');
+                setLaunchResults(null);
+                
+                toast.info('🚀 Clean & Launch Sequence Started', {
+                  description: 'Reconnecting TikTok, generating D-ID video, auto-posting to all channels...',
+                  duration: 15000
+                });
+                
+                try {
+                  setLaunchStatus('📱 Phase 1: Reconnecting TikTok to @ryan.auralift...');
+                  
+                  const { data, error } = await supabase.functions.invoke('clean-launch-sequence', {
+                    body: { avatar: 'amy', skip_video: false }
+                  });
+                  
+                  if (error) throw error;
+                  
+                  setLaunchResults(data);
+                  
+                  if (data?.success) {
+                    setLaunchStatus('✅ Clean & Launch Complete!');
+                    
+                    // Update real video URL if generated
+                    if (data.phase2_video?.video_url) {
+                      setRealVideoUrl(data.phase2_video.video_url);
+                      setRealThumbnailUrl(data.phase2_video.thumbnail_url);
+                    }
+                    
+                    toast.success('🎉 Clean & Launch Complete!', {
+                      description: `TikTok: @ryan.auralift connected, Video: ${data.phase2_video?.status}, Posts: ${data.phase3_posts?.successful || 0} channels`,
+                      duration: 15000,
+                      action: data.phase2_video?.video_url ? {
+                        label: 'Watch Video',
+                        onClick: () => window.open(data.phase2_video.video_url, '_blank')
+                      } : undefined
+                    });
+                    
+                    fetchRecentAds();
+                  } else {
+                    throw new Error(data?.error || 'Launch sequence failed');
+                  }
+                } catch (err: any) {
+                  console.error('Launch sequence error:', err);
+                  setLaunchStatus('❌ Launch sequence failed');
+                  toast.error('Launch Sequence Failed', {
+                    description: err.message || 'Check console for details'
+                  });
+                } finally {
+                  setIsLaunching(false);
+                }
+              }}
+              disabled={isGenerating || isForceGenerating || isBatchGenerating || isLaunching}
+              className="w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-600 hover:via-blue-700 hover:to-purple-700 text-white font-bold shadow-xl border-2 border-cyan-400/50"
+            >
+              {isLaunching ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  {launchStatus}
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 mr-2" />
+                  🚀 CLEAN & LAUNCH - @ryan.auralift + D-ID + Auto-Post All
+                </>
+              )}
+            </Button>
+
+            {/* Launch Results Display */}
+            {launchResults && (
+              <div className="mt-2 p-4 rounded-lg bg-gradient-to-br from-cyan-500/10 to-purple-500/10 border border-cyan-500/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-cyan-500" />
+                  <span className="font-bold text-cyan-600">Launch Sequence Results</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="p-2 rounded bg-background/50">
+                    <span className="text-muted-foreground">TikTok:</span>
+                    <p className="font-medium">{launchResults.phase1_tiktok?.account || 'Pending'}</p>
+                  </div>
+                  <div className="p-2 rounded bg-background/50">
+                    <span className="text-muted-foreground">Video:</span>
+                    <p className="font-medium">{launchResults.phase2_video?.status || 'Pending'}</p>
+                  </div>
+                  <div className="p-2 rounded bg-background/50">
+                    <span className="text-muted-foreground">Posts:</span>
+                    <p className="font-medium">{launchResults.phase3_posts?.successful || 0}/{launchResults.phase3_posts?.total || 0} channels</p>
+                  </div>
+                  <div className="p-2 rounded bg-background/50">
+                    <span className="text-muted-foreground">Connected:</span>
+                    <p className="font-medium">{launchResults.phase4_verification?.connected_channels?.length || 0} channels</p>
+                  </div>
+                </div>
+                {launchResults.phase2_video?.video_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 w-full"
+                    onClick={() => window.open(launchResults.phase2_video.video_url, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View Generated Video
+                  </Button>
+                )}
+              </div>
+            )}
             
             {/* Batch Results Display */}
             {batchResults.length > 0 && (

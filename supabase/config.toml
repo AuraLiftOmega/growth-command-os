@@ -158,3 +158,6 @@ verify_jwt = false
 
 [functions.force-did-generation]
 verify_jwt = false
+
+[functions.clean-launch-sequence]
+verify_jwt = false
