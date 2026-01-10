@@ -143,3 +143,12 @@ verify_jwt = false
 
 [functions.accept-workspace-invite]
 verify_jwt = false
+
+[functions.tiktok-business-oauth]
+verify_jwt = false
+
+[functions.tiktok-shop-oauth]
+verify_jwt = false
+
+[functions.social-oauth]
+verify_jwt = false

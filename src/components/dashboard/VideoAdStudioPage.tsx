@@ -187,6 +187,12 @@ export function VideoAdStudioPage() {
   const [isBatchPostingTikTokShop, setIsBatchPostingTikTokShop] = useState(false);
   const [tiktokShopBatchProgress, setTiktokShopBatchProgress] = useState(0);
   
+  // TikTok Business Suite state
+  const [tiktokBusinessConnected, setTiktokBusinessConnected] = useState(false);
+  const [lastTiktokBusinessPost, setLastTiktokBusinessPost] = useState<{ time: string; url: string } | null>(null);
+  const [isBatchPostingTikTokBusiness, setIsBatchPostingTikTokBusiness] = useState(false);
+  const [tiktokBusinessBatchProgress, setTiktokBusinessBatchProgress] = useState(0);
+  
   const { products, isLoading: loadingProducts } = useShopifyProducts({
     vendor: 'AuraLift Beauty',
     autoLoad: true
@@ -279,11 +285,44 @@ export function VideoAdStudioPage() {
     }
   }, [user]);
 
+  // Check TikTok Business Suite connection
+  const checkTikTokBusinessConnection = useCallback(async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('social_tokens')
+      .select('is_connected')
+      .eq('user_id', user.id)
+      .eq('channel', 'tiktok_business')
+      .single();
+    
+    if (data?.is_connected) {
+      setTiktokBusinessConnected(true);
+    }
+    
+    // Get last TikTok Business Suite post
+    const { data: posts } = await supabase
+      .from('social_posts')
+      .select('posted_at, post_url')
+      .eq('user_id', user.id)
+      .eq('channel', 'tiktok_business')
+      .order('posted_at', { ascending: false })
+      .limit(1);
+    
+    if (posts && posts.length > 0) {
+      setLastTiktokBusinessPost({
+        time: posts[0].posted_at,
+        url: posts[0].post_url
+      });
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchVideos();
     checkPinterestConnection();
     checkTikTokShopConnection();
-  }, [fetchVideos, checkPinterestConnection, checkTikTokShopConnection]);
+    checkTikTokBusinessConnection();
+  }, [fetchVideos, checkPinterestConnection, checkTikTokShopConnection, checkTikTokBusinessConnection]);
 
   // Fetch HeyGen avatars
   const fetchAvatars = async () => {
@@ -509,6 +548,80 @@ export function VideoAdStudioPage() {
         return 'bg-destructive/20 text-destructive';
       default:
         return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  // Batch post all generated videos to TikTok Business Suite
+  const batchPostToTikTokBusiness = async () => {
+    if (!user) {
+      toast.error('Please sign in');
+      return;
+    }
+
+    // Get videos with video_url that haven't been posted to TikTok Business yet
+    const videosToPost = videos.filter(v => 
+      v.video_url && 
+      (v.status === 'completed' || v.status === 'ready_to_publish' || v.status === 'active')
+    ).slice(0, 5); // Max 5 at a time
+
+    if (videosToPost.length === 0) {
+      toast.error('No videos ready for TikTok Business Suite posting');
+      return;
+    }
+
+    setIsBatchPostingTikTokBusiness(true);
+    setTiktokBusinessBatchProgress(0);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < videosToPost.length; i++) {
+      const video = videosToPost[i];
+      setTiktokBusinessBatchProgress(Math.round(((i + 1) / videosToPost.length) * 100));
+
+      try {
+        const productName = video.name.replace(' - AI Video Ad', '').replace(' - Video Ad', '');
+
+        const { data, error } = await supabase.functions.invoke('tiktok-business-oauth', {
+          body: {
+            action: 'post_video',
+            video_url: video.video_url,
+            title: `✨ ${productName} | AuraLift Essentials`,
+            description: `🌟 Transform your skincare routine with ${productName}! Shop now at auraliftessentials.com 💫 #skincare #beauty #glowup #fyp`,
+            creative_id: video.id
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.success) {
+          successCount++;
+          toast.success(`📊 Posted to TikTok Business: ${productName}`, { duration: 2000 });
+        } else if (data?.needs_auth) {
+          toast.error('Please connect TikTok Business Suite first');
+          break;
+        } else {
+          throw new Error(data?.error || 'Post failed');
+        }
+      } catch (err: any) {
+        failCount++;
+        console.error(`TikTok Business batch post error for ${video.name}:`, err);
+      }
+
+      // Small delay between posts
+      await new Promise(r => setTimeout(r, 1500));
+    }
+
+    setIsBatchPostingTikTokBusiness(false);
+    setTiktokBusinessBatchProgress(0);
+
+    if (successCount > 0) {
+      toast.success(`📊 Batch TikTok Business Suite Post Complete!`, {
+        description: `${successCount} posted, ${failCount} failed`
+      });
+      checkTikTokBusinessConnection(); // Refresh last post info
+    } else {
+      toast.error('All TikTok Business Suite posts failed');
     }
   };
 
