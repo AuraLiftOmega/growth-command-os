@@ -6,9 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { User, Shield, LogOut, CreditCard, Store, Bell } from "lucide-react";
+import { User, Shield, LogOut, CreditCard, Store } from "lucide-react";
 import { StripePaymentsPanel } from "@/components/settings/StripePaymentsPanel";
 import { PricingPanel } from "@/components/settings/PricingPanel";
+import { ShopifyConnectionsPanel } from "@/components/settings/ShopifyConnectionsPanel";
+import { BillingPanel } from "@/components/settings/BillingPanel";
 
 const Settings = () => {
   const { user, signOut } = useAuth();
@@ -31,18 +33,22 @@ const Settings = () => {
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
 
           <Tabs defaultValue="account" className="space-y-6">
-            <TabsList className="grid grid-cols-4 w-full max-w-lg">
+            <TabsList className="grid grid-cols-5 w-full max-w-2xl">
               <TabsTrigger value="account" className="gap-2">
                 <User className="w-4 h-4" />
                 Account
               </TabsTrigger>
+              <TabsTrigger value="shopify" className="gap-2">
+                <Store className="w-4 h-4" />
+                Shopify
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="gap-2">
+                <CreditCard className="w-4 h-4" />
+                Billing
+              </TabsTrigger>
               <TabsTrigger value="payments" className="gap-2">
                 <CreditCard className="w-4 h-4" />
                 Payments
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="gap-2">
-                <Store className="w-4 h-4" />
-                Billing
               </TabsTrigger>
               <TabsTrigger value="security" className="gap-2">
                 <Shield className="w-4 h-4" />
@@ -75,14 +81,19 @@ const Settings = () => {
               </Card>
             </TabsContent>
 
-            {/* Payments Tab */}
-            <TabsContent value="payments">
-              <StripePaymentsPanel />
+            {/* Shopify Tab */}
+            <TabsContent value="shopify">
+              <ShopifyConnectionsPanel />
             </TabsContent>
 
             {/* Billing Tab */}
             <TabsContent value="billing">
-              <PricingPanel />
+              <BillingPanel />
+            </TabsContent>
+
+            {/* Payments Tab */}
+            <TabsContent value="payments">
+              <StripePaymentsPanel />
             </TabsContent>
 
             {/* Security Tab */}
