@@ -307,6 +307,51 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_debates: {
+        Row: {
+          completed_at: string | null
+          consensus_output: Json | null
+          consensus_reached: boolean | null
+          created_at: string
+          debate_topic: string
+          debate_transcript: Json
+          execution_status: string | null
+          final_strategy: Json | null
+          id: string
+          impact_metrics: Json | null
+          participants: Json
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          consensus_output?: Json | null
+          consensus_reached?: boolean | null
+          created_at?: string
+          debate_topic: string
+          debate_transcript?: Json
+          execution_status?: string | null
+          final_strategy?: Json | null
+          id?: string
+          impact_metrics?: Json | null
+          participants?: Json
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          consensus_output?: Json | null
+          consensus_reached?: boolean | null
+          created_at?: string
+          debate_topic?: string
+          debate_transcript?: Json
+          execution_status?: string | null
+          final_strategy?: Json | null
+          id?: string
+          impact_metrics?: Json | null
+          participants?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_decision_log: {
         Row: {
           action_taken: string
@@ -3162,6 +3207,65 @@ export type Database = {
             columns: ["demo_id"]
             isOneToOne: false
             referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_team_agents: {
+        Row: {
+          agent_name: string
+          agent_role: string
+          agent_type: string
+          configuration: Json | null
+          created_at: string
+          current_task: string | null
+          debate_logs: Json | null
+          id: string
+          last_activity_at: string | null
+          parent_agent_id: string | null
+          performance_metrics: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_name: string
+          agent_role?: string
+          agent_type: string
+          configuration?: Json | null
+          created_at?: string
+          current_task?: string | null
+          debate_logs?: Json | null
+          id?: string
+          last_activity_at?: string | null
+          parent_agent_id?: string | null
+          performance_metrics?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_name?: string
+          agent_role?: string
+          agent_type?: string
+          configuration?: Json | null
+          created_at?: string
+          current_task?: string | null
+          debate_logs?: Json | null
+          id?: string
+          last_activity_at?: string | null
+          parent_agent_id?: string | null
+          performance_metrics?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_team_agents_parent_agent_id_fkey"
+            columns: ["parent_agent_id"]
+            isOneToOne: false
+            referencedRelation: "sales_team_agents"
             referencedColumns: ["id"]
           },
         ]

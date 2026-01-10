@@ -38,10 +38,11 @@ import { CEOInsightsPanel } from '@/components/ceo-engine/CEOInsightsPanel';
 import { CEOAutonomousActions } from '@/components/ceo-engine/CEOAutonomousActions';
 import { AutonomousLoopsPanel } from '@/components/ceo-engine/AutonomousLoopsPanel';
 import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
+import { OmegaCEOBrain } from '@/components/ceo-engine/OmegaCEOBrain';
+import { SalesTeamAgents } from '@/components/ceo-engine/SalesTeamAgents';
 import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer } from '@/components/ceo-brain';
 import { OmegaBrainPanel } from '@/components/omega/OmegaBrainPanel';
 import { AgentActivityLog } from '@/components/omega/AgentActivityLog';
-import { OmegaCEOBrain } from '@/components/ceo-engine/OmegaCEOBrain';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRevenueEngine } from '@/hooks/useRevenueEngine';
@@ -291,9 +292,12 @@ export default function CEOBrain() {
 
           {/* SUPERINTELLIGENT CEO BRAIN - Tabbed Interface */}
           <Tabs defaultValue="mega-brain" className="w-full">
-            <TabsList className="w-full grid grid-cols-7 mb-6">
+            <TabsList className="w-full grid grid-cols-8 mb-6">
               <TabsTrigger value="mega-brain" className="gap-2">
                 <Atom className="w-4 h-4" /> Mega Brain
+              </TabsTrigger>
+              <TabsTrigger value="sales-team" className="gap-2">
+                <Users className="w-4 h-4" /> Sales Team
               </TabsTrigger>
               <TabsTrigger value="agents" className="gap-2">
                 <Crown className="w-4 h-4" /> Agents
@@ -317,6 +321,10 @@ export default function CEOBrain() {
 
             <TabsContent value="mega-brain">
               <OmegaCEOBrain />
+            </TabsContent>
+
+            <TabsContent value="sales-team">
+              <SalesTeamAgents />
             </TabsContent>
 
             <TabsContent value="agents">
