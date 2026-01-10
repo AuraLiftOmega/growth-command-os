@@ -161,6 +161,9 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const [realVideoUrl, setRealVideoUrl] = useState<string | null>(null);
   const [realThumbnailUrl, setRealThumbnailUrl] = useState<string | null>(null);
   const [generationDetails, setGenerationDetails] = useState<any>(null);
+  
+  // Stock video fallback mode
+  const [isStockFallbackMode, setIsStockFallbackMode] = useState(false);
 
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
@@ -312,6 +315,12 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
         setRealVideoUrl(data.video_url);
         setRealThumbnailUrl(data.thumbnail_url || null);
         setGenerationDetails(data.generation_details || null);
+        
+        // Check if stock fallback was used
+        if (data.generation_details?.mode === 'stock_video_fallback' || 
+            data.credits_warning?.includes('stock video fallback')) {
+          setIsStockFallbackMode(true);
+        }
       }
 
       if (data?.ad) {
@@ -759,8 +768,22 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               )}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Force Live: Uses real HeyGen API (not test mode), waits up to 15 min for video completion
+              Force Live: Uses real HeyGen API, falls back to stock videos if credits low (auto-approve)
             </p>
+            
+            {/* Stock Video Fallback Mode Info */}
+            {isStockFallbackMode && realVideoUrl && (
+              <div className="mt-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-center gap-2 text-amber-500 text-sm mb-2">
+                  <Video className="w-4 h-4" />
+                  <span className="font-medium">Stock Video Fallback Active</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  HeyGen unavailable — using Pexels stock skincare video + voiceover. 
+                  Ready to post to TikTok/Pinterest!
+                </p>
+              </div>
+            )}
             
             {/* Real Video Preview Section */}
             {realVideoUrl && (
