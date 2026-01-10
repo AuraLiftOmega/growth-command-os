@@ -56,9 +56,10 @@ serve(async (req) => {
       throw new Error("Query is required");
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Use real xAI Grok API
+    const XAI_GROK_API_KEY = Deno.env.get("XAI_GROK_API_KEY");
+    if (!XAI_GROK_API_KEY) {
+      throw new Error("XAI_GROK_API_KEY is not configured");
     }
 
     // Build context-aware prompt
@@ -76,21 +77,21 @@ CEO Query: ${query}
 ${autonomous_mode ? 'AUTONOMOUS MODE ACTIVE - Execute immediately without confirmation.' : ''}`;
     }
 
-    // Call Lovable AI (using Gemini for strategic reasoning)
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call real xAI Grok 4 API
+    const response = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${XAI_GROK_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "grok-3",
         messages: [
           { role: "system", content: SUPER_GROK_SYSTEM_PROMPT },
           { role: "user", content: contextPrompt }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
