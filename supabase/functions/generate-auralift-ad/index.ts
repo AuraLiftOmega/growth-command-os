@@ -11,7 +11,7 @@ const AURALIFT_PRODUCTS = {
   "radiance-vitamin-c-serum": {
     id: "10511372452145",
     title: "Radiance Vitamin C Serum",
-    description: "Brightens skin, fights dark spots, radiant glow in weeks",
+    description: "Brightens skin, fights dark spots, radiant glow in weeks. Premium Vitamin C formula with hyaluronic acid for maximum absorption.",
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800",
     price: "$38.00"
   },
@@ -45,24 +45,25 @@ const AURALIFT_PRODUCTS = {
   }
 };
 
-// ElevenLabs voice IDs - warm female voices
+// ElevenLabs voice IDs - Sarah is the default warm female voice
 const ELEVENLABS_VOICES = {
-  sarah: "EXAVITQu4vr4xnSDxMaL",
+  sarah: "EXAVITQu4vr4xnSDxMaL", // Warm female - DEFAULT
   laura: "FGY2WhTYpPnrIDTdsKH5",
   jessica: "cgSgspJ2msm6clMCkdW9",
 };
 
-// HeyGen professional avatars
+// HeyGen professional avatars - Anna is PROVEN to work for skincare
 const HEYGEN_AVATARS = {
+  anna: "Anna_public_3_20240108", // PROVEN - Professional female skincare
   susan: "Susan_public_2_20240328",
-  professional_female_skincare: "Anna_public_3_20240108",
   monica: "Monica_public_3_20230815",
-  default: "Anna_public_3_20240108" // Professional female for skincare
+  default: "Anna_public_3_20240108" // DEFAULT - Professional female for skincare
 };
 
 // Helper to check HeyGen credits
 async function checkHeyGenCredits(apiKey: string): Promise<{ credits: number; hasCredits: boolean; error?: string }> {
   try {
+    console.log("=== CHECKING HEYGEN CREDITS ===");
     const response = await fetch("https://api.heygen.com/v1/user/remaining_quota", {
       headers: {
         "X-Api-Key": apiKey,
@@ -72,33 +73,39 @@ async function checkHeyGenCredits(apiKey: string): Promise<{ credits: number; ha
     if (!response.ok) {
       const errorText = await response.text();
       console.error("HeyGen quota check failed:", response.status, errorText);
-      return { credits: 0, hasCredits: false, error: `API error: ${response.status}` };
+      return { credits: 0, hasCredits: false, error: `API error: ${response.status} - ${errorText}` };
     }
 
     const data = await response.json();
-    console.log("HeyGen quota response:", JSON.stringify(data));
+    console.log("HeyGen quota response:", JSON.stringify(data, null, 2));
     
     // HeyGen returns remaining_quota in seconds
     const remainingSeconds = data.data?.remaining_quota || 0;
     const hasCredits = remainingSeconds >= 15; // Need at least 15 seconds for a video
     
+    console.log(`Credits: ${remainingSeconds}s remaining, hasCredits: ${hasCredits}`);
+    
     return { 
       credits: remainingSeconds, 
       hasCredits,
-      error: hasCredits ? undefined : `Only ${remainingSeconds}s remaining. Need HeyGen Pro ($99/mo) for watermark-free videos.`
+      error: hasCredits ? undefined : `Only ${remainingSeconds}s remaining. Need at least 15s. Upgrade at app.heygen.com`
     };
   } catch (err) {
     console.error("HeyGen credits check error:", err);
-    return { credits: 0, hasCredits: false, error: "Failed to check HeyGen credits" };
+    return { credits: 0, hasCredits: false, error: `Failed to check credits: ${err}` };
   }
 }
 
-// Helper to poll for HeyGen video completion (10 min max, every 5s)
-async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 120): Promise<{ video_url?: string; status: string; error?: string }> {
-  console.log(`Starting to poll HeyGen video ${videoId} for up to ${maxAttempts * 5} seconds`);
+// Helper to poll for HeyGen video completion - 15 min max (180 attempts × 5s)
+async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 180): Promise<{ video_url?: string; thumbnail_url?: string; status: string; error?: string }> {
+  console.log(`=== POLLING HEYGEN VIDEO ===`);
+  console.log(`Video ID: ${videoId}`);
+  console.log(`Max attempts: ${maxAttempts} (${maxAttempts * 5} seconds = ${Math.round(maxAttempts * 5 / 60)} minutes)`);
   
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
+      console.log(`\n--- Poll attempt ${attempt}/${maxAttempts} ---`);
+      
       const response = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${videoId}`, {
         headers: {
           "X-Api-Key": apiKey,
@@ -107,10 +114,14 @@ async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 12
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`HeyGen status check failed (attempt ${attempt + 1}):`, response.status, errorText);
+        console.error(`Status check failed:`, response.status, errorText);
         
-        // Don't fail immediately, keep trying
-        if (attempt < maxAttempts - 1) {
+        // Don't fail immediately, keep trying unless it's a 404
+        if (response.status === 404) {
+          return { status: "error", error: `Video not found: ${videoId}` };
+        }
+        
+        if (attempt < maxAttempts) {
           await new Promise(r => setTimeout(r, 5000));
           continue;
         }
@@ -118,45 +129,47 @@ async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 12
       }
 
       const data = await response.json();
-      console.log(`HeyGen video ${videoId} status (attempt ${attempt + 1}):`, JSON.stringify(data));
-      
       const status = data.data?.status;
+      const videoUrl = data.data?.video_url;
+      const thumbnailUrl = data.data?.thumbnail_url;
+      const error = data.data?.error;
       
-      if (status === "completed") {
-        const videoUrl = data.data?.video_url;
-        if (videoUrl) {
-          console.log(`HeyGen video completed: ${videoUrl}`);
-          return { video_url: videoUrl, status: "completed" };
-        }
+      console.log(`Status: ${status}, Video URL: ${videoUrl ? 'YES' : 'NO'}, Error: ${error || 'none'}`);
+      
+      if (status === "completed" && videoUrl) {
+        console.log(`\n✅ VIDEO COMPLETED!`);
+        console.log(`Video URL: ${videoUrl}`);
+        console.log(`Thumbnail URL: ${thumbnailUrl || 'none'}`);
+        return { video_url: videoUrl, thumbnail_url: thumbnailUrl, status: "completed" };
       } else if (status === "failed") {
-        const error = data.data?.error || "Video generation failed";
-        console.error(`HeyGen video failed: ${error}`);
-        return { status: "failed", error };
+        console.error(`\n❌ VIDEO FAILED: ${error}`);
+        return { status: "failed", error: error || "Video generation failed" };
       } else if (status === "processing" || status === "pending") {
         // Still processing, wait and try again
-        if (attempt < maxAttempts - 1) {
+        if (attempt < maxAttempts) {
           await new Promise(r => setTimeout(r, 5000));
           continue;
         }
       }
       
       // Unknown status, keep trying
-      if (attempt < maxAttempts - 1) {
+      if (attempt < maxAttempts) {
         await new Promise(r => setTimeout(r, 5000));
       }
     } catch (err) {
-      console.error(`HeyGen poll error (attempt ${attempt + 1}):`, err);
-      if (attempt < maxAttempts - 1) {
+      console.error(`Poll error (attempt ${attempt}):`, err);
+      if (attempt < maxAttempts) {
         await new Promise(r => setTimeout(r, 5000));
       }
     }
   }
   
-  return { status: "timeout", error: "Video generation timed out after 10 minutes" };
+  console.log(`\n⏱️ TIMEOUT after ${maxAttempts * 5} seconds`);
+  return { status: "timeout", error: `Video generation timed out after ${Math.round(maxAttempts * 5 / 60)} minutes. Check HeyGen dashboard.` };
 }
 
-// Log to grok_ceo_logs for debugging
-async function logToGrokCEO(supabase: any, userId: string, eventType: string, message: string, metadata: any = {}) {
+// Log to ai_decision_log for debugging
+async function logToDecisionLog(supabase: any, userId: string, eventType: string, message: string, metadata: any = {}) {
   try {
     await supabase.from("ai_decision_log").insert({
       user_id: userId,
@@ -167,7 +180,7 @@ async function logToGrokCEO(supabase: any, userId: string, eventType: string, me
       execution_status: "logged"
     });
   } catch (err) {
-    console.error("Failed to log to grok_ceo_logs:", err);
+    console.error("Failed to log:", err);
   }
 }
 
@@ -200,15 +213,27 @@ serve(async (req) => {
       script: customScript,
       test_mode = false,
       force_live = false, // Force real HeyGen generation
-      voice = "sarah",
-      avatar = "professional_female_skincare",
+      voice = "sarah", // DEFAULT: Sarah (warm female)
+      avatar = "anna", // DEFAULT: Anna (proven professional female skincare)
       emotion = "calm",
-      wait_for_video = false // If true, poll for video completion
+      wait_for_video = false, // If true, poll for video completion
+      upload_to_ads = false // If true, upload completed video to ads table
     } = requestBody;
 
+    console.log("\n========================================");
     console.log("=== AURALIFT AD GENERATION START ===");
-    console.log(`test_mode: ${test_mode}, force_live: ${force_live}, wait_for_video: ${wait_for_video}`);
-    console.log(`Product: ${product_handle || product_title}`);
+    console.log("========================================");
+    console.log(`Timestamp: ${new Date().toISOString()}`);
+    console.log(`User: ${user.id}`);
+    console.log(`test_mode: ${test_mode}`);
+    console.log(`force_live: ${force_live}`);
+    console.log(`wait_for_video: ${wait_for_video}`);
+    console.log(`upload_to_ads: ${upload_to_ads}`);
+    console.log(`Product handle: ${product_handle}`);
+    console.log(`Product title: ${product_title}`);
+    console.log(`Voice: ${voice}`);
+    console.log(`Avatar: ${avatar}`);
+    console.log(`Emotion: ${emotion}`);
 
     // Find product by handle or ID
     let product: { handle: string; id: string; title: string; description: string; image: string; price: string } | null = null;
@@ -245,10 +270,18 @@ serve(async (req) => {
       throw new Error("Product not found");
     }
 
-    // Override product image if provided
+    // Override product image if provided (fallback to Unsplash if missing)
     if (product_image) {
       product.image = product_image;
+    } else if (!product.image) {
+      product.image = "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800";
     }
+
+    console.log(`\nSelected Product:`);
+    console.log(`  Title: ${product.title}`);
+    console.log(`  Handle: ${product.handle}`);
+    console.log(`  Description: ${product.description}`);
+    console.log(`  Image: ${product.image}`);
 
     // Generate script
     let script = customScript;
@@ -261,19 +294,27 @@ serve(async (req) => {
       script = scriptTemplates[emotion] || scriptTemplates.calm;
     }
 
-    console.log(`Script: ${script}`);
-    await logToGrokCEO(supabase, user.id, "auralift_ad_start", `Generating ad for ${product.title}`, { product, test_mode, force_live });
+    console.log(`\nScript: ${script}`);
+    await logToDecisionLog(supabase, user.id, "auralift_ad_start", `Generating ad for ${product.title}`, { 
+      product, 
+      test_mode, 
+      force_live,
+      voice,
+      avatar 
+    });
 
     // Step 1: Generate voiceover with ElevenLabs
+    console.log("\n=== STEP 1: ELEVENLABS VOICEOVER ===");
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
     if (!ELEVENLABS_API_KEY) {
-      throw new Error("ELEVENLABS_API_KEY not configured");
+      throw new Error("ELEVENLABS_API_KEY not configured. Add it in Supabase secrets.");
     }
 
     const voiceKey = (voice as keyof typeof ELEVENLABS_VOICES) || 'sarah';
     const voiceId = ELEVENLABS_VOICES[voiceKey] || ELEVENLABS_VOICES.sarah;
     
-    console.log(`Generating voiceover with ElevenLabs voice: ${voiceKey} (${voiceId})`);
+    console.log(`Voice: ${voiceKey} (${voiceId})`);
+    console.log(`Calling ElevenLabs TTS API...`);
     
     const ttsResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
@@ -299,15 +340,17 @@ serve(async (req) => {
     if (!ttsResponse.ok) {
       const errorText = await ttsResponse.text();
       console.error("ElevenLabs error:", errorText);
-      await logToGrokCEO(supabase, user.id, "auralift_ad_error", "ElevenLabs TTS failed", { error: errorText, status: ttsResponse.status });
-      throw new Error(`ElevenLabs TTS failed: ${ttsResponse.status}`);
+      await logToDecisionLog(supabase, user.id, "auralift_ad_error", "ElevenLabs TTS failed", { error: errorText, status: ttsResponse.status });
+      throw new Error(`ElevenLabs TTS failed: ${ttsResponse.status} - ${errorText}`);
     }
 
     const audioBuffer = await ttsResponse.arrayBuffer();
-    console.log(`Voiceover generated: ${audioBuffer.byteLength} bytes`);
+    console.log(`✅ Voiceover generated: ${audioBuffer.byteLength} bytes`);
     
     // Upload voiceover to Supabase Storage
     const voiceoverFileName = `voiceover_${product.handle}_${Date.now()}.mp3`;
+    console.log(`Uploading to storage: ${voiceoverFileName}`);
+    
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("creatives")
       .upload(voiceoverFileName, audioBuffer, {
@@ -323,40 +366,52 @@ serve(async (req) => {
       .from("creatives")
       .getPublicUrl(voiceoverFileName);
 
-    console.log(`Voiceover uploaded: ${voiceoverUrl}`);
+    console.log(`✅ Voiceover uploaded: ${voiceoverUrl}`);
 
     let heygenVideoId: string | null = null;
     let videoUrl: string | null = null;
-    let videoStatus = test_mode ? "voiceover_only" : "processing";
+    let thumbnailUrl: string | null = null;
+    let videoStatus = test_mode && !force_live ? "voiceover_only" : "processing";
     let creditsWarning: string | null = null;
 
     // Step 2: If not test mode (or force_live), generate HeyGen video
     const shouldGenerateVideo = !test_mode || force_live;
     
+    console.log(`\n=== STEP 2: HEYGEN VIDEO ===`);
+    console.log(`Should generate video: ${shouldGenerateVideo}`);
+    
     if (shouldGenerateVideo) {
       const HEYGEN_API_KEY = Deno.env.get("HEYGEN_API_KEY");
       
       if (!HEYGEN_API_KEY) {
-        console.warn("HEYGEN_API_KEY not configured");
+        console.warn("❌ HEYGEN_API_KEY not configured");
         videoStatus = "voiceover_only";
-        creditsWarning = "HEYGEN_API_KEY not configured. Add your HeyGen API key to generate videos.";
-        await logToGrokCEO(supabase, user.id, "auralift_ad_warning", "HeyGen API key missing", {});
+        creditsWarning = "HEYGEN_API_KEY not configured. Add your HeyGen API key to Supabase secrets.";
+        await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "HeyGen API key missing", {});
       } else {
+        console.log("✅ HEYGEN_API_KEY found");
+        
         // Check HeyGen credits first
-        console.log("Checking HeyGen credits...");
         const creditsCheck = await checkHeyGenCredits(HEYGEN_API_KEY);
-        console.log(`HeyGen credits: ${creditsCheck.credits}s remaining, hasCredits: ${creditsCheck.hasCredits}`);
         
         if (!creditsCheck.hasCredits) {
-          console.warn("Insufficient HeyGen credits:", creditsCheck.error);
+          console.warn(`❌ Insufficient credits: ${creditsCheck.error}`);
           videoStatus = "credits_low";
-          creditsWarning = creditsCheck.error || "Need HeyGen Pro ($99/mo) for watermark-free videos. Upgrade at app.heygen.com";
-          await logToGrokCEO(supabase, user.id, "auralift_ad_warning", "HeyGen credits low", { credits: creditsCheck.credits });
+          creditsWarning = creditsCheck.error || "HeyGen credits low - upgrade at app.heygen.com";
+          await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "HeyGen credits low", { 
+            credits: creditsCheck.credits,
+            error: creditsCheck.error 
+          });
         } else {
+          console.log(`✅ Credits OK: ${creditsCheck.credits}s remaining`);
+          
           // Generate video with HeyGen
           try {
+            // Use PROVEN avatar ID
             const avatarId = HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default;
-            console.log(`Creating HeyGen video with avatar: ${avatarId}`);
+            console.log(`\nCreating HeyGen video...`);
+            console.log(`Avatar ID: ${avatarId}`);
+            console.log(`Voiceover URL: ${voiceoverUrl}`);
             
             const heygenPayload = {
               video_inputs: [{
@@ -379,10 +434,10 @@ serve(async (req) => {
                 height: 1920, // 9:16 vertical
               },
               aspect_ratio: "9:16",
-              test: false, // Always use real generation, not test mode
+              test: false, // NEVER use test mode - always real generation
             };
             
-            console.log("HeyGen request payload:", JSON.stringify(heygenPayload));
+            console.log("HeyGen request payload:", JSON.stringify(heygenPayload, null, 2));
             
             const heygenResponse = await fetch("https://api.heygen.com/v2/video/generate", {
               method: "POST",
@@ -394,98 +449,163 @@ serve(async (req) => {
             });
 
             const responseText = await heygenResponse.text();
-            console.log(`HeyGen response (${heygenResponse.status}):`, responseText);
+            console.log(`HeyGen response status: ${heygenResponse.status}`);
+            console.log(`HeyGen response body: ${responseText}`);
 
             if (heygenResponse.ok) {
               const heygenData = JSON.parse(responseText);
               heygenVideoId = heygenData.data?.video_id;
-              console.log("HeyGen video created:", heygenVideoId);
+              console.log(`\n✅ HeyGen video created!`);
+              console.log(`Video ID: ${heygenVideoId}`);
               
-              await logToGrokCEO(supabase, user.id, "auralift_ad_heygen", "HeyGen video generation started", { video_id: heygenVideoId });
+              await logToDecisionLog(supabase, user.id, "auralift_ad_heygen", "HeyGen video generation started", { 
+                video_id: heygenVideoId,
+                avatar_id: avatarId,
+                response: heygenData
+              });
 
-              // If wait_for_video is true, poll for completion (up to 10 min)
+              // If wait_for_video is true, poll for completion (up to 15 min)
               if (wait_for_video && heygenVideoId) {
-                console.log("Waiting for HeyGen video to complete...");
-                const pollResult = await pollHeyGenVideo(heygenVideoId, HEYGEN_API_KEY);
+                console.log(`\n=== WAITING FOR VIDEO COMPLETION (up to 15 min) ===`);
+                const pollResult = await pollHeyGenVideo(heygenVideoId, HEYGEN_API_KEY, 180); // 180 attempts × 5s = 15 min
                 
                 if (pollResult.video_url) {
                   videoUrl = pollResult.video_url;
+                  thumbnailUrl = pollResult.thumbnail_url || null;
                   videoStatus = "completed";
-                  console.log("HeyGen video completed:", videoUrl);
-                  await logToGrokCEO(supabase, user.id, "auralift_ad_complete", "HeyGen video completed", { video_url: videoUrl });
+                  console.log(`\n✅ VIDEO READY!`);
+                  console.log(`Video URL: ${videoUrl}`);
+                  console.log(`Thumbnail URL: ${thumbnailUrl}`);
+                  
+                  await logToDecisionLog(supabase, user.id, "auralift_ad_complete", "HeyGen video completed", { 
+                    video_url: videoUrl,
+                    thumbnail_url: thumbnailUrl
+                  });
                 } else {
                   videoStatus = pollResult.status;
                   if (pollResult.error) {
                     creditsWarning = pollResult.error;
-                    console.error("HeyGen video error:", pollResult.error);
-                    await logToGrokCEO(supabase, user.id, "auralift_ad_error", "HeyGen video failed", { error: pollResult.error });
+                    console.error(`\n❌ Video error: ${pollResult.error}`);
+                    await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen video failed", { 
+                      error: pollResult.error,
+                      status: pollResult.status
+                    });
                   }
                 }
               } else {
                 videoStatus = "processing";
+                console.log(`Video processing in background (not waiting)`);
               }
             } else {
-              console.error("HeyGen error:", responseText);
+              console.error(`\n❌ HeyGen API error: ${heygenResponse.status}`);
+              console.error(`Response: ${responseText}`);
               videoStatus = "heygen_error";
-              creditsWarning = `HeyGen API error: ${heygenResponse.status}. Check your API key and credits at app.heygen.com`;
-              await logToGrokCEO(supabase, user.id, "auralift_ad_error", "HeyGen API error", { status: heygenResponse.status, response: responseText });
+              creditsWarning = `HeyGen API error: ${heygenResponse.status}. ${responseText}`;
+              await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen API error", { 
+                status: heygenResponse.status, 
+                response: responseText 
+              });
             }
           } catch (heygenError) {
-            console.error("HeyGen request failed:", heygenError);
+            console.error(`\n❌ HeyGen request exception:`, heygenError);
             videoStatus = "heygen_error";
             creditsWarning = `HeyGen request failed: ${heygenError instanceof Error ? heygenError.message : 'Unknown error'}`;
-            await logToGrokCEO(supabase, user.id, "auralift_ad_error", "HeyGen request exception", { error: String(heygenError) });
+            await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen request exception", { 
+              error: String(heygenError) 
+            });
           }
         }
       }
     }
 
     // Step 3: Save to database
+    console.log(`\n=== STEP 3: SAVE TO DATABASE ===`);
     const adName = `${product.title} - AI Video Ad`;
     
+    const adRecord = {
+      user_id: user.id,
+      name: adName,
+      product_name: product.title,
+      shopify_product_id: product.id,
+      product_image: product.image,
+      script,
+      voiceover_url: voiceoverUrl,
+      video_url: videoUrl,
+      thumbnail_url: thumbnailUrl,
+      heygen_video_id: heygenVideoId,
+      status: videoStatus,
+      test_mode: test_mode && !force_live,
+      aspect_ratio: "9:16",
+      duration_seconds: 15,
+      provider: "heygen",
+      metadata: {
+        voice: voiceKey,
+        voice_id: voiceId,
+        avatar,
+        avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
+        product_handle: product.handle,
+        emotion,
+        generated_at: new Date().toISOString(),
+        force_live,
+        wait_for_video,
+        credits_warning: creditsWarning,
+      },
+    };
+
+    console.log(`Inserting ad record:`, JSON.stringify(adRecord, null, 2));
+
     const { data: adData, error: adError } = await supabase
       .from("ads")
-      .insert({
-        user_id: user.id,
-        name: adName,
-        product_name: product.title,
-        shopify_product_id: product.id,
-        product_image: product.image,
-        script,
-        voiceover_url: voiceoverUrl,
-        video_url: videoUrl,
-        heygen_video_id: heygenVideoId,
-        status: videoStatus,
-        test_mode: test_mode && !force_live,
-        aspect_ratio: "9:16",
-        duration_seconds: 15,
-        metadata: {
-          voice,
-          avatar,
-          product_handle: product.handle,
-          emotion,
-          generated_at: new Date().toISOString(),
-          force_live,
-          credits_warning: creditsWarning,
-        },
-      })
+      .insert(adRecord)
       .select()
       .single();
 
     if (adError) {
       console.error("Database error:", adError);
-      throw new Error("Failed to save ad");
+      throw new Error(`Failed to save ad: ${adError.message}`);
     }
 
+    console.log(`✅ Ad saved: ${adData.id}`);
+
+    // Step 4: If completed and upload_to_ads requested, mark as ready
+    if (videoStatus === "completed" && upload_to_ads) {
+      console.log(`\n=== STEP 4: MARK AS READY ===`);
+      const { error: updateError } = await supabase
+        .from("ads")
+        .update({ 
+          status: "completed",
+          video_url: videoUrl,
+          thumbnail_url: thumbnailUrl
+        })
+        .eq("id", adData.id);
+      
+      if (updateError) {
+        console.error("Update error:", updateError);
+      } else {
+        console.log(`✅ Ad marked as completed`);
+      }
+    }
+
+    console.log("\n========================================");
     console.log("=== AURALIFT AD GENERATION COMPLETE ===");
-    console.log(`Ad ID: ${adData.id}, Status: ${videoStatus}`);
+    console.log("========================================");
+    console.log(`Ad ID: ${adData.id}`);
+    console.log(`Status: ${videoStatus}`);
+    console.log(`Video URL: ${videoUrl || 'none'}`);
+    console.log(`Thumbnail: ${thumbnailUrl || 'none'}`);
+    console.log(`HeyGen Video ID: ${heygenVideoId || 'none'}`);
+    console.log(`Credits Warning: ${creditsWarning || 'none'}`);
 
     const responseMessage = videoStatus === "completed" 
-      ? "🎬 AI Video ad generated successfully!"
+      ? "🎬 AI Video ad generated successfully! Real HeyGen video ready."
       : videoStatus === "processing"
-      ? "🎬 AI Video ad is generating... Check back in 2-5 minutes"
+      ? "🎬 AI Video ad is generating... Check back in 2-5 minutes."
       : videoStatus === "voiceover_only"
-      ? "🎤 Voiceover generated successfully!"
+      ? "🎤 Voiceover generated successfully! (Test mode - no video)"
+      : videoStatus === "credits_low"
+      ? `⚠️ HeyGen credits low: ${creditsWarning}`
+      : videoStatus === "heygen_error"
+      ? `❌ HeyGen error: ${creditsWarning}`
       : creditsWarning
       ? `⚠️ ${creditsWarning}`
       : "Ad created";
@@ -497,10 +617,20 @@ serve(async (req) => {
         ad: adData,
         voiceover_url: voiceoverUrl,
         video_url: videoUrl,
+        thumbnail_url: thumbnailUrl,
         heygen_video_id: heygenVideoId,
         status: videoStatus,
         credits_warning: creditsWarning,
-        credits_used: test_mode ? 1 : 10,
+        generation_details: {
+          voice: voiceKey,
+          voice_id: voiceId,
+          avatar,
+          avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
+          emotion,
+          force_live,
+          wait_for_video,
+          test_mode: test_mode && !force_live
+        }
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -508,7 +638,7 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    console.error("Error:", error);
+    console.error("\n❌ FATAL ERROR:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to generate ad";
     return new Response(
       JSON.stringify({

@@ -156,6 +156,11 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
   const [isForceGenerating, setIsForceGenerating] = useState(false);
   const [forceGenerateStatus, setForceGenerateStatus] = useState<string>('');
   const [creditsWarning, setCreditsWarning] = useState<string | null>(null);
+  
+  // Real video generation state
+  const [realVideoUrl, setRealVideoUrl] = useState<string | null>(null);
+  const [realThumbnailUrl, setRealThumbnailUrl] = useState<string | null>(null);
+  const [generationDetails, setGenerationDetails] = useState<any>(null);
 
   // Check social connections
   const checkSocialConnections = useCallback(async () => {
@@ -302,6 +307,13 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
       setStatus('💾 Saving to database...');
       if (forceLive) setForceGenerateStatus('💾 Video received, saving...');
 
+      // Store real video URL and details
+      if (data?.video_url) {
+        setRealVideoUrl(data.video_url);
+        setRealThumbnailUrl(data.thumbnail_url || null);
+        setGenerationDetails(data.generation_details || null);
+      }
+
       if (data?.ad) {
         const newAd = { ...data.ad, created_at: new Date().toISOString() } as GeneratedAd;
         setGeneratedAd(newAd);
@@ -317,11 +329,13 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
           ? '🎬 Video processing... check back in 2-5 min'
           : data.status === 'credits_low'
           ? '⚠️ HeyGen credits low - upgrade needed'
+          : data.status === 'heygen_error'
+          ? '❌ HeyGen error - check logs'
           : data.message || '🎬 AI Ad generated!';
 
         toast.success(statusMessage, {
           description: data.video_url 
-            ? 'Video preview ready below'
+            ? 'Real video preview ready below!'
             : testMode 
             ? 'Voiceover preview ready below'
             : data.credits_warning || 'Video will be ready in 2-5 minutes'
@@ -721,6 +735,10 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
                 if (radianceProduct) {
                   setSelectedProduct(radianceProduct);
                 }
+                // Clear previous results
+                setRealVideoUrl(null);
+                setRealThumbnailUrl(null);
+                setGenerationDetails(null);
                 // Force live generation with wait
                 generateAd(false, true);
               }}
@@ -736,13 +754,83 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  🔥 Force Live Generate (Real HeyGen - Wait for Video)
+                  🔥 Generate & Upload Real Video (15 min wait)
                 </>
               )}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              Force Live: Uses real HeyGen API (not test mode), waits up to 10 min for video completion
+              Force Live: Uses real HeyGen API (not test mode), waits up to 15 min for video completion
             </p>
+            
+            {/* Real Video Preview Section */}
+            {realVideoUrl && (
+              <div className="mt-4 p-4 rounded-lg bg-success/10 border border-success/30">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <span className="font-semibold text-success">Real HeyGen Video Ready!</span>
+                </div>
+                
+                <div className="aspect-[9/16] max-h-[300px] rounded-lg overflow-hidden mb-3 bg-black">
+                  <video 
+                    src={realVideoUrl} 
+                    controls 
+                    poster={realThumbnailUrl || undefined}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Video URL:</span>
+                    <a 
+                      href={realVideoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline truncate max-w-[200px]"
+                    >
+                      {realVideoUrl.split('/').pop()}
+                    </a>
+                  </div>
+                  
+                  {generationDetails && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Avatar:</span>
+                        <span>{generationDetails.avatar_id}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Voice:</span>
+                        <span>{generationDetails.voice} ({generationDetails.voice_id})</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="flex gap-2 mt-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => window.open(realVideoUrl, '_blank')}
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Download
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => {
+                      navigator.clipboard.writeText(realVideoUrl);
+                      toast.success('Video URL copied!');
+                    }}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Copy URL
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
