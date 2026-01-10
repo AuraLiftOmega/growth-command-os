@@ -12,10 +12,10 @@
 | **[omegaalpha.io](https://omegaalpha.io)** | Tech Docs & API | 🟢 LIVE |
 | [profitreaper.vercel.app](https://profitreaper.vercel.app) | Staging/Preview | 🟡 STAGING |
 
-### Shopify Store
-- **Live Store**: [www.auraliftessentials.com](https://www.auraliftessentials.com)
-- **API Domain**: lovable-project-7fb70.myshopify.com
-- **Products**: 22 (17+ AuraLift Beauty)
+### Shopify Integration
+- **Multi-Tenant**: Each user connects their own Shopify store via OAuth
+- **Storefront API**: Products synced per-user with real-time data
+- **Dynamic Config**: All store URLs and tokens fetched from user_store_connections
 
 ---
 

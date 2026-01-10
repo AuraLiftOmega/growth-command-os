@@ -194,7 +194,6 @@ export function VideoAdStudioPage() {
   const [tiktokBusinessBatchProgress, setTiktokBusinessBatchProgress] = useState(0);
   
   const { products, isLoading: loadingProducts } = useShopifyProducts({
-    vendor: 'AuraLift Beauty',
     autoLoad: true
   });
 

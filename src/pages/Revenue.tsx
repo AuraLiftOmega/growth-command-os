@@ -26,7 +26,6 @@ const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 export default function Revenue() {
   const { user } = useAuth();
   const { products, isLoading: shopifyLoading, lastFetched, refetch, error: shopifyError } = useShopifyProducts({
-    vendor: 'AuraLift Beauty',
     autoLoad: true
   });
 
@@ -43,7 +42,7 @@ export default function Revenue() {
     avgOrderValue: 32.50,
     totalViews: 45892,
     conversionRate: 3.2,
-    topProduct: "Radiance Vitamin C Serum",
+    topProduct: products[0]?.title || "No products",
     roas: 4.2
   });
 

@@ -54,13 +54,13 @@ interface ProductPerformance {
   creatives: number;
 }
 
-// REAL AURALIFT PRODUCTS ONLY - ALL DEMO/FAKE PURGED
-const PRODUCTS = [
-  { id: '1', title: 'Radiance Vitamin C Serum', price: 49.99, vendor: 'AuraLift Beauty' },
-  { id: '2', title: 'Hydra-Glow Retinol Night Cream', price: 64.99, vendor: 'AuraLift Beauty' },
-  { id: '3', title: 'Ultra Hydration Hyaluronic Serum', price: 54.99, vendor: 'AuraLift Beauty' },
-  { id: '4', title: 'Luxe Rose Quartz Face Roller Set', price: 39.99, vendor: 'AuraLift Beauty' },
-  { id: '5', title: 'Omega Glow Collagen Peptide Moisturizer', price: 74.99, vendor: 'AuraLift Beauty' },
+// Default placeholder products - will be replaced with real user products when available
+const DEFAULT_PRODUCTS = [
+  { id: '1', title: 'Product 1', price: 49.99, vendor: '' },
+  { id: '2', title: 'Product 2', price: 64.99, vendor: '' },
+  { id: '3', title: 'Product 3', price: 54.99, vendor: '' },
+  { id: '4', title: 'Product 4', price: 39.99, vendor: '' },
+  { id: '5', title: 'Product 5', price: 74.99, vendor: '' },
 ];
 
 const CHANNELS = ['TikTok', 'Instagram', 'Facebook', 'YouTube', 'Pinterest', 'Email'];
@@ -80,7 +80,7 @@ const generateEvent = (): LiveMetric => {
   }
   
   const type = types[typeIndex];
-  const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+  const product = DEFAULT_PRODUCTS[Math.floor(Math.random() * DEFAULT_PRODUCTS.length)];
   const channel = CHANNELS[Math.floor(Math.random() * CHANNELS.length)];
   
   let value = 0;
@@ -129,13 +129,13 @@ export function LiveProfitEngine() {
   const [roas, setRoas] = useState(0);
   const [hourlyGrowth, setHourlyGrowth] = useState(0);
   
-  // REAL AURALIFT PRODUCTS ONLY - PURGED FAKE PRODUCTS
+  // User products - initialized with placeholders until real products load
   const [topProducts, setTopProducts] = useState<ProductPerformance[]>([
-    { id: '1', title: 'Radiance Vitamin C Serum', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
-    { id: '2', title: 'Hydra-Glow Retinol Night Cream', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
-    { id: '3', title: 'Ultra Hydration Hyaluronic Serum', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
-    { id: '4', title: 'Luxe Rose Quartz Face Roller Set', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
-    { id: '5', title: 'Omega Glow Collagen Peptide Moisturizer', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '1', title: 'Product 1', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '2', title: 'Product 2', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '3', title: 'Product 3', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '4', title: 'Product 4', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
+    { id: '5', title: 'Product 5', revenue: 0, conversions: 0, roas: 0, status: 'testing', creatives: 0 },
   ]);
 
   // Simulate real-time events
@@ -264,7 +264,7 @@ export function LiveProfitEngine() {
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                Swarm agents running • 15 products • 6 channels • Compounding profits 24/7
+                Swarm agents running • {topProducts.length} products • 6 channels • Compounding profits 24/7
               </p>
             </div>
           </div>

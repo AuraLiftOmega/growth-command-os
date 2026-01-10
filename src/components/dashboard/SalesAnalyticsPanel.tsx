@@ -33,11 +33,11 @@ export function SalesAnalyticsPanel() {
   const { metrics } = useLiveMetrics();
 
   const topProducts = [
-    { name: "Radiance Vitamin C Serum", revenue: 12450, orders: 156, growth: 24 },
-    { name: "Hydra-Glow Retinol Cream", revenue: 9820, orders: 98, growth: 18 },
-    { name: "Ultra Hydration Serum", revenue: 7650, orders: 85, growth: -5 },
-    { name: "Collagen Moisturizer", revenue: 6420, orders: 72, growth: 12 },
-    { name: "Rose Quartz Roller Set", revenue: 4890, orders: 63, growth: 31 },
+    { name: "Product 1", revenue: 12450, orders: 156, growth: 24 },
+    { name: "Product 2", revenue: 9820, orders: 98, growth: 18 },
+    { name: "Product 3", revenue: 7650, orders: 85, growth: -5 },
+    { name: "Product 4", revenue: 6420, orders: 72, growth: 12 },
+    { name: "Product 5", revenue: 4890, orders: 63, growth: 31 },
   ];
 
   const salesByChannel = [
