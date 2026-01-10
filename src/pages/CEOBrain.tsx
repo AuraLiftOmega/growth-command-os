@@ -21,7 +21,8 @@ import {
   Play,
   Loader2,
   Skull,
-  Crown
+  Crown,
+  Atom,
 } from 'lucide-react';
 import { SmartSidebar } from '@/components/layout/SmartSidebar';
 import { Header } from '@/components/layout/Header';
@@ -40,6 +41,7 @@ import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
 import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer } from '@/components/ceo-brain';
 import { OmegaBrainPanel } from '@/components/omega/OmegaBrainPanel';
 import { AgentActivityLog } from '@/components/omega/AgentActivityLog';
+import { OmegaCEOBrain } from '@/components/ceo-engine/OmegaCEOBrain';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRevenueEngine } from '@/hooks/useRevenueEngine';
@@ -288,8 +290,11 @@ export default function CEOBrain() {
           </div>
 
           {/* SUPERINTELLIGENT CEO BRAIN - Tabbed Interface */}
-          <Tabs defaultValue="agents" className="w-full">
-            <TabsList className="w-full grid grid-cols-6 mb-6">
+          <Tabs defaultValue="mega-brain" className="w-full">
+            <TabsList className="w-full grid grid-cols-7 mb-6">
+              <TabsTrigger value="mega-brain" className="gap-2">
+                <Atom className="w-4 h-4" /> Mega Brain
+              </TabsTrigger>
               <TabsTrigger value="agents" className="gap-2">
                 <Crown className="w-4 h-4" /> Agents
               </TabsTrigger>
@@ -309,6 +314,10 @@ export default function CEOBrain() {
                 <Skull className="w-4 h-4" /> Ruthless
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="mega-brain">
+              <OmegaCEOBrain />
+            </TabsContent>
 
             <TabsContent value="agents">
               <div className="grid grid-cols-12 gap-6">

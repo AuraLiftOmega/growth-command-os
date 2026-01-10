@@ -93,7 +93,7 @@ const mainNavItems = [
 
 const commandItems = [
   { title: "OMEGA Command", icon: Zap, path: "/omega-command" },
-  { title: "CEO Brain", icon: Brain, path: "/ceo-brain" },
+  { title: "CEO Mega Brain", icon: Brain, path: "/ceo-brain", badge: "AI" },
   { title: "War Room", icon: Target, path: "/war-room" },
 ];
 
@@ -173,7 +173,16 @@ export function DashboardSidebar() {
                   <SidebarMenuButton asChild isActive={isActive(item.path)}>
                     <NavLink to={item.path} className="flex items-center gap-3">
                       <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && (
+                        <>
+                          <span className="flex-1">{item.title}</span>
+                          {'badge' in item && item.badge && (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent text-accent">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -116,3 +116,6 @@ verify_jwt = false
 
 [functions.heygen-avatar]
 verify_jwt = false
+
+[functions.omega-ceo-brain]
+verify_jwt = false
