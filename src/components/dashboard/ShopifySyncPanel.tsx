@@ -69,7 +69,7 @@ export function ShopifySyncPanel() {
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                AuraLift Essentials • www.auraliftessentials.com • Products: 17+ • Revenue: LIVE
+                AuraLift Essentials • lovable-project-7fb70.myshopify.com • 22 Products (13 AuraLift Beauty) • LIVE
               </p>
             </div>
           </div>

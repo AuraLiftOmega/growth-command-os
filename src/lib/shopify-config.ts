@@ -19,8 +19,8 @@ export const AURALIFT_STORE_URL = 'https://www.auraliftessentials.com';
 export const AURALIFT_VENDOR = 'AuraLift Beauty';
 export const AURALIFT_STORE_NAME = 'AuraLift Essentials';
 
-// Product count - Synced from Shopify
-export const AURALIFT_PRODUCT_COUNT = 17;
+// Product count - Synced from Shopify (22 total, 13 AuraLift Beauty)
+export const AURALIFT_PRODUCT_COUNT = 22;
 
 // Social accounts - CORRECT REAL ACCOUNTS ONLY
 export const AURALIFT_SOCIAL = {
