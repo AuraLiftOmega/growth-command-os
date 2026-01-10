@@ -52,12 +52,20 @@ const ELEVENLABS_VOICES = {
   jessica: "cgSgspJ2msm6clMCkdW9",
 };
 
-// HeyGen professional avatars - Anna is PROVEN to work for skincare
-const HEYGEN_AVATARS = {
-  anna: "Anna_public_3_20240108", // PROVEN - Professional female skincare
-  susan: "Susan_public_2_20240328",
-  monica: "Monica_public_3_20230815",
-  default: "Anna_public_3_20240108" // DEFAULT - Professional female for skincare
+// D-ID professional presenters - Professional female skincare style
+const DID_PRESENTERS = {
+  amy: "amy-Aq6OmGZnMt", // Professional female - DEFAULT
+  anna: "anna-vjAhqjD4qx", 
+  emma: "emma-mGnbVcXzSW",
+  default: "amy-Aq6OmGZnMt" // DEFAULT - Professional female for skincare
+};
+
+// D-ID source image URLs (professional female skincare presenters)
+const DID_SOURCE_IMAGES = {
+  amy: "https://create-images-results.d-id.com/DefaultPresenters/amy_1.jpg",
+  anna: "https://create-images-results.d-id.com/DefaultPresenters/anna_1.jpg",
+  emma: "https://create-images-results.d-id.com/DefaultPresenters/emma_1.jpg",
+  default: "https://create-images-results.d-id.com/DefaultPresenters/amy_1.jpg"
 };
 
 // FALLBACK VIDEO SYSTEM - Reliable stock footage when HeyGen fails
@@ -269,55 +277,57 @@ async function generateStockVideoAd(
   };
 }
 
-// Helper to check HeyGen credits
-async function checkHeyGenCredits(apiKey: string): Promise<{ credits: number; hasCredits: boolean; error?: string }> {
+// Helper to check D-ID credits
+async function checkDIDCredits(apiKey: string): Promise<{ credits: number; hasCredits: boolean; error?: string }> {
   try {
-    console.log("=== CHECKING HEYGEN CREDITS ===");
-    const response = await fetch("https://api.heygen.com/v1/user/remaining_quota", {
+    console.log("=== CHECKING D-ID CREDITS ===");
+    const response = await fetch("https://api.d-id.com/credits", {
       headers: {
-        "X-Api-Key": apiKey,
+        "Authorization": `Basic ${apiKey}`,
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("HeyGen quota check failed:", response.status, errorText);
+      console.error("D-ID credits check failed:", response.status, errorText);
       return { credits: 0, hasCredits: false, error: `API error: ${response.status} - ${errorText}` };
     }
 
     const data = await response.json();
-    console.log("HeyGen quota response:", JSON.stringify(data, null, 2));
+    console.log("D-ID credits response:", JSON.stringify(data, null, 2));
     
-    // HeyGen returns remaining_quota in seconds
-    const remainingSeconds = data.data?.remaining_quota || 0;
-    const hasCredits = remainingSeconds >= 15; // Need at least 15 seconds for a video
+    // D-ID returns remaining credits
+    const remainingCredits = data.remaining || 0;
+    const hasCredits = remainingCredits >= 1; // Need at least 1 credit for a video
     
-    console.log(`Credits: ${remainingSeconds}s remaining, hasCredits: ${hasCredits}`);
+    console.log(`Credits: ${remainingCredits} remaining, hasCredits: ${hasCredits}`);
     
     return { 
-      credits: remainingSeconds, 
+      credits: remainingCredits, 
       hasCredits,
-      error: hasCredits ? undefined : `Only ${remainingSeconds}s remaining. Need at least 15s. Upgrade at app.heygen.com`
+      error: hasCredits ? undefined : `Only ${remainingCredits} credits remaining. Upgrade at d-id.com`
     };
   } catch (err) {
-    console.error("HeyGen credits check error:", err);
+    console.error("D-ID credits check error:", err);
     return { credits: 0, hasCredits: false, error: `Failed to check credits: ${err}` };
   }
 }
 
-// Helper to poll for HeyGen video completion - 15 min max (180 attempts × 5s)
-async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 180): Promise<{ video_url?: string; thumbnail_url?: string; status: string; error?: string }> {
-  console.log(`=== POLLING HEYGEN VIDEO ===`);
-  console.log(`Video ID: ${videoId}`);
+// Helper to poll for D-ID video completion - 10 min max (120 attempts × 5s)
+async function pollDIDVideo(talkId: string, apiKey: string, maxAttempts = 120): Promise<{ video_url?: string; thumbnail_url?: string; status: string; error?: string }> {
+  console.log(`=== POLLING D-ID VIDEO ===`);
+  console.log(`Talk ID: ${talkId}`);
   console.log(`Max attempts: ${maxAttempts} (${maxAttempts * 5} seconds = ${Math.round(maxAttempts * 5 / 60)} minutes)`);
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       console.log(`\n--- Poll attempt ${attempt}/${maxAttempts} ---`);
       
-      const response = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${videoId}`, {
+      const response = await fetch(`https://api.d-id.com/talks/${talkId}`, {
         headers: {
-          "X-Api-Key": apiKey,
+          "Authorization": `Basic ${apiKey}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -327,7 +337,7 @@ async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 18
         
         // Don't fail immediately, keep trying unless it's a 404
         if (response.status === 404) {
-          return { status: "error", error: `Video not found: ${videoId}` };
+          return { status: "error", error: `Talk not found: ${talkId}` };
         }
         
         if (attempt < maxAttempts) {
@@ -338,22 +348,22 @@ async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 18
       }
 
       const data = await response.json();
-      const status = data.data?.status;
-      const videoUrl = data.data?.video_url;
-      const thumbnailUrl = data.data?.thumbnail_url;
-      const error = data.data?.error;
+      const status = data.status;
+      const resultUrl = data.result_url;
+      const thumbnailUrl = data.thumbnail_url;
+      const error = data.error?.description;
       
-      console.log(`Status: ${status}, Video URL: ${videoUrl ? 'YES' : 'NO'}, Error: ${error || 'none'}`);
+      console.log(`Status: ${status}, Video URL: ${resultUrl ? 'YES' : 'NO'}, Error: ${error || 'none'}`);
       
-      if (status === "completed" && videoUrl) {
+      if (status === "done" && resultUrl) {
         console.log(`\n✅ VIDEO COMPLETED!`);
-        console.log(`Video URL: ${videoUrl}`);
+        console.log(`Video URL: ${resultUrl}`);
         console.log(`Thumbnail URL: ${thumbnailUrl || 'none'}`);
-        return { video_url: videoUrl, thumbnail_url: thumbnailUrl, status: "completed" };
-      } else if (status === "failed") {
+        return { video_url: resultUrl, thumbnail_url: thumbnailUrl, status: "completed" };
+      } else if (status === "error" || status === "rejected") {
         console.error(`\n❌ VIDEO FAILED: ${error}`);
         return { status: "failed", error: error || "Video generation failed" };
-      } else if (status === "processing" || status === "pending") {
+      } else if (status === "created" || status === "started") {
         // Still processing, wait and try again
         if (attempt < maxAttempts) {
           await new Promise(r => setTimeout(r, 5000));
@@ -374,7 +384,7 @@ async function pollHeyGenVideo(videoId: string, apiKey: string, maxAttempts = 18
   }
   
   console.log(`\n⏱️ TIMEOUT after ${maxAttempts * 5} seconds`);
-  return { status: "timeout", error: `Video generation timed out after ${Math.round(maxAttempts * 5 / 60)} minutes. Check HeyGen dashboard.` };
+  return { status: "timeout", error: `Video generation timed out after ${Math.round(maxAttempts * 5 / 60)} minutes. Check D-ID dashboard.` };
 }
 
 // Log to ai_decision_log for debugging
@@ -516,7 +526,7 @@ serve(async (req) => {
     console.log("\n=== STEP 1: VOICEOVER ===");
     
     let voiceoverUrl: string | null = null;
-    let useHeyGenVoice = false;
+    let useDIDVoice = false;
     let elevenLabsError: string | null = null;
     
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
@@ -581,33 +591,33 @@ serve(async (req) => {
           
           // Check if it's a paid plan required error
           if (errorText.includes("unusual_activity") || errorText.includes("Paid Plan") || errorText.includes("Free Tier")) {
-            console.log("📢 ElevenLabs requires paid plan - falling back to HeyGen built-in voice");
-            useHeyGenVoice = true;
+            console.log("📢 ElevenLabs requires paid plan - falling back to D-ID built-in voice");
+            useDIDVoice = true;
           } else {
-            useHeyGenVoice = true;
+            useDIDVoice = true;
           }
           
-          await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS failed, using HeyGen voice", { 
+          await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS failed, using D-ID voice", { 
             error: errorText, 
             status: ttsResponse.status,
-            fallback: "heygen_voice"
+            fallback: "did_voice"
           });
         }
       } catch (err) {
         console.error("ElevenLabs error:", err);
         elevenLabsError = String(err);
-        useHeyGenVoice = true;
-        await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS error, using HeyGen voice", { 
+        useDIDVoice = true;
+        await logToDecisionLog(supabase, user.id, "auralift_ad_warning", "ElevenLabs TTS error, using D-ID voice", { 
           error: String(err),
-          fallback: "heygen_voice"
+          fallback: "did_voice"
         });
       }
     } else {
-      console.log("⚠️ ELEVENLABS_API_KEY not configured - using HeyGen built-in voice");
-      useHeyGenVoice = true;
+      console.log("⚠️ ELEVENLABS_API_KEY not configured - will use D-ID's built-in voice");
+      useDIDVoice = true;
     }
 
-    let heygenVideoId: string | null = null;
+    let didTalkId: string | null = null;
     let videoUrl: string | null = null;
     let thumbnailUrl: string | null = null;
     let videoStatus = test_mode && !force_live ? "voiceover_only" : "processing";
@@ -615,21 +625,21 @@ serve(async (req) => {
     
     // If ElevenLabs failed, note it
     if (elevenLabsError) {
-      console.log(`\n⚠️ ElevenLabs issue detected - will use HeyGen's built-in voice`);
+      console.log(`\n⚠️ ElevenLabs issue detected - will use D-ID's built-in voice`);
       console.log(`ElevenLabs error: ${elevenLabsError.substring(0, 200)}...`);
     }
 
-    // Step 2: If not test mode (or force_live), generate HeyGen video
+    // Step 2: If not test mode (or force_live), generate D-ID video
     const shouldGenerateVideo = !test_mode || force_live;
     
-    console.log(`\n=== STEP 2: HEYGEN VIDEO ===`);
+    console.log(`\n=== STEP 2: D-ID VIDEO ===`);
     console.log(`Should generate video: ${shouldGenerateVideo}`);
     
     if (shouldGenerateVideo) {
-      const HEYGEN_API_KEY = Deno.env.get("HEYGEN_API_KEY");
+      const DID_API_KEY = Deno.env.get("DID_API_KEY");
       
-      if (!HEYGEN_API_KEY) {
-        console.warn("❌ HEYGEN_API_KEY not configured - using stock video fallback");
+      if (!DID_API_KEY) {
+        console.warn("❌ DID_API_KEY not configured - using stock video fallback");
         console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (no API key)...`);
         
         // Use stock video fallback when no API key
@@ -644,7 +654,7 @@ serve(async (req) => {
         videoUrl = stockResult.video_url;
         thumbnailUrl = stockResult.thumbnail_url;
         videoStatus = "completed";
-        creditsWarning = "HEYGEN_API_KEY not configured - using stock video fallback";
+        creditsWarning = "DID_API_KEY not configured - using stock video fallback";
         
         await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (no API key)", {
           stock_video_id: stockResult.stock_video_id,
@@ -652,13 +662,13 @@ serve(async (req) => {
           video_url: videoUrl
         });
       } else {
-        console.log("✅ HEYGEN_API_KEY found");
+        console.log("✅ DID_API_KEY found");
         
-        // Check HeyGen credits first
-        const creditsCheck = await checkHeyGenCredits(HEYGEN_API_KEY);
+        // Check D-ID credits first
+        const creditsCheck = await checkDIDCredits(DID_API_KEY);
         
         if (!creditsCheck.hasCredits) {
-          console.warn(`❌ Insufficient HeyGen credits: ${creditsCheck.error}`);
+          console.warn(`❌ Insufficient D-ID credits: ${creditsCheck.error}`);
           console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE...`);
           
           // Use stock video fallback
@@ -673,96 +683,96 @@ serve(async (req) => {
           videoUrl = stockResult.video_url;
           thumbnailUrl = stockResult.thumbnail_url;
           videoStatus = "completed";
-          creditsWarning = `HeyGen credits low - using stock video fallback. ${creditsCheck.error}`;
+          creditsWarning = `D-ID credits low - using stock video fallback. ${creditsCheck.error}`;
           
-          await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (HeyGen credits low)", { 
+          await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (D-ID credits low)", { 
             credits: creditsCheck.credits,
             stock_video_id: stockResult.stock_video_id,
             mode: stockResult.mode,
             video_url: videoUrl
           });
         } else {
-          console.log(`✅ Credits OK: ${creditsCheck.credits}s remaining`);
+          console.log(`✅ Credits OK: ${creditsCheck.credits} remaining`);
           
-          // Generate video with HeyGen
+          // Generate video with D-ID
           try {
-            // Use PROVEN avatar ID
-            const avatarId = HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default;
-            console.log(`\nCreating HeyGen video...`);
-            console.log(`Avatar ID: ${avatarId}`);
-            console.log(`Using ElevenLabs voiceover: ${!useHeyGenVoice}`);
-            console.log(`Voiceover URL: ${voiceoverUrl || 'using HeyGen voice'}`);
+            // Use presenter source image
+            const presenterKey = avatar as keyof typeof DID_SOURCE_IMAGES;
+            const sourceUrl = DID_SOURCE_IMAGES[presenterKey] || DID_SOURCE_IMAGES.default;
+            console.log(`\nCreating D-ID video...`);
+            console.log(`Source Image: ${sourceUrl}`);
+            console.log(`Using ElevenLabs voiceover: ${!useDIDVoice}`);
+            console.log(`Voiceover URL: ${voiceoverUrl || 'using D-ID voice'}`);
             
-            // Build voice configuration - use HeyGen built-in voice if ElevenLabs failed
-            let voiceConfig;
-            if (useHeyGenVoice || !voiceoverUrl) {
-              // Use HeyGen's built-in voice
-              console.log(`Using HeyGen built-in voice (ElevenLabs unavailable)`);
-              voiceConfig = {
-                type: "text",
-                input_text: script,
-                voice_id: "en-US-GuyNeural", // HeyGen built-in voice
+            // Build the D-ID payload
+            let didPayload: any;
+            
+            if (useDIDVoice || !voiceoverUrl) {
+              // Use D-ID's built-in voice (Microsoft Azure)
+              console.log(`Using D-ID built-in voice (Microsoft Azure)`);
+              didPayload = {
+                source_url: sourceUrl,
+                script: {
+                  type: "text",
+                  input: script,
+                  provider: {
+                    type: "microsoft",
+                    voice_id: "en-US-JennyNeural", // Warm female voice
+                  },
+                },
+                config: {
+                  result_format: "mp4",
+                  fluent: true,
+                  pad_audio: 0,
+                },
               };
             } else {
               // Use uploaded ElevenLabs voiceover
-              voiceConfig = {
-                type: "audio",
-                audio_url: voiceoverUrl,
+              didPayload = {
+                source_url: sourceUrl,
+                script: {
+                  type: "audio",
+                  audio_url: voiceoverUrl,
+                },
+                config: {
+                  result_format: "mp4",
+                  fluent: true,
+                  pad_audio: 0,
+                },
               };
             }
             
-            const heygenPayload = {
-              video_inputs: [{
-                character: {
-                  type: "avatar",
-                  avatar_id: avatarId,
-                  avatar_style: "normal",
-                },
-                voice: voiceConfig,
-                background: {
-                  type: "color",
-                  value: "#f8f4f0", // Soft cream background for skincare
-                },
-              }],
-              dimension: {
-                width: 1080,
-                height: 1920, // 9:16 vertical
-              },
-              aspect_ratio: "9:16",
-              test: false, // NEVER use test mode - always real generation
-            };
+            console.log("D-ID request payload:", JSON.stringify(didPayload, null, 2));
             
-            console.log("HeyGen request payload:", JSON.stringify(heygenPayload, null, 2));
-            
-            const heygenResponse = await fetch("https://api.heygen.com/v2/video/generate", {
+            const didResponse = await fetch("https://api.d-id.com/talks", {
               method: "POST",
               headers: {
-                "X-Api-Key": HEYGEN_API_KEY,
+                "Authorization": `Basic ${DID_API_KEY}`,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(heygenPayload),
+              body: JSON.stringify(didPayload),
             });
 
-            const responseText = await heygenResponse.text();
-            console.log(`HeyGen response status: ${heygenResponse.status}`);
-            console.log(`HeyGen response body: ${responseText}`);
+            const responseText = await didResponse.text();
+            console.log(`D-ID response status: ${didResponse.status}`);
+            console.log(`D-ID response body: ${responseText}`);
 
-            if (heygenResponse.ok) {
-              const heygenData = JSON.parse(responseText);
-              heygenVideoId = heygenData.data?.video_id;
-              console.log(`\n✅ HeyGen video created!`);
-              console.log(`Video ID: ${heygenVideoId}`);
+            if (didResponse.ok || didResponse.status === 201) {
+              const didData = JSON.parse(responseText);
+              didTalkId = didData.id;
+              console.log(`\n✅ D-ID talk created!`);
+              console.log(`Talk ID: ${didTalkId}`);
               
-              await logToDecisionLog(supabase, user.id, "auralift_ad_heygen", "HeyGen video generation started", { 
-                video_id: heygenVideoId,
-                avatar_id: avatarId,
-                response: heygenData
+              await logToDecisionLog(supabase, user.id, "auralift_ad_did", "D-ID video generation started", { 
+                talk_id: didTalkId,
+                source_url: sourceUrl,
+                response: didData
               });
 
-              // If wait_for_video is true, poll for completion (up to 15 min)
-              if (wait_for_video && heygenVideoId) {
-                console.log(`\n=== WAITING FOR VIDEO COMPLETION (up to 15 min) ===`);
-                const pollResult = await pollHeyGenVideo(heygenVideoId, HEYGEN_API_KEY, 180); // 180 attempts × 5s = 15 min
+              // Poll for completion (up to 10 min)
+              if (didTalkId) {
+                console.log(`\n=== WAITING FOR VIDEO COMPLETION (up to 10 min) ===`);
+                const pollResult = await pollDIDVideo(didTalkId, DID_API_KEY, 120); // 120 attempts × 5s = 10 min
                 
                 if (pollResult.video_url) {
                   videoUrl = pollResult.video_url;
@@ -772,7 +782,7 @@ serve(async (req) => {
                   console.log(`Video URL: ${videoUrl}`);
                   console.log(`Thumbnail URL: ${thumbnailUrl}`);
                   
-                  await logToDecisionLog(supabase, user.id, "auralift_ad_complete", "HeyGen video completed", { 
+                  await logToDecisionLog(supabase, user.id, "auralift_ad_complete", "D-ID video completed", { 
                     video_url: videoUrl,
                     thumbnail_url: thumbnailUrl
                   });
@@ -781,22 +791,19 @@ serve(async (req) => {
                   if (pollResult.error) {
                     creditsWarning = pollResult.error;
                     console.error(`\n❌ Video error: ${pollResult.error}`);
-                    await logToDecisionLog(supabase, user.id, "auralift_ad_error", "HeyGen video failed", { 
+                    await logToDecisionLog(supabase, user.id, "auralift_ad_error", "D-ID video failed", { 
                       error: pollResult.error,
                       status: pollResult.status
                     });
                   }
                 }
-              } else {
-                videoStatus = "processing";
-                console.log(`Video processing in background (not waiting)`);
               }
             } else {
-              console.error(`\n❌ HeyGen API error: ${heygenResponse.status}`);
+              console.error(`\n❌ D-ID API error: ${didResponse.status}`);
               console.error(`Response: ${responseText}`);
-              console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (HeyGen error)...`);
+              console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (D-ID error)...`);
               
-              // Use stock video fallback on HeyGen error
+              // Use stock video fallback on D-ID error
               const stockResult = await generateStockVideoAd(
                 supabase,
                 user.id,
@@ -808,17 +815,17 @@ serve(async (req) => {
               videoUrl = stockResult.video_url;
               thumbnailUrl = stockResult.thumbnail_url;
               videoStatus = "completed";
-              creditsWarning = `HeyGen API error (${heygenResponse.status}) - using stock video fallback`;
+              creditsWarning = `D-ID API error (${didResponse.status}) - using stock video fallback`;
               
-              await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (HeyGen error)", { 
-                heygen_status: heygenResponse.status, 
+              await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (D-ID error)", { 
+                did_status: didResponse.status, 
                 stock_video_id: stockResult.stock_video_id,
                 mode: stockResult.mode,
                 video_url: videoUrl
               });
             }
-          } catch (heygenError) {
-            console.error(`\n❌ HeyGen request exception:`, heygenError);
+          } catch (didError) {
+            console.error(`\n❌ D-ID request exception:`, didError);
             console.log(`\n🎬 ACTIVATING STOCK VIDEO FALLBACK MODE (exception)...`);
             
             // Use stock video fallback on exception
@@ -833,10 +840,10 @@ serve(async (req) => {
             videoUrl = stockResult.video_url;
             thumbnailUrl = stockResult.thumbnail_url;
             videoStatus = "completed";
-            creditsWarning = `HeyGen request failed - using stock video fallback. ${heygenError instanceof Error ? heygenError.message : 'Unknown error'}`;
+            creditsWarning = `D-ID request failed - using stock video fallback. ${didError instanceof Error ? didError.message : 'Unknown error'}`;
             
             await logToDecisionLog(supabase, user.id, "auralift_ad_fallback", "Using stock video fallback (exception)", { 
-              error: String(heygenError),
+              error: String(didError),
               stock_video_id: stockResult.stock_video_id,
               mode: stockResult.mode,
               video_url: videoUrl
@@ -851,8 +858,8 @@ serve(async (req) => {
     const adName = `${product.title} - AI Video Ad`;
     
     // Determine voice info for metadata
-    const usedVoiceKey = useHeyGenVoice ? "heygen-builtin" : voice;
-    const usedVoiceId = useHeyGenVoice ? "en-US-GuyNeural" : ELEVENLABS_VOICES[voice as keyof typeof ELEVENLABS_VOICES] || "unknown";
+    const usedVoiceKey = useDIDVoice ? "did-builtin" : voice;
+    const usedVoiceId = useDIDVoice ? "en-US-JennyNeural" : ELEVENLABS_VOICES[voice as keyof typeof ELEVENLABS_VOICES] || "unknown";
     
     const adRecord = {
       user_id: user.id,
@@ -864,19 +871,20 @@ serve(async (req) => {
       voiceover_url: voiceoverUrl,
       video_url: videoUrl,
       thumbnail_url: thumbnailUrl,
-      heygen_video_id: heygenVideoId,
+      heygen_video_id: didTalkId, // Using existing column for D-ID talk ID
       status: videoStatus,
       test_mode: test_mode && !force_live,
       aspect_ratio: "9:16",
       duration_seconds: 15,
-      provider: "heygen",
+      provider: "d-id",
       metadata: {
         voice: usedVoiceKey,
         voice_id: usedVoiceId,
-        used_heygen_voice: useHeyGenVoice,
+        used_did_voice: useDIDVoice,
         elevenlabs_error: elevenLabsError ? elevenLabsError.substring(0, 200) : null,
         avatar,
-        avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
+        presenter_id: DID_PRESENTERS[avatar as keyof typeof DID_PRESENTERS] || DID_PRESENTERS.default,
+        source_url: DID_SOURCE_IMAGES[avatar as keyof typeof DID_SOURCE_IMAGES] || DID_SOURCE_IMAGES.default,
         product_handle: product.handle,
         emotion,
         generated_at: new Date().toISOString(),
@@ -927,19 +935,19 @@ serve(async (req) => {
     console.log(`Status: ${videoStatus}`);
     console.log(`Video URL: ${videoUrl || 'none'}`);
     console.log(`Thumbnail: ${thumbnailUrl || 'none'}`);
-    console.log(`HeyGen Video ID: ${heygenVideoId || 'none'}`);
+    console.log(`D-ID Talk ID: ${didTalkId || 'none'}`);
     console.log(`Credits Warning: ${creditsWarning || 'none'}`);
 
     const responseMessage = videoStatus === "completed" 
-      ? "🎬 AI Video ad generated successfully! Real HeyGen video ready."
+      ? "🎬 AI Video ad generated successfully! Real D-ID video ready."
       : videoStatus === "processing"
       ? "🎬 AI Video ad is generating... Check back in 2-5 minutes."
       : videoStatus === "voiceover_only"
       ? "🎤 Voiceover generated successfully! (Test mode - no video)"
       : videoStatus === "credits_low"
-      ? `⚠️ HeyGen credits low: ${creditsWarning}`
-      : videoStatus === "heygen_error"
-      ? `❌ HeyGen error: ${creditsWarning}`
+      ? `⚠️ D-ID credits low: ${creditsWarning}`
+      : videoStatus === "did_error"
+      ? `❌ D-ID error: ${creditsWarning}`
       : creditsWarning
       ? `⚠️ ${creditsWarning}`
       : "Ad created";
@@ -952,15 +960,16 @@ serve(async (req) => {
         voiceover_url: voiceoverUrl,
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
-        heygen_video_id: heygenVideoId,
+        did_talk_id: didTalkId,
         status: videoStatus,
         credits_warning: creditsWarning,
         generation_details: {
           voice: usedVoiceKey,
           voice_id: usedVoiceId,
-          used_heygen_voice: useHeyGenVoice,
+          used_did_voice: useDIDVoice,
           avatar,
-          avatar_id: HEYGEN_AVATARS[avatar as keyof typeof HEYGEN_AVATARS] || HEYGEN_AVATARS.default,
+          presenter_id: DID_PRESENTERS[avatar as keyof typeof DID_PRESENTERS] || DID_PRESENTERS.default,
+          source_url: DID_SOURCE_IMAGES[avatar as keyof typeof DID_SOURCE_IMAGES] || DID_SOURCE_IMAGES.default,
           emotion,
           force_live,
           wait_for_video,
