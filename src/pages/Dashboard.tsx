@@ -10,6 +10,7 @@ import { SettingsPage } from "@/components/dashboard/SettingsPage";
 import { IntegrationsHub } from "@/components/integrations";
 import { LiveProfitEngine } from "@/components/autonomous";
 import { EmergingLayerDashboard } from "@/components/omega";
+import { SuperGrokCEODashboard } from "@/components/dashboard/SuperGrokCEODashboard";
 
 const Dashboard = () => {
   return (
@@ -25,6 +26,7 @@ const Dashboard = () => {
         <Route path="integrations" element={<IntegrationsHub />} />
         <Route path="profit-engine" element={<LiveProfitEngine />} />
         <Route path="emerging-layer" element={<EmergingLayerDashboard />} />
+        <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

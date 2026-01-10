@@ -92,6 +92,12 @@ const mainNavItems = [
     badge: "95%",
   },
   {
+    title: "Super Grok CEO",
+    icon: Brain,
+    path: "/dashboard/super-grok-ceo",
+    badge: "AI",
+  },
+  {
     title: "Emerging Layer",
     icon: Globe,
     path: "/dashboard/emerging-layer",
