@@ -13,6 +13,7 @@ import { LiveProfitEngine } from "@/components/autonomous";
 import { EmergingLayerDashboard } from "@/components/omega";
 import { SuperGrokCEODashboard } from "@/components/dashboard/SuperGrokCEODashboard";
 import { CJDropshippingDashboard } from "@/components/dashboard/CJDropshippingDashboard";
+import { DomainSalesManager } from "@/components/dashboard/DomainSalesManager";
 import { Loader2 } from "lucide-react";
 
 // Lazy load ElevenLabs dashboard for better performance
@@ -40,8 +41,9 @@ const Dashboard = () => {
         <Route path="emerging-layer" element={<EmergingLayerDashboard />} />
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
         <Route path="cj-dropshipping" element={<CJDropshippingDashboard />} />
+        <Route path="domain-sales" element={<DomainSalesManager />} />
         <Route 
-          path="elevenlabs" 
+          path="elevenlabs"
           element={
             <Suspense fallback={<LoadingFallback />}>
               <ElevenLabsDashboard />
