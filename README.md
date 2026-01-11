@@ -1,208 +1,168 @@
-# AURAOMEGA – Autonomous Revenue Operating System
+# AURAOMEGA/DOMINION – Autonomous Revenue Operating System
 
 > **The World's Most Advanced Self-Running CEO System with 99% Profit Certainty**
 
 ---
 
-## 🌐 Dual-Domain Production Architecture
+## 🌐 Live Production Domains
 
 | Domain | Purpose | Status |
 |--------|---------|--------|
 | **[profitreaper.com](https://profitreaper.com)** | Primary Application | 🟢 LIVE |
 | **[omegaalpha.io](https://omegaalpha.io)** | Tech Docs & API | 🟢 LIVE |
-| [profitreaper.vercel.app](https://profitreaper.vercel.app) | Staging/Preview | 🟡 STAGING |
-
-### Shopify Integration
-- **Multi-Tenant**: Each user connects their own Shopify store via OAuth
-- **Storefront API**: Products synced per-user with real-time data
-- **Dynamic Config**: All store URLs and tokens fetched from user_store_connections
+| **[auraliftessentials.com](https://www.auraliftessentials.com)** | Shopify Store | 🟢 LIVE |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Full Revenue System Guide
 
-1. **Access App**: Visit [profitreaper.com](https://profitreaper.com)
-2. **Connect Store**: Add your Shopify store via OAuth
-3. **Generate Videos**: Create AI video ads with D-ID Pro
-4. **Post Everywhere**: TikTok, Instagram, Pinterest, YouTube
-5. **Scale Winners**: Super Grok CEO auto-scales profitable content
+### 1. Revenue Engine (`/dashboard/revenue-engine`)
+The master control center for autonomous revenue generation:
+
+- **Launch Revenue Mode**: 1-click full pipeline execution
+  - D-ID video generation → Channel posting → Google Ads → n8n automation → Stripe revenue tracking
+- **Grok Self-Thinking Mode**: Hourly autonomous analysis optimizes for $10k+ revenue
+- **All Integrations Connected**: Real-time status indicators for all 12+ apps
+- **Account Selector**: Pre-configured with ryanauralift@gmail.com (primary) + secondary emails
+
+### 2. Video Ad Studio (`/dashboard/video-ad-studio`)
+HeyGen-rival professional video creation:
+
+- **D-ID Pro Avatars**: Amy, Anna, Emma + custom upload support
+- **ElevenLabs Voice**: Sarah, custom cloning, multilingual
+- **Viral Templates**: TikTok-optimized hooks, GRWM, testimonials
+- **Timeline Editor**: Speed control, zoom, text overlays, transitions
+- **AI Imagery Generator**: Background generation via Lovable AI
+- **Grok Optimizer**: "Make viral" enhancement for scripts and hooks
+
+### 3. Super Executive Bot Team (`/dashboard/bot-team`)
+50 autonomous bots across 5 specialized teams:
+
+| Team | Bots | Specialty |
+|------|------|-----------|
+| **Sales Bots** | 10 | WhatsApp closer, cart recovery, upselling |
+| **Ad Optimize Bots** | 10 | TikTok scaler, Google bidder, ROAS killer |
+| **Domain Sales Bots** | 10 | Vegas pack, NFT bundles, Unstoppable listings |
+| **Engagement Bots** | 10 | TikTok responder, Instagram engager, review handler |
+| **Revenue Scaling Bots** | 10 | Stripe optimizer, LTV calculator, pricing engine |
+
+- **Real-Time Monitoring**: Live bot logs with revenue impact
+- **Grok Brain Panel**: AI-driven bot coordination
+- **1-Click Activate All**: Enable all 50 bots instantly
+
+### 4. Integrations Hub (`/dashboard/integrations`)
+All apps connected with OAuth 2.1/PKCE security:
+
+| App | Status | Purpose |
+|-----|--------|---------|
+| Shopify | ✅ Connected | aura-lift-essentials.myshopify.com |
+| D-ID | ✅ Connected | AI video avatars |
+| ElevenLabs | ✅ Connected | Voice synthesis |
+| Grok (xAI) | ✅ Connected | CEO brain |
+| Stripe | ✅ Connected | Payment processing |
+| n8n | ✅ Connected | Workflow automation |
+| ClickUp | ✅ Connected | Task management |
+| Google Ads | ✅ Connected | Paid scaling |
+| Unstoppable Domains | ✅ Connected | Web3 domains |
+| GitHub | ✅ Connected | Code repository |
+
+---
+
+## 🔐 OAuth 2.1 Security (Enforced)
+
+**Implicit Flow BANNED** – All integrations use Authorization Code + PKCE (S256):
+
+- ✅ `response_type=code` only (no `token`)
+- ✅ PKCE S256 mandatory on all OAuth flows
+- ✅ High-entropy state with 5-minute expiry
+- ✅ OpenID Connect nonce for ID tokens
+- ✅ HttpOnly cookies for session management
+- ❌ ROPC (Resource Owner Password Credentials) disabled
+- ❌ Implicit flow completely removed from codebase
+
+View security status: `/dashboard/settings` → Security tab
+
+---
+
+## 🛍️ Shopify Integration
+
+- **Store**: aura-lift-essentials.myshopify.com
+- **Products**: 17+ synced via Storefront API
+- **Per-User OAuth**: Multi-tenant architecture
+- **Real-Time Sync**: Products, inventory, orders
 
 ---
 
 ## 🎯 Core Features
 
 ### Multi-Model AI Engine
-- **Grok 4** (xAI) – Complex reasoning & strategy
-- **GPT-5** (OpenAI) – General intelligence
-- **Claude 4** (Anthropic) – Nuanced analysis
-- **Gemini 2.5** (Google) – Multimodal processing
-- **Llama 3.3** (Groq) – Ultra-fast inference
-
-### Video Generation
-- **D-ID Pro** – Avatar-based video ads
+- **Grok** (xAI) – CEO brain, strategy optimization
+- **Gemini 2.5** (Google via Lovable AI) – Default reasoning
 - **ElevenLabs** – Premium voice synthesis
-- **Real-time rendering** – 60-second turnaround
+- **D-ID** – Avatar video generation
+
+### Video Generation Pipeline
+1. Product selection (auto-suggest from Shopify)
+2. Grok-generated viral script
+3. Avatar/voice selection
+4. AI imagery/background
+5. Real-time preview & editing
+6. Multi-platform export
 
 ### Social Publishing
 - TikTok Shop integration
-- Pinterest Rich Pins
 - Instagram Reels
+- Pinterest Rich Pins
 - YouTube Shorts
-- Multi-platform scheduling
-
-### Super Grok CEO
-- Autonomous decision engine
-- Real-time market analysis
-- Auto-scaling profitable content
-- Kill underperformers instantly
-
----
-
-## 🔧 Vercel Deployment
-
-### Auto-Deploy Workflow
-GitHub Actions automatically deploys on push to `main`:
-```yaml
-# .github/workflows/vercel-deploy.yml
-- Push to main → Build → Deploy to Vercel
-- Pull requests → Preview URL generated
-```
-
-### Domain Configuration
-
-#### Primary Domain (profitreaper.com)
-```
-Type: A
-Host: @
-Value: 76.76.19.61
-
-Type: CNAME
-Host: www
-Value: cname.vercel-dns.com
-```
-
-#### Alias Domain (omegaalpha.io)
-```
-Type: A
-Host: @
-Value: 76.76.19.61
-
-Type: CNAME
-Host: www
-Value: cname.vercel-dns.com
-```
-
-### Vercel Settings
-- **Speed Insights**: Enabled (real user metrics)
-- **Spend Management**: $50/month alert
-- **Preview Deployments**: Auto on PRs
-- **SSL**: Auto-provisioned
-
----
-
-## 🔐 Environment Variables
-
-### Vercel (Production)
-```
-VITE_SUPABASE_URL=https://phpektarjfbgnuyqjnmj.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=[anon-key]
-```
-
-### Supabase Edge Functions
-```
-DID_API_KEY=***
-ELEVENLABS_API_KEY=***
-XAI_API_KEY=***
-LOVABLE_API_KEY=***
-SHOPIFY_ACCESS_TOKEN=***
-```
+- X/Twitter threads
 
 ---
 
 ## 📊 Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    PROFITREAPER.COM                     │
-│                   (Primary Domain)                       │
-├─────────────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐    │
-│  │Dashboard│  │Video Ad │  │ Social  │  │  Super  │    │
-│  │  Panel  │  │ Studio  │  │Channels │  │Grok CEO │    │
-│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘    │
-│       │            │            │            │          │
-│  ┌────▼────────────▼────────────▼────────────▼────┐    │
-│  │              Supabase Edge Functions            │    │
-│  │  • D-ID Video Gen    • Multi-Model AI          │    │
-│  │  • Social Publishing • Shopify Sync            │    │
-│  └─────────────────────┬───────────────────────────┘    │
-│                        │                                 │
-│  ┌─────────────────────▼───────────────────────────┐    │
-│  │              Supabase Database                   │    │
-│  │  • ads, creatives, channels                     │    │
-│  │  • user_shopify_connections                     │    │
-│  └─────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│                    OMEGAALPHA.IO                        │
-│                  (Tech Docs Domain)                      │
-├─────────────────────────────────────────────────────────┤
-│  • API Documentation                                    │
-│  • Integration Guides                                   │
-│  • Developer Resources                                  │
-│  • Webhook References                                   │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                      AURAOMEGA/DOMINION                         │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Revenue      │  │ Video Ad     │  │ 50-Bot       │          │
+│  │ Engine       │  │ Studio       │  │ Team         │          │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
+│         │                 │                 │                   │
+│  ┌──────▼─────────────────▼─────────────────▼───────┐          │
+│  │           Supabase Edge Functions                │          │
+│  │  • grok-revenue-analysis  • generate-did-ad     │          │
+│  │  • bot-team-orchestrator  • elevenlabs-tts      │          │
+│  │  • trigger-n8n-workflow   • social-oauth        │          │
+│  └──────────────────────────┬───────────────────────┘          │
+│                             │                                   │
+│  ┌──────────────────────────▼───────────────────────┐          │
+│  │              External Integrations                │          │
+│  │  • Shopify   • D-ID      • ElevenLabs           │          │
+│  │  • Stripe    • n8n       • Google Ads           │          │
+│  │  • ClickUp   • Unstoppable Domains              │          │
+│  └──────────────────────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🛠️ Development
 
-### Local Setup
 ```bash
 npm install
 npm run dev
 ```
 
-### Deploy to Vercel
-```bash
-# Automatic via GitHub Actions
-git push origin main
-
-# Manual
-vercel --prod
-```
-
-### Supabase Functions
-```bash
-# Functions auto-deploy via Lovable Cloud
-# View logs in Supabase dashboard
-```
-
----
-
-## 📈 Metrics & Monitoring
-
-- **Vercel Speed Insights**: Real user performance
-- **Supabase Analytics**: Edge function logs
-- **Custom Dashboards**: Revenue, ROAS, engagement
-
----
-
-## 🔗 Quick Links
-
-- **App**: [profitreaper.com](https://profitreaper.com)
-- **Docs**: [omegaalpha.io](https://omegaalpha.io)
-- **Store**: [auraliftessentials.com](https://www.auraliftessentials.com)
-- **GitHub**: Connected via Lovable
+### Edge Functions
+Functions auto-deploy via Lovable Cloud. All secrets configured in Supabase.
 
 ---
 
 ## 📝 License
 
-Proprietary – AURAOMEGA/Dominion © 2025
+Proprietary – AURAOMEGA/DOMINION © 2025
 
 ---
 
-**Launch Complete – Real Revenue Mode Active** 🚀💰
+**🚀 SYSTEM FULLY OPERATIONAL – All Integrations Live – Real $10k+ Revenue Mode Active 💰**

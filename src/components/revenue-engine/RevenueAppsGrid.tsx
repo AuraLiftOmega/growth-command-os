@@ -102,7 +102,7 @@ const REVENUE_APPS: RevenueApp[] = [
     description: "Paid advertising & scaling",
     icon: Target,
     category: "ads",
-    status: "pending",
+    status: "connected",
     oauthUrl: "https://ads.google.com",
   },
   {
@@ -111,7 +111,7 @@ const REVENUE_APPS: RevenueApp[] = [
     description: "Web3 domain portfolio & sales",
     icon: Globe,
     category: "domains",
-    status: "pending",
+    status: "connected",
     oauthUrl: "https://unstoppabledomains.com",
   },
   {

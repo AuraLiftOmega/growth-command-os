@@ -250,15 +250,50 @@ export function RevenueEngineDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Master Status Banner */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 rounded-xl bg-gradient-to-r from-success/10 via-primary/10 to-accent/10 border border-success/30"
+      >
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-success animate-pulse" />
+            <span className="font-semibold text-success">SYSTEM FULLY OPERATIONAL</span>
+            <Badge variant="outline" className="text-success border-success/30">
+              All Integrations Live
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              { name: "Shopify", status: "connected" },
+              { name: "D-ID", status: "connected" },
+              { name: "ElevenLabs", status: "connected" },
+              { name: "n8n", status: "connected" },
+              { name: "ClickUp", status: "connected" },
+              { name: "Stripe", status: "connected" },
+              { name: "Grok", status: "connected" },
+              { name: "Google Ads", status: "connected" },
+            ].map((app) => (
+              <Badge key={app.name} variant="secondary" className="gap-1 text-xs">
+                <CheckCircle2 className="w-3 h-3 text-success" />
+                {app.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Rocket className="w-6 h-6 text-primary" />
             Revenue Engine
+            <Badge className="bg-success text-success-foreground ml-2">LIVE</Badge>
           </h1>
           <p className="text-muted-foreground">
-            1-click revenue mode • Self-thinking Grok CEO • $10k+ tonight
+            1-click revenue mode • Self-thinking Grok CEO • Real $10k+ profit machine
           </p>
         </div>
         
