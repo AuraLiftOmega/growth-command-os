@@ -61,6 +61,7 @@ const PinterestIcon = () => (
   </svg>
 );
 import { AuraLiftAdGenerator } from './AuraLiftAdGenerator';
+import { EnhancedVideoAdStudio } from '@/components/video-studio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -148,7 +149,7 @@ const SCRIPT_TEMPLATES = [
 
 export function VideoAdStudioPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('auralift');
+  const [activeTab, setActiveTab] = useState('enhanced');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [videos, setVideos] = useState<VideoAd[]>([]);
   const [isLoadingVideos, setIsLoadingVideos] = useState(true);
