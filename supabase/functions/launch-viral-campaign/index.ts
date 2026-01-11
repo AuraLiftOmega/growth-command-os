@@ -19,54 +19,62 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// 5 Viral Ad Variations for Radiance Vitamin C Serum
-const VIRAL_AD_VARIATIONS = [
-  {
-    id: "pov-glow-up",
-    name: "POV Glow Up",
-    platform: "tiktok",
-    script: "POV: You finally found a serum that actually works 🍊✨ Radiance Vitamin C Serum gave me this glow in just 2 weeks. Dark spots? Gone. Dull skin? Transformed. This is the skincare secret they don't want you to know. Shop AuraLift Essentials 💫",
-    hashtags: "#POV #GlowUp #Skincare #VitaminC #SkincareRoutine #AuraLift #Viral #FYP #SkincareTikTok #BeautyTok",
-    emotion: "excited",
-    scheduleOffset: 0 // 6 PM EST
-  },
-  {
-    id: "before-after",
-    name: "Before/After Transformation",
-    platform: "tiktok",
-    script: "My skin 3 weeks ago vs NOW 😱 I can't believe the difference! Radiance Vitamin C Serum from AuraLift Essentials completely transformed my dark spots and texture. This is not sponsored, I'm just obsessed. Link in bio!",
-    hashtags: "#BeforeAndAfter #Transformation #SkinCare #DarkSpots #HyperpigmentationTreatment #AuraLift #VitaminCSerum #GlowUp",
-    emotion: "excited",
-    scheduleOffset: 2 // 8 PM EST
-  },
-  {
-    id: "aesthetic-routine",
-    name: "Aesthetic Skincare Routine",
-    platform: "pinterest",
-    script: "Aesthetic Morning Skincare Routine ✨ Starting with Radiance Vitamin C Serum from AuraLift Essentials. Brightens skin, fights dark spots, and gives you that radiant glass skin glow. Shop at auraliftessentials.com",
-    hashtags: "",
-    emotion: "calm",
-    scheduleOffset: 0 // Same time for Pinterest
-  },
-  {
-    id: "grwm",
-    name: "GRWM Skincare Edition",
-    platform: "tiktok",
-    script: "GRWM while I do my morning skincare 🧴💆‍♀️ The secret to my glow? This Vitamin C serum from AuraLift. It literally transformed my skin in weeks. Okay but the way this absorbs... *chef's kiss*. Get yours at auraliftessentials.com",
-    hashtags: "#GRWM #GetReadyWithMe #MorningSkincare #SkincareRoutine #VitaminC #AuraLift #SkincareTips #Beauty",
-    emotion: "calm",
-    scheduleOffset: 4 // 10 PM EST
-  },
-  {
-    id: "unboxing-reveal",
-    name: "Unboxing & First Impressions",
-    platform: "pinterest",
-    script: "Unboxing my new AuraLift Essentials Radiance Vitamin C Serum 📦✨ The packaging is so luxe! Premium glass bottle, dropper applicator, that fresh citrus scent. First impression: absorbs beautifully, no sticky feeling. This is going to be my new holy grail!",
-    hashtags: "",
-    emotion: "excited",
-    scheduleOffset: 2
-  }
-];
+// Dynamic Viral Ad Variation Generator
+// These templates can be customized per-product, per-store
+function generateViralVariations(productName: string, storeUrl?: string) {
+  const storeDomain = (storeUrl || Deno.env.get('SITE_URL') || 'your-store.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  
+  return [
+    {
+      id: "pov-glow-up",
+      name: "POV Transformation",
+      platform: "tiktok",
+      script: `POV: You finally found ${productName} 🌟✨ This product gave me amazing results in just 2 weeks. Check it out at ${storeDomain} 💫`,
+      hashtags: "#POV #GlowUp #Transformation #Viral #FYP #Trending #MustHave",
+      emotion: "excited",
+      scheduleOffset: 0
+    },
+    {
+      id: "before-after",
+      name: "Before/After Transformation",
+      platform: "tiktok",
+      script: `My results 3 weeks ago vs NOW 😱 I can't believe the difference! ${productName} completely transformed my routine. Link in bio at ${storeDomain}!`,
+      hashtags: "#BeforeAndAfter #Transformation #Results #MustHave #Trending #GlowUp",
+      emotion: "excited",
+      scheduleOffset: 2
+    },
+    {
+      id: "aesthetic-routine",
+      name: "Aesthetic Routine",
+      platform: "pinterest",
+      script: `Aesthetic routine featuring ${productName} ✨ Premium quality, amazing results. Shop at ${storeDomain}`,
+      hashtags: "",
+      emotion: "calm",
+      scheduleOffset: 0
+    },
+    {
+      id: "grwm",
+      name: "GRWM Edition",
+      platform: "tiktok",
+      script: `GRWM with my favorite ${productName} 💆‍♀️ The secret to my transformation? This product. Get yours at ${storeDomain}`,
+      hashtags: "#GRWM #GetReadyWithMe #Routine #Tips #MustHave #Trending",
+      emotion: "calm",
+      scheduleOffset: 4
+    },
+    {
+      id: "unboxing-reveal",
+      name: "Unboxing & First Impressions",
+      platform: "pinterest",
+      script: `Unboxing my new ${productName} 📦✨ Premium packaging, amazing quality. First impression: love it! Shop at ${storeDomain}!`,
+      hashtags: "",
+      emotion: "excited",
+      scheduleOffset: 2
+    }
+  ];
+}
+
+// Legacy constant for backwards compatibility
+const VIRAL_AD_VARIATIONS = generateViralVariations("Premium Product");
 
 // Optimized captions with trending elements
 const OMEGA_OPTIMIZED_CAPTIONS = {

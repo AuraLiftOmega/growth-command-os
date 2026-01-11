@@ -268,13 +268,16 @@ serve(async (req) => {
 
     console.log(`Product: ${product.title}`);
 
-    // Generate script
+    // Generate dynamic script per-product, per-store
+    const storeUrl = Deno.env.get('SITE_URL') || 'your-store.com';
+    const storeDomain = storeUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    
     let script = customScript;
     if (!script) {
       const scripts: Record<string, string> = {
-        excited: `OMG you NEED to try ${product.title}! ${product.description} - I literally can't live without it! Shop auraliftessentials.com!`,
-        calm: `Discover ${product.title} from AuraLift Essentials. ${product.description}. Radiant, hydrated, youthful skin. Shop now at auraliftessentials.com!`,
-        urgent: `STOP scrolling! ${product.title} is selling out fast. ${product.description}. Get yours before it's gone - auraliftessentials.com!`,
+        excited: `OMG you NEED to try ${product.title}! ${product.description} - I literally can't live without it! Shop ${storeDomain}!`,
+        calm: `Discover ${product.title}. ${product.description}. Amazing results, real quality. Shop now at ${storeDomain}!`,
+        urgent: `STOP scrolling! ${product.title} is selling out fast. ${product.description}. Get yours before it's gone - ${storeDomain}!`,
       };
       script = scripts[emotion] || scripts.calm;
     }
