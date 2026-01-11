@@ -26,7 +26,28 @@ export function HeyGenPanel({ onVideoCreated }: HeyGenPanelProps) {
     progress: number;
   } | null>(null);
 
+  // 🔥 RETINOL POWER SCRIPTS (2026 Scaling Strategy)
+  const RETINOL_SCRIPTS = [
+    {
+      name: "🌙 Retinol Beginner",
+      script: "Struggling with fine lines but scared of retinol irritation? Our gentle Retinol Cream is encapsulated for slow release — smooths wrinkles, boosts collagen without the redness! See real results: dull texture to plump glow in weeks. Don't wait — your younger-looking skin starts tonight! Tap shop now before stock runs low!"
+    },
+    {
+      name: "📅 Timeline (High CVR)",
+      script: "Month 1 with our Retinol Cream: Bye-bye rough texture. Month 3: Fine lines fading fast. Month 6: That 'glass skin' everyone wants! Powered by proven retinol plus hydrators to fight aging gently. Transform your routine today — limited intro offer! Grab yours now and glow up!"
+    },
+    {
+      name: "💎 Bundle Upsell",
+      script: "Want max anti-aging? Pair our Retinol Cream with Hyaluronic Serum for the ultimate 'sandwich' method — hydrate, renew, glow! Go from tired to radiant in months. Top seller at 28% of sales — but stock is flying! Secure your bundle now — tap to shop before it's gone!"
+    },
+    {
+      name: "🍑 Viral Metaphor",
+      script: "Those fine lines creeping in? Imagine your skin like this — then THIS! Our Retinol Cream delivers real collagen boost without the drama. Real users seeing results fast. Don't let aging win — claim yours today and wake up younger tomorrow!"
+    }
+  ];
+
   const SAMPLE_SCRIPTS = [
+    ...RETINOL_SCRIPTS,
     {
       name: "Product Intro",
       script: "Hey beautiful! Let me tell you about this amazing product that's been transforming skincare routines everywhere. It's packed with powerful ingredients that your skin will love. Try it today and see the glow!"
