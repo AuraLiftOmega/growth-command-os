@@ -10,6 +10,7 @@ import { IntegrationCard, Integration } from "./IntegrationCard";
 import { ALL_INTEGRATIONS, INTEGRATION_CATEGORIES, getIntegrationsByCategory, INTEGRATION_SECRET_MAP } from "./integrations-data";
 import { N8nConnectionCard } from "./N8nConnectionCard";
 import { ClickUpConnectionCard } from "./ClickUpConnectionCard";
+import { TikTokConnectionCard } from "./TikTokConnectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -306,10 +307,11 @@ export function IntegrationsHub() {
         </Button>
       </div>
 
-      {/* Connected Services - n8n & ClickUp Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Connected Services - n8n, ClickUp & TikTok Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <N8nConnectionCard />
         <ClickUpConnectionCard />
+        <TikTokConnectionCard />
       </div>
 
       {/* Autonomous Flow Suggestions */}
