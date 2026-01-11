@@ -106,31 +106,44 @@ export function ProductionStatusBanner() {
         count: cjLogs?.length || 0
       });
 
-      // 3. Video Generation (D-ID)
+      // 3. Video Generation (D-ID) - Check via integration_tokens or ads
+      const { data: integrationTokens } = await supabase
+        .from('integration_tokens')
+        .select('integration_name, is_connected, sync_status')
+        .eq('user_id', user.id);
+
       const { data: ads } = await supabase
         .from('ads')
         .select('id, status, provider')
         .eq('user_id', user.id);
 
       const completedAds = ads?.filter(a => a.status === 'completed')?.length || 0;
+      const didConnected = integrationTokens?.some(t => 
+        (t.integration_name === 'did' || t.integration_name === 'd-id') && t.is_connected
+      ) || completedAds > 0;
 
       statuses.push({
         name: 'Video Gen (D-ID Pro)',
-        status: completedAds > 0 ? 'connected' : 'partial',
+        status: didConnected ? 'connected' : 'partial',
         details: completedAds > 0 
           ? `${completedAds} videos generated` 
-          : 'Ready to generate',
+          : didConnected ? 'API connected' : 'Ready to generate',
         icon: Video,
         count: completedAds
       });
 
-      // 4. Social Channels
+      // 4. Social Channels - Check platform_accounts
       const { data: platformAccounts } = await supabase
         .from('platform_accounts')
         .select('platform, is_connected')
         .eq('user_id', user.id);
 
-      const connectedPlatforms = platformAccounts?.filter(t => t.is_connected)?.length || 0;
+      // Also check integration_tokens for social platforms
+      const socialIntegrations = integrationTokens?.filter(t => 
+        ['tiktok', 'pinterest', 'x_twitter', 'instagram', 'facebook'].includes(t.integration_name) && t.is_connected
+      )?.length || 0;
+
+      const connectedPlatforms = (platformAccounts?.filter(t => t.is_connected)?.length || 0) + socialIntegrations;
 
       statuses.push({
         name: 'Social Channels',
@@ -140,10 +153,10 @@ export function ProductionStatusBanner() {
           : 'Connect TikTok, Instagram, etc.',
         icon: Share2,
         count: connectedPlatforms,
-        link: '/dashboard/social-channels'
+        link: '/dashboard/integrations'
       });
 
-      // 5. Super Grok CEO
+      // 5. Super Grok CEO - Check grok_ceo_logs and integration
       const { data: grokLogs } = await supabase
         .from('grok_ceo_logs')
         .select('id, execution_status')
@@ -151,14 +164,17 @@ export function ProductionStatusBanner() {
         .order('created_at', { ascending: false })
         .limit(10);
 
+      const grokConnected = integrationTokens?.some(t => 
+        (t.integration_name === 'grok' || t.integration_name === 'xai') && t.is_connected
+      );
       const activeStrategies = grokLogs?.length || 0;
 
       statuses.push({
         name: 'Super Grok CEO',
-        status: activeStrategies > 0 ? 'connected' : 'partial',
+        status: (activeStrategies > 0 || grokConnected) ? 'connected' : 'partial',
         details: activeStrategies > 0 
           ? `${activeStrategies} strategies deployed` 
-          : 'Ready for autonomous mode',
+          : grokConnected ? 'API connected' : 'Ready for autonomous mode',
         icon: Brain,
         count: activeStrategies
       });

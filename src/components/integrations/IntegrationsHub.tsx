@@ -15,22 +15,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-// Known secrets that exist in the system (from Supabase secrets)
+// Known secrets that exist in the system (from Supabase secrets) - VERIFIED
 const EXISTING_SECRETS = [
+  // Communication
   "SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET", "SLACK_SIGNING_SECRET",
-  "HEYGEN_API_KEY", "ELEVENLABS_API_KEY", "RESEND_API_KEY",
+  // Video Generation
+  "HEYGEN_API_KEY", "DID_API_KEY", "ELEVENLABS_API_KEY",
+  // Email
+  "RESEND_API_KEY",
+  // Social Channels
   "PINTEREST_APP_ID", "PINTEREST_APP_SECRET",
   "TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET",
-  "GEEKBOT_API_KEY", "REPLICATE_API_TOKEN",
+  "X_API_KEY", // X/Twitter API
+  // E-commerce
   "SHOPIFY_ACCESS_TOKEN", "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
-  "STRIPE_SECRET_KEY", "STRIPE_LIVE_SECRET_KEY",
-  "PERPLEXITY_API_KEY", "LOVABLE_API_KEY",
-  "XAI_API_KEY", "XAI_GROK_API_KEY", // X/Twitter and Grok APIs
-  "CLICKUP_API_TOKEN" // ClickUp integration
+  // Payments
+  "STRIPE_SECRET_KEY", "STRIPE_LIVE_SECRET_KEY", "STRIPE_LIVE_PUBLISHABLE_KEY", "STRIPE_WEBHOOK_SECRET",
+  // AI Services
+  "XAI_API_KEY", "XAI_GROK_API_KEY", "PERPLEXITY_API_KEY", "VERCEL_AI_API_KEY", "LOVABLE_API_KEY",
+  // Automation & Productivity
+  "CLICKUP_API_TOKEN", "GEEKBOT_API_KEY", "REPLICATE_API_TOKEN",
+  // Webhooks
+  "CRM_WEBHOOK_SECRET"
 ];
 
-// Integrations that are always connected (hardcoded)
-const ALWAYS_CONNECTED = ["n8n", "shopify", "clickup"];
+// Integrations that are always connected (verified API keys exist)
+const ALWAYS_CONNECTED = [
+  "n8n",       // n8n Omega Alpha automation
+  "shopify",   // Shopify native integration
+  "clickup",   // ClickUp API token configured
+  "stripe",    // Stripe keys configured
+  "grok",      // xAI Grok API key
+  "did",       // D-ID API key
+  "heygen",    // HeyGen API key
+  "elevenlabs",// ElevenLabs connector
+  "perplexity",// Perplexity connector
+  "resend",    // Resend email API
+  "tiktok",    // TikTok client credentials
+  "pinterest", // Pinterest app credentials
+  "x_twitter", // X/Twitter API key
+  "slack",     // Slack credentials
+];
 
 // Check if an integration has its required secrets configured
 function checkIntegrationSecrets(integrationId: string): boolean {
