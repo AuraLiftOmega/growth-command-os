@@ -752,6 +752,144 @@ export type Database = {
           },
         ]
       }
+      bot_configs: {
+        Row: {
+          bot_id: string
+          bot_name: string
+          config: Json | null
+          created_at: string
+          description: string | null
+          error_count: number | null
+          id: string
+          is_active: boolean | null
+          last_active_at: string | null
+          performance_score: number | null
+          revenue_generated: number | null
+          tasks_completed: number | null
+          team: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bot_id: string
+          bot_name: string
+          config?: Json | null
+          created_at?: string
+          description?: string | null
+          error_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_active_at?: string | null
+          performance_score?: number | null
+          revenue_generated?: number | null
+          tasks_completed?: number | null
+          team: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bot_id?: string
+          bot_name?: string
+          config?: Json | null
+          created_at?: string
+          description?: string | null
+          error_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_active_at?: string | null
+          performance_score?: number | null
+          revenue_generated?: number | null
+          tasks_completed?: number | null
+          team?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bot_logs: {
+        Row: {
+          action: string
+          action_type: string
+          bot_id: string
+          bot_name: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          revenue_impact: number | null
+          status: string
+          team: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          action_type: string
+          bot_id: string
+          bot_name: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          revenue_impact?: number | null
+          status?: string
+          team: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          action_type?: string
+          bot_id?: string
+          bot_name?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          revenue_impact?: number | null
+          status?: string
+          team?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bot_team_metrics: {
+        Row: {
+          active_bots: number | null
+          created_at: string
+          hourly_metrics: Json | null
+          id: string
+          metric_date: string
+          success_rate: number | null
+          tasks_completed: number | null
+          team: string
+          total_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_bots?: number | null
+          created_at?: string
+          hourly_metrics?: Json | null
+          id?: string
+          metric_date?: string
+          success_rate?: number | null
+          tasks_completed?: number | null
+          team: string
+          total_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_bots?: number | null
+          created_at?: string
+          hourly_metrics?: Json | null
+          id?: string
+          metric_date?: string
+          success_rate?: number | null
+          tasks_completed?: number | null
+          team?: string
+          total_revenue?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_integrations: {
         Row: {
           access_token_encrypted: string | null
