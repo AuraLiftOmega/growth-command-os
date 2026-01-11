@@ -20,27 +20,27 @@ const DID_SOURCE_IMAGES = {
   emma: "https://create-images-results.d-id.com/DefaultPresenters/emma_1.jpg",
 };
 
-// 5 Creative concepts for Radiance Vitamin C Serum
+// 5 Creative concepts for Vitamin C Serum - DYNAMIC (no hardcoded store names)
 const VITAMIN_C_CREATIVES = [
   {
     name: "POV Glow Up",
-    script: "POV: You finally found the serum that actually works. Radiance Vitamin C Serum brightens your skin, fades dark spots, and gives you that glow everyone asks about. Shop AuraLift Essentials now!",
+    script: "POV: You finally found the serum that actually works. Radiance Vitamin C Serum brightens your skin, fades dark spots, and gives you that glow everyone asks about. Link in bio!",
     emotion: "excited",
     avatar: "amy",
-    tiktok_caption: "POV: Your skin transformation starts TODAY ✨ #skincare #glowup #vitaminc #auralift",
+    tiktok_caption: "POV: Your skin transformation starts TODAY ✨ #skincare #glowup #vitaminc",
     pinterest_caption: "Radiance Vitamin C Serum - The secret to glowing, radiant skin. Brightens & fades dark spots naturally.",
   },
   {
     name: "Before After",
-    script: "I used to hide my skin. Dark spots, dullness, uneven tone. Then I discovered Radiance Vitamin C Serum from AuraLift. Four weeks later? My skin is literally glowing. Get yours at auraliftessentials.com!",
+    script: "I used to hide my skin. Dark spots, dullness, uneven tone. Then I discovered Radiance Vitamin C Serum. Four weeks later? My skin is literally glowing. Link in bio!",
     emotion: "calm",
     avatar: "anna",
-    tiktok_caption: "4 weeks with Vitamin C Serum 🧴✨ The glow up is REAL #beforeandafter #skincareroutine #auralift",
+    tiktok_caption: "4 weeks with Vitamin C Serum 🧴✨ The glow up is REAL #beforeandafter #skincareroutine",
     pinterest_caption: "Real Results: How Vitamin C Serum transformed my skin in just 4 weeks. Dark spots GONE.",
   },
   {
     name: "Aesthetic Routine",
-    script: "My morning skincare aesthetic. Cleanse, then three drops of Radiance Vitamin C Serum. Watch my skin drink it up. This is self care. This is AuraLift Essentials.",
+    script: "My morning skincare aesthetic. Cleanse, then three drops of Radiance Vitamin C Serum. Watch my skin drink it up. This is self care.",
     emotion: "calm",
     avatar: "emma",
     tiktok_caption: "That satisfying morning routine 🌅 #aesthetic #skincaretiktok #morningroutine #vitaminc",
@@ -51,16 +51,16 @@ const VITAMIN_C_CREATIVES = [
     script: "Get ready with me! First, my holy grail - Radiance Vitamin C Serum. It's packed with pure vitamin C and hyaluronic acid. Perfect for that dewy base before makeup. Link in bio!",
     emotion: "excited",
     avatar: "amy",
-    tiktok_caption: "GRWM but first skincare 💕 This serum is everything #grwm #skincarefirst #makeupprep #auralift",
+    tiktok_caption: "GRWM but first skincare 💕 This serum is everything #grwm #skincarefirst #makeupprep",
     pinterest_caption: "GRWM: Perfect Skincare Base Before Makeup | Vitamin C Serum Routine | Dewy Skin Tips",
   },
   {
     name: "Unboxing Reveal",
-    script: "It's here! My AuraLift Essentials order just arrived. Let me show you this beautiful packaging. And THIS is the Radiance Vitamin C Serum everyone's obsessed with. The texture is amazing. Shop now!",
+    script: "It's here! My skincare order just arrived. Let me show you this beautiful packaging. And THIS is the Radiance Vitamin C Serum everyone's obsessed with. The texture is amazing. Shop now!",
     emotion: "excited",
     avatar: "anna",
-    tiktok_caption: "Unboxing the viral Vitamin C Serum 📦✨ #unboxing #skincarehaul #auralift #tiktokmademebuyit",
-    pinterest_caption: "Unboxing AuraLift Essentials | Premium Vitamin C Serum | Luxury Skincare Haul",
+    tiktok_caption: "Unboxing the viral Vitamin C Serum 📦✨ #unboxing #skincarehaul #tiktokmademebuyit",
+    pinterest_caption: "Unboxing Premium Vitamin C Serum | Luxury Skincare Haul",
   },
 ];
 

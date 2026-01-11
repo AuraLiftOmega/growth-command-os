@@ -3,10 +3,9 @@
  * 
  * FULLY REAL & FUNCTIONAL Pinterest posting:
  * - Real v5 API video pin creation
- * - Omega-optimized captions & hashtags
- * - Product tags with links to auraliftessentials.com
- * - Board targeting: "AuraLift Skincare Favorites"
- * - Rich Pins for products with Shopify links
+ * - Dynamic per-user store domains (no hardcoded stores)
+ * - Board targeting configurable per request
+ * - Rich Pins for products with dynamic Shopify links
  * - Analytics tracking
  * - NO TEST MODE - Production only
  */

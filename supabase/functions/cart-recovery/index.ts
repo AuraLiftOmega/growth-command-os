@@ -175,7 +175,9 @@ serve(async (req: Request) => {
           // Send SMS via Twilio
           const twilioNumber = Deno.env.get('TWILIO_PHONE_NUMBER') || '+15551234567';
           
-          const smsBody = `✨ Hey! Your AuraLift cart ($${cart.cart_total}) is waiting. ${discount_code ? `Use ${discount_code} for 10% off! ` : ''}Complete your glow routine: auraliftessentials.com/checkout`;
+          // Dynamic store URL - uses user's connected store domain
+          const storeDomain = cart.metadata?.store_domain || 'your-store';
+          const smsBody = `✨ Hey! Your cart ($${cart.cart_total}) is waiting. ${discount_code ? `Use ${discount_code} for 10% off! ` : ''}Complete your order: ${storeDomain}/checkout`;
 
           const formData = new URLSearchParams();
           formData.append('To', cart.customer_phone);

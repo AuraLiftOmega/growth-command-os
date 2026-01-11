@@ -76,16 +76,16 @@ function generateViralVariations(productName: string, storeUrl?: string) {
 // Legacy constant for backwards compatibility
 const VIRAL_AD_VARIATIONS = generateViralVariations("Premium Product");
 
-// Optimized captions with trending elements
+// Optimized captions with trending elements - DYNAMIC (no hardcoded store names)
 const OMEGA_OPTIMIZED_CAPTIONS = {
   tiktok: {
     "pov-glow-up": "POV: You finally found THE serum 🍊✨ #GlowUp #Skincare #VitaminC #FYP",
-    "before-after": "My skin BEFORE vs AFTER 😱 The glow is REAL #Transformation #Skincare #AuraLift",
+    "before-after": "My skin BEFORE vs AFTER 😱 The glow is REAL #Transformation #Skincare",
     "grwm": "GRWM: morning skincare edition 🧴💆‍♀️ This serum hits different #GRWM #Skincare"
   },
   pinterest: {
-    "aesthetic-routine": "Aesthetic Morning Skincare Routine | Vitamin C Serum for Radiant Glow | AuraLift Essentials",
-    "unboxing-reveal": "Unboxing: Radiance Vitamin C Serum | Luxury Skincare | Glass Skin Goals | Shop AuraLift"
+    "aesthetic-routine": "Aesthetic Morning Skincare Routine | Vitamin C Serum for Radiant Glow",
+    "unboxing-reveal": "Unboxing: Radiance Vitamin C Serum | Luxury Skincare | Glass Skin Goals"
   }
 };
 

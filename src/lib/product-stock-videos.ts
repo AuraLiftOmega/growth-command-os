@@ -258,7 +258,7 @@ export function getProductStaticImage(productHandle: string): string {
 export const PINTEREST_CAPTIONS: Record<string, { title: string; description: string; hashtags: string[] }> = {
   'radiance-vitamin-c-serum': {
     title: 'Radiance Vitamin C Serum – Brighten & Glow ✨',
-    description: 'Transform your skin with pure Vitamin C power. Fights dark spots, boosts radiance, and gives you that coveted glow in weeks. Premium skincare from AuraLift Essentials.',
+    description: 'Transform your skin with pure Vitamin C power. Fights dark spots, boosts radiance, and gives you that coveted glow in weeks.',
     hashtags: ['#VitaminCSerum', '#Skincare', '#GlowUp', '#BrighteningSkincare', '#SkincareRoutine', '#CleanBeauty']
   },
   'hydra-glow-retinol-night-cream': {
@@ -273,7 +273,7 @@ export const PINTEREST_CAPTIONS: Record<string, { title: string; description: st
   },
   'omega-glow-collagen-peptide-moisturizer': {
     title: 'Omega Glow Collagen Peptide Moisturizer ✨',
-    description: 'Boost your skin\'s natural collagen production. This peptide-rich moisturizer firms, lifts, and restores youthful elasticity. Premium anti-aging care from AuraLift.',
+    description: 'Boost your skin\'s natural collagen production. This peptide-rich moisturizer firms, lifts, and restores youthful elasticity.',
     hashtags: ['#CollagenBoost', '#PeptideSkincare', '#AntiAging', '#Moisturizer', '#SkincareLuxury', '#YouthfulSkin']
   },
   'luxe-rose-quartz-face-roller-set': {
