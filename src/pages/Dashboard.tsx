@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 // Lazy load heavy dashboards for better performance
 const ElevenLabsDashboard = lazy(() => import("@/pages/ElevenLabsDashboard"));
 const RevenueEngine = lazy(() => import("@/pages/RevenueEngine"));
+const IntegrationsPage = lazy(() => import("@/pages/Integrations"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
@@ -37,7 +38,14 @@ const Dashboard = () => {
         <Route path="social/*" element={<SocialChannelsDashboard />} />
         <Route path="social-channels/*" element={<SocialChannelsDashboard />} />
         <Route path="analytics" element={<SalesAnalyticsPanel />} />
-        <Route path="integrations" element={<IntegrationsHub />} />
+        <Route 
+          path="integrations" 
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <IntegrationsPage />
+            </Suspense>
+          } 
+        />
         <Route path="profit-engine" element={<LiveProfitEngine />} />
         <Route path="emerging-layer" element={<EmergingLayerDashboard />} />
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
