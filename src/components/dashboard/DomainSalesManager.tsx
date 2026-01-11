@@ -28,40 +28,62 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Domain portfolio - Unstoppable domains
+// REAL Domain Portfolio - User's Unstoppable Domains
+// Excludes: auraliftessentials.com, profitreaper.com, omegaalpha.io (kept for primary use)
 const DOMAIN_PORTFOLIO = [
-  // Vegas/Casino Pack - $1,000 bundle
-  { name: "vegaselite.crypto", category: "Vegas/Casino", price: 200, bundle: "Vegas Casino Pack", status: "available" },
-  { name: "vegashigh.crypto", category: "Vegas/Casino", price: 150, bundle: "Vegas Casino Pack", status: "available" },
-  { name: "vegasultimate.crypto", category: "Vegas/Casino", price: 175, bundle: "Vegas Casino Pack", status: "available" },
-  { name: "casinopremium.nft", category: "Vegas/Casino", price: 200, bundle: "Vegas Casino Pack", status: "available" },
-  { name: "lasvegasvip.wallet", category: "Vegas/Casino", price: 150, bundle: "Vegas Casino Pack", status: "available" },
+  // Vegas Casino Pack - Caesars/Palace Variants (16 domains) - $1,000 bundle
+  { name: "caeserspalace.nft", category: "Vegas/Casino", price: 150, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caeserspalace.crypto", category: "Vegas/Casino", price: 125, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caeserspalace.dao", category: "Vegas/Casino", price: 100, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caeserspalace.wallet", category: "Vegas/Casino", price: 75, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caeserspalace.x", category: "Vegas/Casino", price: 100, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceaserspalace.nft", category: "Vegas/Casino", price: 125, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceaserspalace.crypto", category: "Vegas/Casino", price: 100, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceaserspalace.dao", category: "Vegas/Casino", price: 75, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceaserspalace.wallet", category: "Vegas/Casino", price: 50, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceaserspalace.x", category: "Vegas/Casino", price: 75, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caesers.nft", category: "Vegas/Casino", price: 100, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caesers.crypto", category: "Vegas/Casino", price: 75, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "caesers.dao", category: "Vegas/Casino", price: 50, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceasers.nft", category: "Vegas/Casino", price: 75, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceasers.crypto", category: "Vegas/Casino", price: 50, bundle: "Vegas Casino Pack", status: "available" },
+  { name: "ceasers.dao", category: "Vegas/Casino", price: 50, bundle: "Vegas Casino Pack", status: "available" },
   
-  // Yacht/Luxury Pack - $800 bundle
-  { name: "yachtclub.crypto", category: "Yacht/Luxury", price: 250, bundle: "Yacht Luxury Pack", status: "available" },
-  { name: "yachtlife.nft", category: "Yacht/Luxury", price: 175, bundle: "Yacht Luxury Pack", status: "available" },
-  { name: "luxuryyacht.wallet", category: "Yacht/Luxury", price: 200, bundle: "Yacht Luxury Pack", status: "available" },
+  // Vegas Events Pack (7 domains) - $500 bundle
+  { name: "lasvegasevents.nft", category: "Vegas/Events", price: 100, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.crypto", category: "Vegas/Events", price: 75, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.dao", category: "Vegas/Events", price: 50, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.wallet", category: "Vegas/Events", price: 50, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.x", category: "Vegas/Events", price: 75, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.blockchain", category: "Vegas/Events", price: 50, bundle: "Vegas Events Pack", status: "available" },
+  { name: "lasvegasevents.888", category: "Vegas/Events", price: 50, bundle: "Vegas Events Pack", status: "available" },
   
-  // Tech/Web3 Pack - $600 bundle
-  { name: "metaverse.dao", category: "Tech/Web3", price: 300, bundle: "Tech Web3 Pack", status: "available" },
-  { name: "defiking.crypto", category: "Tech/Web3", price: 200, bundle: "Tech Web3 Pack", status: "available" },
-  { name: "nftwhale.wallet", category: "Tech/Web3", price: 150, bundle: "Tech Web3 Pack", status: "available" },
+  // NFT Legends Pack (9 domains) - $800 bundle
+  { name: "legendsofnfts.nft", category: "NFT/Web3", price: 150, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.crypto", category: "NFT/Web3", price: 100, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.dao", category: "NFT/Web3", price: 75, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.wallet", category: "NFT/Web3", price: 50, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.x", category: "NFT/Web3", price: 100, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.blockchain", category: "NFT/Web3", price: 75, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.888", category: "NFT/Web3", price: 50, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.zil", category: "NFT/Web3", price: 50, bundle: "NFT Legends Pack", status: "available" },
+  { name: "legendsofnfts.polygon", category: "NFT/Web3", price: 75, bundle: "NFT Legends Pack", status: "available" },
   
-  // Business Premium Pack - $500 bundle
-  { name: "ceopro.crypto", category: "Business", price: 175, bundle: "Business Premium Pack", status: "available" },
-  { name: "bizempire.nft", category: "Business", price: 150, bundle: "Business Premium Pack", status: "available" },
-  { name: "startupking.wallet", category: "Business", price: 125, bundle: "Business Premium Pack", status: "available" },
+  // Luxury Pack (4 domains) - $400 bundle
+  { name: "luxuryvehiclerental.crypto", category: "Luxury", price: 150, bundle: "Luxury Pack", status: "available" },
+  { name: "yachtcruise.crypto", category: "Luxury", price: 100, bundle: "Luxury Pack", status: "available" },
+  { name: "yachtpartybookings.crypto", category: "Luxury", price: 100, bundle: "Luxury Pack", status: "available" },
+  { name: "bookyourreservation.crypto", category: "Luxury", price: 50, bundle: "Luxury Pack", status: "available" },
   
-  // Standalone Premium
-  { name: "cryptobillionaire.nft", category: "Premium", price: 500, bundle: null, status: "available" },
-  { name: "diamondhands.crypto", category: "Premium", price: 350, bundle: null, status: "available" },
+  // Standalone
+  { name: "oxygenlounge.crypto", category: "Lifestyle", price: 75, bundle: null, status: "available" },
 ];
 
 const BUNDLES = [
-  { name: "Vegas Casino Pack", price: 1000, discount: "40% OFF", domains: 5, targetBuyers: ["Caesars", "MGM", "Wynn Resorts", "Casino Operators"] },
-  { name: "Yacht Luxury Pack", price: 800, discount: "35% OFF", domains: 3, targetBuyers: ["Yacht Clubs", "Luxury Brands", "Marine Industry"] },
-  { name: "Tech Web3 Pack", price: 600, discount: "30% OFF", domains: 3, targetBuyers: ["DAOs", "DeFi Projects", "NFT Influencers"] },
-  { name: "Business Premium Pack", price: 500, discount: "25% OFF", domains: 3, targetBuyers: ["Startups", "VCs", "Enterprise"] },
+  { name: "Vegas Casino Pack", price: 1000, discount: "50% OFF", domains: 16, targetBuyers: ["Caesars Entertainment", "MGM Resorts", "Wynn Las Vegas", "Dubai Casinos", "@CaesarsEnt", "@MGMResortsIntl"] },
+  { name: "Vegas Events Pack", price: 500, discount: "40% OFF", domains: 7, targetBuyers: ["Event Planners", "Vegas Conferences", "Crypto Events", "Trade Shows"] },
+  { name: "NFT Legends Pack", price: 800, discount: "45% OFF", domains: 9, targetBuyers: ["NFT Projects", "OpenSea Whales", "DAO Communities", "Web3 Influencers"] },
+  { name: "Luxury Pack", price: 400, discount: "35% OFF", domains: 4, targetBuyers: ["Yacht Clubs", "@VenturaYachts", "Luxury Rentals", "Travel Agencies"] },
 ];
 
 export function DomainSalesManager() {
@@ -71,8 +93,9 @@ export function DomainSalesManager() {
   const [generatedThread, setGeneratedThread] = useState("");
   const [generatedDMs, setGeneratedDMs] = useState<{target: string, message: string}[]>([]);
   const [leads, setLeads] = useState<{domain: string, buyer: string, offer: number, status: string}[]>([
-    { domain: "vegaselite.crypto", buyer: "@CryptoWhale_Vegas", offer: 180, status: "pending" },
-    { domain: "yachtclub.crypto", buyer: "@LuxuryNFTCollector", offer: 225, status: "negotiating" },
+    { domain: "caeserspalace.nft", buyer: "@CaesarsEnt", offer: 300, status: "pending" },
+    { domain: "legendsofnfts.nft", buyer: "@NFTWhale_Collector", offer: 120, status: "negotiating" },
+    { domain: "yachtcruise.crypto", buyer: "@VenturaYachts", offer: 85, status: "pending" },
   ]);
 
   const toggleDomain = (name: string) => {
@@ -101,104 +124,107 @@ export function DomainSalesManager() {
   };
 
   const generateXThread = () => {
-    const thread = `🧵 THREAD: Premium Web3 Domains FOR SALE 🔥
+    const thread = `🧵 THREAD: 36 Premium Unstoppable Domains FOR SALE 🔥
 
-1/ 🎰 Vegas Casino Pack — $1,000 OBO
-• vegaselite.crypto
-• vegashigh.crypto  
-• casinopremium.nft
-Perfect for Caesars, MGM, or any casino brand going Web3
+1/ 🎰 VEGAS CASINO PACK — $1,000 OBO (16 domains!)
+• caeserspalace.nft, caeserspalace.crypto, caeserspalace.dao
+• ceaserspalace.nft, ceaserspalace.crypto, ceaserspalace.dao
+• Plus 10 more variants!
+Perfect for @CaesarsEnt, @MGMResortsIntl, or any casino going Web3!
 
-2/ 🛥️ Yacht Luxury Pack — $800 OBO
-• yachtclub.crypto
-• yachtlife.nft
-• luxuryyacht.wallet
-Ideal for yacht clubs, marine brands, luxury lifestyle
+2/ 🎪 VEGAS EVENTS PACK — $500 OBO (7 domains)
+• lasvegasevents.nft
+• lasvegasevents.crypto
+• lasvegasevents.dao, .wallet, .x, .blockchain, .888
+Ideal for crypto conferences, Vegas trade shows, event planners
 
-3/ 🚀 Tech/Web3 Pack — $600 OBO
-• metaverse.dao
-• defiking.crypto
-• nftwhale.wallet
-Built for DAOs, DeFi protocols, NFT whales
+3/ 🖼️ NFT LEGENDS PACK — $800 OBO (9 domains)
+• legendsofnfts.nft
+• legendsofnfts.crypto, .dao, .wallet
+• legendsofnfts.x, .blockchain, .polygon
+Built for NFT projects, OpenSea whales, DAO communities
 
-4/ 💼 Business Premium Pack — $500 OBO
-• ceopro.crypto
-• bizempire.nft
-Perfect for entrepreneurs, VCs, startups
+4/ 🛥️ LUXURY PACK — $400 OBO (4 domains)
+• luxuryvehiclerental.crypto
+• yachtcruise.crypto
+• yachtpartybookings.crypto
+• bookyourreservation.crypto
+Perfect for @VenturaYachts, yacht clubs, luxury rentals
 
-5/ 💎 Standalone Premium Domains:
-• cryptobillionaire.nft — $500
-• diamondhands.crypto — $350
+5/ 💎 STANDALONE:
+• oxygenlounge.crypto — $75
 
-DM for bundles, bulk deals, or OBO offers 🤝
+💰 TOTAL BUNDLE: All 36 domains for $2,500 OBO (Save $500+!)
 
-All domains on @UnstoppableWeb marketplace
-Links in bio | Serious buyers only 🔒
+All on @UnstoppableWeb marketplace with escrow
+DM for deals! Serious buyers only 🔒
 
-#Web3Domains #NFTDomains #Crypto #Unstoppable`;
+#Web3Domains #NFT #UnstoppableDomains #VegasCrypto #CaesarsPalace`;
 
     setGeneratedThread(thread);
-    toast.success("X Thread generated!");
+    toast.success("X Thread generated with REAL domains!");
   };
 
   const generateDMTemplates = () => {
     const templates = [
       {
-        target: "Caesars Entertainment / MGM",
+        target: "@CaesarsEnt / @aneeshgera (Caesars Dubai)",
         message: `Hi! 👋
 
-I own vegaselite.crypto, vegashigh.crypto & casinopremium.nft — premium Web3 domains perfect for Vegas casino brands.
+I own caeserspalace.nft, caeserspalace.crypto, ceaserspalace.dao + 13 more Caesars-themed Unstoppable Domains.
 
-Full Vegas Casino Pack: $1,000 OBO (5 domains)
+Full Vegas Casino Pack: $1,000 OBO (16 domains)
 
-These give your brand instant Web3 credibility + human-readable wallet addresses for crypto payments.
+Perfect for Caesars Entertainment's Web3 expansion — human-readable wallet addresses for crypto payments + brand protection.
 
-Interested in the bundle or individual domains? Happy to discuss!`
+Interested in the bundle or individual domains? DM me!`
       },
       {
-        target: "Yacht Club / Marine Brands",
+        target: "@MGMResortsIntl / Vegas Events",
+        message: `Hi! 🎪
+
+Premium Vegas Events Web3 domains available:
+• lasvegasevents.nft
+• lasvegasevents.crypto
+• lasvegasevents.dao, .wallet, .x, .blockchain, .888
+
+Vegas Events Pack: $500 OBO (7 domains)
+
+Perfect for MGM's crypto conferences, trade shows, or event marketing. Escrow on Unstoppable Marketplace.
+
+DM if interested!`
+      },
+      {
+        target: "NFT Whales / OpenSea Collectors",
+        message: `GM! 🖼️
+
+Selling the Legends of NFTs collection:
+• legendsofnfts.nft — flagship
+• legendsofnfts.crypto, .dao, .wallet
+• legendsofnfts.x, .blockchain, .polygon
+
+NFT Legends Pack: $800 OBO (9 domains)
+
+Perfect for NFT projects, collector communities, or DAO branding. Let me know if you want to make an offer!`
+      },
+      {
+        target: "@VenturaYachts / Luxury Brands",
         message: `Hi! 🛥️
 
-Premium yacht/luxury Web3 domains available:
-• yachtclub.crypto
-• yachtlife.nft
-• luxuryyacht.wallet
+Premium luxury Web3 domains:
+• luxuryvehiclerental.crypto — $150
+• yachtcruise.crypto — $100
+• yachtpartybookings.crypto — $100
+• bookyourreservation.crypto — $50
 
-Full Yacht Pack: $800 OBO
+Luxury Pack Bundle: $400 OBO (4 domains)
 
-Perfect for yacht clubs, marine brands, or luxury lifestyle companies entering Web3.
-
-DM if interested — serious offers only!`
-      },
-      {
-        target: "NFT Influencers / DAOs",
-        message: `Hey! 🚀
-
-Selling premium Web3 domains:
-• metaverse.dao — Perfect for DAOs
-• defiking.crypto — DeFi protocols
-• nftwhale.wallet — NFT collectors
-
-Tech Pack Bundle: $600 OBO
-
-These are rare, brandable domains. Let me know if you want to make an offer!`
-      },
-      {
-        target: "Crypto Twitter Whales",
-        message: `GM! 💎
-
-Premium domains available:
-• cryptobillionaire.nft — $500
-• diamondhands.crypto — $350
-
-Or grab a full bundle (Vegas, Yacht, Tech, or Business pack).
-
-All on @UnstoppableWeb marketplace. DM for deals!`
+Ideal for yacht clubs, luxury rentals, or travel agencies entering Web3. Escrow included!`
       }
     ];
 
     setGeneratedDMs(templates);
-    toast.success("DM templates generated!");
+    toast.success("DM templates generated for REAL buyers!");
   };
 
   const copyToClipboard = (text: string) => {
