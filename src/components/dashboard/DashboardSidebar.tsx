@@ -19,6 +19,7 @@ import {
   Package,
   Truck,
   Users,
+  Rocket,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +58,12 @@ const mainNavItems = [
     icon: Home,
     path: "/dashboard",
     badge: null,
+  },
+  {
+    title: "Revenue Engine",
+    icon: Rocket,
+    path: "/dashboard/revenue-engine",
+    badge: "💰",
   },
   {
     title: "Products",
