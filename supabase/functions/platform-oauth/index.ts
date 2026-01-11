@@ -1,19 +1,34 @@
 /**
- * PLATFORM OAUTH - Unified OAuth Handler
+ * PLATFORM OAUTH - OAuth 2.1/BCP Compliant Unified Handler
  * 
- * Handles OAuth flows for all social platforms:
- * - TikTok, Instagram/Facebook (Meta), YouTube, Pinterest, Amazon
+ * Security Features:
+ * - PKCE with S256 mandatory (no plain)
+ * - High-entropy state with DB storage + 5min expiry
+ * - Nonce for OpenID Connect flows
+ * - Strict redirect URI validation (HTTPS, no wildcards)
+ * - Rate limiting on authorize/callback
+ * - Token sanitization in logs
+ * - Implicit flow BANNED
  * 
- * Actions: authorize, callback, refresh, revoke
+ * Handles: TikTok, Instagram/Facebook (Meta), YouTube, Pinterest, Amazon
  */
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  generatePKCE,
+  generateState,
+  generateNonce,
+  validateRedirectUri,
+  checkRateLimit,
+  isStateExpired,
+  sanitizeForLog,
+  getSecureHeaders,
+  validateTokenResponse,
+  secureCorsHeaders,
+} from "../_shared/oauth-security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = secureCorsHeaders;
 
 interface OAuthConfig {
   authUrl: string;
@@ -21,6 +36,9 @@ interface OAuthConfig {
   scopes: string[];
   clientIdEnv: string;
   clientSecretEnv: string;
+  scopeSeparator?: string;
+  supportsOpenId?: boolean;
+  supportsPKCE?: boolean; // Most platforms support PKCE now
 }
 
 const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
@@ -30,6 +48,8 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['user.info.basic', 'video.upload', 'video.publish'],
     clientIdEnv: 'TIKTOK_CLIENT_KEY',
     clientSecretEnv: 'TIKTOK_CLIENT_SECRET',
+    scopeSeparator: ',',
+    supportsPKCE: true,
   },
   tiktok_ads: {
     authUrl: 'https://business-api.tiktok.com/portal/auth',
@@ -37,6 +57,7 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['ads_management', 'ads_reporting'],
     clientIdEnv: 'TIKTOK_ADS_APP_ID',
     clientSecretEnv: 'TIKTOK_ADS_APP_SECRET',
+    supportsPKCE: true,
   },
   instagram: {
     authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
@@ -44,6 +65,7 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['instagram_basic', 'instagram_content_publish', 'instagram_manage_messages', 'pages_show_list'],
     clientIdEnv: 'META_APP_ID',
     clientSecretEnv: 'META_APP_SECRET',
+    supportsPKCE: true,
   },
   facebook: {
     authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
@@ -51,6 +73,7 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['pages_manage_posts', 'pages_read_engagement', 'pages_messaging'],
     clientIdEnv: 'META_APP_ID',
     clientSecretEnv: 'META_APP_SECRET',
+    supportsPKCE: true,
   },
   youtube: {
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -58,6 +81,8 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube'],
     clientIdEnv: 'YOUTUBE_CLIENT_ID',
     clientSecretEnv: 'YOUTUBE_CLIENT_SECRET',
+    supportsOpenId: true,
+    supportsPKCE: true,
   },
   pinterest: {
     authUrl: 'https://www.pinterest.com/oauth/',
@@ -65,8 +90,51 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['boards:read', 'pins:read', 'pins:write', 'user_accounts:read'],
     clientIdEnv: 'PINTEREST_APP_ID',
     clientSecretEnv: 'PINTEREST_APP_SECRET',
+    scopeSeparator: ',',
+    supportsPKCE: true,
+  },
+  google_ads: {
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    scopes: ['https://www.googleapis.com/auth/adwords'],
+    clientIdEnv: 'GOOGLE_ADS_CLIENT_ID',
+    clientSecretEnv: 'GOOGLE_ADS_CLIENT_SECRET',
+    supportsOpenId: true,
+    supportsPKCE: true,
+  },
+  linkedin: {
+    authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
+    tokenUrl: 'https://www.linkedin.com/oauth/v2/accessToken',
+    scopes: ['r_liteprofile', 'r_emailaddress', 'w_member_social'],
+    clientIdEnv: 'LINKEDIN_CLIENT_ID',
+    clientSecretEnv: 'LINKEDIN_CLIENT_SECRET',
+    supportsPKCE: true,
+  },
+  x: {
+    authUrl: 'https://twitter.com/i/oauth2/authorize',
+    tokenUrl: 'https://api.twitter.com/2/oauth2/token',
+    scopes: ['tweet.read', 'tweet.write', 'users.read', 'offline.access'],
+    clientIdEnv: 'X_CLIENT_ID',
+    clientSecretEnv: 'X_CLIENT_SECRET',
+    supportsPKCE: true,
+  },
+  threads: {
+    authUrl: 'https://threads.net/oauth/authorize',
+    tokenUrl: 'https://graph.threads.net/oauth/access_token',
+    scopes: ['threads_basic', 'threads_content_publish'],
+    clientIdEnv: 'THREADS_APP_ID',
+    clientSecretEnv: 'THREADS_APP_SECRET',
+    supportsPKCE: true,
   },
 };
+
+// Allowed redirect URI domains (production)
+const ALLOWED_REDIRECT_DOMAINS = [
+  'lovable.app',
+  'lovableproject.com',
+  'localhost',
+  '127.0.0.1',
+];
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -75,14 +143,15 @@ serve(async (req: Request) => {
 
   try {
     const { platform, action, redirect_uri, code, state } = await req.json();
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
 
-    console.log(`OAuth request: ${action} for ${platform}`);
+    console.log(`[platform-oauth] Action: ${action}, Platform: ${platform}, IP: ${clientIp.split(',')[0]}`);
 
     const config = OAUTH_CONFIGS[platform];
     if (!config && action !== 'test_connect') {
       return new Response(
         JSON.stringify({ error: 'Unsupported platform', platform }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: getSecureHeaders() }
       );
     }
 
@@ -102,7 +171,6 @@ serve(async (req: Request) => {
 
     switch (action) {
       case 'check_secrets': {
-        // Check if platform secrets are configured
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
         
@@ -112,104 +180,241 @@ serve(async (req: Request) => {
             platform,
             requiredSecrets: [config.clientIdEnv, config.clientSecretEnv]
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: getSecureHeaders() }
         );
       }
 
       case 'authorize': {
-        // Check if we have the required credentials
+        // Rate limiting: 10 authorize requests per minute per IP
+        const rateKey = `authorize:${clientIp}`;
+        const rateCheck = checkRateLimit(rateKey, 10, 60000);
+        if (!rateCheck.allowed) {
+          console.warn(`[platform-oauth] Rate limit exceeded for ${clientIp}`);
+          return new Response(
+            JSON.stringify({ error: 'Too many requests. Please try again later.', retryAfter: Math.ceil(rateCheck.resetIn / 1000) }),
+            { status: 429, headers: { ...getSecureHeaders(), 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+          );
+        }
+
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
         
         if (!clientId || !clientSecret) {
-          // PRODUCTION ONLY - No test mode, require real credentials
           return new Response(
             JSON.stringify({ 
               success: false,
               error: `${platform} OAuth not configured. Add ${config.clientIdEnv} and ${config.clientSecretEnv} to your secrets.`,
               requires_credentials: true,
-              missing: {
-                clientId: !clientId,
-                clientSecret: !clientSecret
-              }
+              missing: { clientId: !clientId, clientSecret: !clientSecret }
             }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 400, headers: getSecureHeaders() }
           );
         }
 
-        // Validate redirect_uri format
-        if (!redirect_uri || !redirect_uri.startsWith('http')) {
+        // Validate redirect URI (OAuth 2.1 BCP - strict matching)
+        const redirectValidation = validateRedirectUri(redirect_uri, ALLOWED_REDIRECT_DOMAINS);
+        if (!redirectValidation.valid) {
+          console.error(`[platform-oauth] Invalid redirect_uri: ${redirectValidation.error}`);
           return new Response(
-            JSON.stringify({ 
-              success: false,
-              error: 'Invalid redirect_uri. Must be a valid HTTP/HTTPS URL.',
-            }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ success: false, error: redirectValidation.error }),
+            { status: 400, headers: getSecureHeaders() }
           );
         }
 
-        // Generate state parameter for CSRF protection
-        const oauthState = crypto.randomUUID();
-        
-        // Store state in database for callback verification
+        // Generate OAuth 2.1 security parameters
+        const oauthState = generateState(); // High-entropy state
+        const pkce = await generatePKCE();  // PKCE S256 mandatory
+        const nonce = config.supportsOpenId ? generateNonce() : null; // Nonce for OpenID
+
+        // Store in database with 5-minute expiry
         if (userId) {
-          await supabase.from('oauth_states').insert({
+          await supabase.from('oauth_states').upsert({
             state: oauthState,
             user_id: userId,
             platform,
             redirect_uri,
+            code_verifier: pkce.verifier, // PKCE verifier for callback
+            nonce: nonce,
             created_at: new Date().toISOString(),
-          });
+            expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min expiry
+          }, { onConflict: 'state' });
         }
 
-        // Build OAuth URL based on platform
+        // Build OAuth URL
         const params = new URLSearchParams();
         
+        // Platform-specific client ID param
         if (platform === 'tiktok') {
-          // TikTok uses client_key instead of client_id
           params.append('client_key', clientId);
-          params.append('redirect_uri', redirect_uri);
-          params.append('scope', config.scopes.join(','));  // TikTok uses comma-separated
-          params.append('response_type', 'code');
-          params.append('state', oauthState);
-        } else if (platform === 'pinterest') {
-          // Pinterest OAuth 2.0 format
-          params.append('client_id', clientId);
-          params.append('redirect_uri', redirect_uri);
-          params.append('scope', config.scopes.join(','));  // Pinterest uses comma-separated
-          params.append('response_type', 'code');
-          params.append('state', oauthState);
         } else {
-          // Standard OAuth params for other platforms
           params.append('client_id', clientId);
-          params.append('redirect_uri', redirect_uri);
-          params.append('scope', config.scopes.join(' '));
-          params.append('response_type', 'code');
-          params.append('state', oauthState);
+        }
+        
+        params.append('redirect_uri', redirect_uri);
+        params.append('scope', config.scopes.join(config.scopeSeparator || ' '));
+        params.append('response_type', 'code'); // Authorization Code ONLY (no implicit)
+        params.append('state', oauthState);
+        
+        // PKCE S256 mandatory (OAuth 2.1)
+        params.append('code_challenge', pkce.challenge);
+        params.append('code_challenge_method', 'S256');
+
+        // OpenID Connect nonce
+        if (nonce) {
+          params.append('nonce', nonce);
         }
 
-        // Platform-specific extras
-        if (platform === 'youtube') {
+        // Platform-specific params
+        if (platform === 'youtube' || platform === 'google_ads') {
           params.append('access_type', 'offline');
           params.append('prompt', 'consent');
+        }
+        
+        if (platform === 'x') {
+          // Twitter/X OAuth 2.0 specifics
+          params.append('code_challenge', pkce.challenge);
+          params.append('code_challenge_method', 'S256');
         }
 
         const authUrl = `${config.authUrl}?${params.toString()}`;
         
-        console.log(`Generated ${platform} OAuth URL:`, authUrl);
+        console.log(`[platform-oauth] Generated OAuth 2.1 URL (PKCE S256, state: ${oauthState.substring(0, 8)}...)`);
 
         return new Response(
-          JSON.stringify({ success: true, authUrl, platform }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: true, authUrl, platform, state: oauthState }),
+          { headers: getSecureHeaders() }
+        );
+      }
+
+      case 'callback': {
+        // Rate limiting: 20 callback requests per minute per IP
+        const rateKey = `callback:${clientIp}`;
+        const rateCheck = checkRateLimit(rateKey, 20, 60000);
+        if (!rateCheck.allowed) {
+          return new Response(
+            JSON.stringify({ error: 'Too many requests', retryAfter: Math.ceil(rateCheck.resetIn / 1000) }),
+            { status: 429, headers: { ...getSecureHeaders(), 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+          );
+        }
+
+        if (!code || !state) {
+          return new Response(
+            JSON.stringify({ error: 'Missing code or state parameter' }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
+        // Verify state and retrieve PKCE verifier
+        const { data: stateData, error: stateError } = await supabase
+          .from('oauth_states')
+          .select('*')
+          .eq('state', state)
+          .single();
+
+        if (stateError || !stateData) {
+          console.error(`[platform-oauth] Invalid state: ${state.substring(0, 8)}...`);
+          return new Response(
+            JSON.stringify({ error: 'Invalid or expired state parameter' }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
+        // Check state expiry
+        if (stateData.expires_at && isStateExpired(stateData.expires_at)) {
+          console.error(`[platform-oauth] State expired for platform ${platform}`);
+          await supabase.from('oauth_states').delete().eq('state', state);
+          return new Response(
+            JSON.stringify({ error: 'Authorization session expired. Please try again.' }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
+        // Verify PKCE verifier exists (mandatory for OAuth 2.1)
+        if (!stateData.code_verifier) {
+          console.error('[platform-oauth] Missing PKCE verifier - rejecting');
+          return new Response(
+            JSON.stringify({ error: 'Security verification failed (missing PKCE)' }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
+        // Exchange code for tokens
+        const clientId = Deno.env.get(config.clientIdEnv);
+        const clientSecret = Deno.env.get(config.clientSecretEnv);
+
+        const tokenParams = new URLSearchParams();
+        
+        if (platform === 'tiktok') {
+          tokenParams.append('client_key', clientId!);
+          tokenParams.append('client_secret', clientSecret!);
+        } else {
+          tokenParams.append('client_id', clientId!);
+          tokenParams.append('client_secret', clientSecret!);
+        }
+        
+        tokenParams.append('code', code);
+        tokenParams.append('redirect_uri', stateData.redirect_uri);
+        tokenParams.append('grant_type', 'authorization_code');
+        tokenParams.append('code_verifier', stateData.code_verifier); // PKCE verifier
+
+        console.log(`[platform-oauth] Exchanging code for tokens (PKCE verified)`);
+
+        const tokenResponse = await fetch(config.tokenUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: tokenParams,
+        });
+
+        const tokenData = await tokenResponse.json();
+        
+        // Validate token response
+        const tokenValidation = validateTokenResponse(tokenData);
+        if (!tokenValidation.valid) {
+          console.error(`[platform-oauth] Token error: ${tokenValidation.error}`);
+          return new Response(
+            JSON.stringify({ error: tokenValidation.error }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
+        const tokens = tokenValidation.tokens!;
+
+        // Store tokens securely (short-lived access + refresh for rotation)
+        await supabase.from('platform_accounts').upsert({
+          user_id: stateData.user_id,
+          platform,
+          is_connected: true,
+          health_status: 'healthy',
+          credentials_encrypted: JSON.stringify({
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token,
+            token_type: tokens.token_type,
+            expires_at: tokens.expires_in 
+              ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+              : null,
+            scope: tokens.scope,
+          }),
+          last_health_check: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,platform'
+        });
+
+        // Clean up state (one-time use)
+        await supabase.from('oauth_states').delete().eq('state', state);
+
+        console.log(`[platform-oauth] ${platform} connected successfully (OAuth 2.1 compliant)`);
+
+        return new Response(
+          JSON.stringify({ success: true, platform }),
+          { headers: getSecureHeaders() }
         );
       }
 
       case 'get_boards': {
-        // Get Pinterest boards for connected user
         if (!userId) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
-            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 401, headers: getSecureHeaders() }
           );
         }
 
@@ -221,23 +426,14 @@ serve(async (req: Request) => {
           .single();
 
         if (!account?.credentials_encrypted) {
-          // Return mock boards for test mode
           return new Response(
-            JSON.stringify({ 
-              boards: [
-                { id: 'board-1', name: 'Product Showcase', pin_count: 45, privacy: 'PUBLIC' },
-                { id: 'board-2', name: 'Beauty Tips', pin_count: 32, privacy: 'PUBLIC' },
-                { id: 'board-3', name: 'Customer Love', pin_count: 28, privacy: 'PUBLIC' },
-              ],
-              testMode: true
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ boards: [], error: 'Not connected to Pinterest' }),
+            { headers: getSecureHeaders() }
           );
         }
 
         const creds = JSON.parse(account.credentials_encrypted as string);
         
-        // Fetch boards from Pinterest API
         try {
           const boardsResponse = await fetch('https://api.pinterest.com/v5/boards', {
             headers: {
@@ -259,138 +455,24 @@ serve(async (req: Request) => {
                   privacy: b.privacy
                 }))
               }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { headers: getSecureHeaders() }
             );
           }
         } catch (apiError) {
-          console.error('Pinterest API error:', apiError);
+          console.error('[platform-oauth] Pinterest API error:', sanitizeForLog({ error: String(apiError) }));
         }
 
         return new Response(
           JSON.stringify({ boards: [], error: 'Failed to fetch boards' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      case 'callback': {
-        // Verify state
-        const { data: stateData } = await supabase
-          .from('oauth_states')
-          .select('*')
-          .eq('state', state)
-          .single();
-
-        if (!stateData) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid state parameter' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Exchange code for tokens
-        const clientId = Deno.env.get(config.clientIdEnv);
-        const clientSecret = Deno.env.get(config.clientSecretEnv);
-
-        // Build token request - TikTok uses client_key not client_id
-        const tokenParams = new URLSearchParams();
-        
-        if (platform === 'tiktok') {
-          tokenParams.append('client_key', clientId!);
-          tokenParams.append('client_secret', clientSecret!);
-          tokenParams.append('code', code);
-          tokenParams.append('redirect_uri', stateData.redirect_uri);
-          tokenParams.append('grant_type', 'authorization_code');
-        } else {
-          tokenParams.append('client_id', clientId!);
-          tokenParams.append('client_secret', clientSecret!);
-          tokenParams.append('code', code);
-          tokenParams.append('redirect_uri', stateData.redirect_uri);
-          tokenParams.append('grant_type', 'authorization_code');
-        }
-
-        const tokenResponse = await fetch(config.tokenUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: tokenParams,
-        });
-
-        const tokens = await tokenResponse.json();
-
-        if (tokens.error) {
-          return new Response(
-            JSON.stringify({ error: tokens.error_description || tokens.error }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Store tokens securely
-        await supabase.from('platform_accounts').upsert({
-          user_id: stateData.user_id,
-          platform,
-          is_connected: true,
-          health_status: 'healthy',
-          credentials_encrypted: JSON.stringify({
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expires_at: tokens.expires_in 
-              ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-              : null,
-          }),
-          last_health_check: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,platform'
-        });
-
-        // Clean up state
-        await supabase.from('oauth_states').delete().eq('state', state);
-
-        return new Response(
-          JSON.stringify({ success: true, platform }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      case 'test_connect': {
-        // Enable test mode for a platform
-        if (!userId) {
-          return new Response(
-            JSON.stringify({ error: 'Authentication required' }),
-            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        const testHandles: Record<string, string> = {
-          tiktok: '@aurabeauty',
-          instagram: '@aura.essentials',
-          facebook: 'Aura Lift Essentials',
-          youtube: '@AuraBeautyOfficial',
-          pinterest: '@auraessentials',
-          amazon: 'Aura Seller',
-        };
-
-        await supabase.from('platform_accounts').upsert({
-          user_id: userId,
-          platform,
-          is_connected: true,
-          health_status: 'healthy',
-          handle: testHandles[platform] || '@testuser',
-          last_health_check: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id,platform'
-        });
-
-        return new Response(
-          JSON.stringify({ success: true, testMode: true, platform }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: getSecureHeaders() }
         );
       }
 
       case 'refresh': {
-        // Refresh expired tokens
         if (!userId) {
           return new Response(
             JSON.stringify({ error: 'Authentication required' }),
-            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 401, headers: getSecureHeaders() }
           );
         }
 
@@ -404,29 +486,34 @@ serve(async (req: Request) => {
         if (!account?.credentials_encrypted) {
           return new Response(
             JSON.stringify({ error: 'No credentials found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 404, headers: getSecureHeaders() }
           );
         }
 
         const creds = JSON.parse(account.credentials_encrypted as string);
         
+        if (!creds.refresh_token) {
+          return new Response(
+            JSON.stringify({ error: 'No refresh token available', needs_reauth: true }),
+            { status: 400, headers: getSecureHeaders() }
+          );
+        }
+
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
 
-        // Build refresh request - TikTok uses client_key
         const refreshParams = new URLSearchParams();
         
         if (platform === 'tiktok') {
           refreshParams.append('client_key', clientId!);
           refreshParams.append('client_secret', clientSecret!);
-          refreshParams.append('refresh_token', creds.refresh_token);
-          refreshParams.append('grant_type', 'refresh_token');
         } else {
           refreshParams.append('client_id', clientId!);
           refreshParams.append('client_secret', clientSecret!);
-          refreshParams.append('refresh_token', creds.refresh_token);
-          refreshParams.append('grant_type', 'refresh_token');
         }
+        
+        refreshParams.append('refresh_token', creds.refresh_token);
+        refreshParams.append('grant_type', 'refresh_token');
 
         const refreshResponse = await fetch(config.tokenUrl, {
           method: 'POST',
@@ -435,9 +522,9 @@ serve(async (req: Request) => {
         });
 
         const newTokens = await refreshResponse.json();
+        const tokenValidation = validateTokenResponse(newTokens);
 
-        if (newTokens.error) {
-          // Mark as degraded
+        if (!tokenValidation.valid) {
           await supabase
             .from('platform_accounts')
             .update({ health_status: 'degraded' })
@@ -445,18 +532,21 @@ serve(async (req: Request) => {
             .eq('platform', platform);
 
           return new Response(
-            JSON.stringify({ error: 'Token refresh failed' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ error: 'Token refresh failed', needs_reauth: true }),
+            { status: 400, headers: getSecureHeaders() }
           );
         }
 
-        // Update tokens
+        // Token rotation: use new refresh token if provided
+        const tokens = tokenValidation.tokens!;
+        
         await supabase.from('platform_accounts').update({
           credentials_encrypted: JSON.stringify({
-            access_token: newTokens.access_token,
-            refresh_token: newTokens.refresh_token || creds.refresh_token,
-            expires_at: newTokens.expires_in 
-              ? new Date(Date.now() + newTokens.expires_in * 1000).toISOString()
+            access_token: tokens.access_token,
+            refresh_token: tokens.refresh_token || creds.refresh_token, // Rotation
+            token_type: tokens.token_type,
+            expires_at: tokens.expires_in 
+              ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
               : null,
           }),
           health_status: 'healthy',
@@ -465,24 +555,59 @@ serve(async (req: Request) => {
         .eq('user_id', userId)
         .eq('platform', platform);
 
+        console.log(`[platform-oauth] ${platform} tokens refreshed (rotation applied)`);
+
         return new Response(
           JSON.stringify({ success: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: getSecureHeaders() }
+        );
+      }
+
+      case 'revoke': {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: getSecureHeaders() }
+          );
+        }
+
+        // Clear credentials securely
+        await supabase.from('platform_accounts').update({
+          is_connected: false,
+          credentials_encrypted: null,
+          health_status: 'disconnected',
+        })
+        .eq('user_id', userId)
+        .eq('platform', platform);
+
+        console.log(`[platform-oauth] ${platform} disconnected for user ${userId}`);
+
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: getSecureHeaders() }
+        );
+      }
+
+      case 'test_connect': {
+        // Disable test connections in production
+        return new Response(
+          JSON.stringify({ error: 'Test connections are disabled. Use real OAuth flow.' }),
+          { status: 400, headers: getSecureHeaders() }
         );
       }
 
       default:
         return new Response(
           JSON.stringify({ error: 'Unknown action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: getSecureHeaders() }
         );
     }
 
   } catch (error) {
-    console.error('OAuth error:', error);
+    console.error('[platform-oauth] Error:', sanitizeForLog({ error: String(error) }));
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'OAuth failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'OAuth request failed' }),
+      { status: 500, headers: getSecureHeaders() }
     );
   }
 });

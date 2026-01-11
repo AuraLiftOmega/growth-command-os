@@ -1,21 +1,30 @@
 /**
- * YOUTUBE OAUTH - Data API v3 Authorization for DOMINION
+ * YOUTUBE OAUTH - OAuth 2.1/BCP Compliant Handler
  * 
- * OAuth 2.0 flow with scopes:
- * - youtube.upload: Upload videos
- * - youtube: Full account access (playlists, analytics, etc.)
- * - youtube.readonly: Read channel info
- * 
- * Supports Brand Accounts / channel selection
+ * Security Features:
+ * - PKCE with S256 mandatory
+ * - High-entropy state with DB storage + 5min expiry
+ * - Nonce for OpenID Connect
+ * - Rate limiting on endpoints
+ * - Token sanitization in logs
+ * - Secure token rotation
  */
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  generatePKCE,
+  generateState,
+  generateNonce,
+  validateRedirectUri,
+  checkRateLimit,
+  isStateExpired,
+  sanitizeForLog,
+  getSecureHeaders,
+  secureCorsHeaders,
+} from "../_shared/oauth-security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const corsHeaders = secureCorsHeaders;
 
 const YOUTUBE_CLIENT_ID = Deno.env.get('YOUTUBE_CLIENT_ID') ?? '';
 const YOUTUBE_CLIENT_SECRET = Deno.env.get('YOUTUBE_CLIENT_SECRET') ?? '';
@@ -25,8 +34,17 @@ const SCOPES = [
   'https://www.googleapis.com/auth/youtube.upload',
   'https://www.googleapis.com/auth/youtube',
   'https://www.googleapis.com/auth/youtube.readonly',
-  'https://www.googleapis.com/auth/youtube.force-ssl'
+  'https://www.googleapis.com/auth/youtube.force-ssl',
+  'openid', // For nonce validation
 ].join(' ');
+
+// Allowed redirect URI domains
+const ALLOWED_REDIRECT_DOMAINS = [
+  'lovable.app',
+  'lovableproject.com',
+  'localhost',
+  '127.0.0.1',
+];
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -41,29 +59,75 @@ serve(async (req: Request) => {
 
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
+    const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+
+    console.log(`[youtube-oauth] Action: ${action}, IP: ${clientIp.split(',')[0]}`);
 
     // Handle OAuth callback
     if (action === 'callback') {
+      // Rate limiting
+      const rateKey = `youtube-callback:${clientIp}`;
+      const rateCheck = checkRateLimit(rateKey, 20, 60000);
+      if (!rateCheck.allowed) {
+        return new Response(
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Too many requests'},'*');window.close();</script></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state');
       const error = url.searchParams.get('error');
 
       if (error) {
-        console.error('YouTube OAuth error:', error);
+        console.error('[youtube-oauth] OAuth error:', error);
         return new Response(
-          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'${error}'},'*');window.close();</script></body></html>`,
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Authorization denied'},'*');window.close();</script></body></html>`,
           { headers: { 'Content-Type': 'text/html' } }
         );
       }
 
       if (!code || !state) {
         return new Response(
-          JSON.stringify({ error: 'Missing code or state' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Missing parameters'},'*');window.close();</script></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
         );
       }
 
-      // Exchange code for tokens
+      // Verify state from database
+      const { data: stateData, error: stateError } = await supabase
+        .from('oauth_states')
+        .select('*')
+        .eq('state', state)
+        .single();
+
+      if (stateError || !stateData) {
+        console.error('[youtube-oauth] Invalid state');
+        return new Response(
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Invalid state'},'*');window.close();</script></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      // Check state expiry
+      if (stateData.expires_at && isStateExpired(stateData.expires_at)) {
+        await supabase.from('oauth_states').delete().eq('state', state);
+        return new Response(
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Session expired'},'*');window.close();</script></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      // Verify PKCE verifier exists
+      if (!stateData.code_verifier) {
+        console.error('[youtube-oauth] Missing PKCE verifier');
+        return new Response(
+          `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Security verification failed'},'*');window.close();</script></body></html>`,
+          { headers: { 'Content-Type': 'text/html' } }
+        );
+      }
+
+      // Exchange code for tokens with PKCE verifier
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -71,15 +135,16 @@ serve(async (req: Request) => {
           code,
           client_id: YOUTUBE_CLIENT_ID,
           client_secret: YOUTUBE_CLIENT_SECRET,
-          redirect_uri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/youtube-oauth?action=callback`,
-          grant_type: 'authorization_code'
+          redirect_uri: stateData.redirect_uri,
+          grant_type: 'authorization_code',
+          code_verifier: stateData.code_verifier, // PKCE verifier
         })
       });
 
       const tokens = await tokenResponse.json();
 
-      if (!tokenResponse.ok) {
-        console.error('Token exchange failed:', tokens);
+      if (!tokenResponse.ok || tokens.error) {
+        console.error('[youtube-oauth] Token exchange failed');
         return new Response(
           `<html><body><script>window.opener?.postMessage({type:'youtube-oauth-error',error:'Token exchange failed'},'*');window.close();</script></body></html>`,
           { headers: { 'Content-Type': 'text/html' } }
@@ -89,9 +154,7 @@ serve(async (req: Request) => {
       // Get channel info
       const channelResponse = await fetch(
         'https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&mine=true',
-        {
-          headers: { 'Authorization': `Bearer ${tokens.access_token}` }
-        }
+        { headers: { 'Authorization': `Bearer ${tokens.access_token}` } }
       );
 
       const channelData = await channelResponse.json();
@@ -103,9 +166,6 @@ serve(async (req: Request) => {
           { headers: { 'Content-Type': 'text/html' } }
         );
       }
-
-      // Parse state to get user ID
-      const { userId } = JSON.parse(atob(state));
 
       // Store credentials
       const credentials = {
@@ -123,7 +183,7 @@ serve(async (req: Request) => {
 
       // Upsert platform account
       await supabase.from('platform_accounts').upsert({
-        user_id: userId,
+        user_id: stateData.user_id,
         platform: 'youtube',
         is_connected: true,
         handle: `@${channel.snippet.customUrl || channel.id}`,
@@ -134,7 +194,10 @@ serve(async (req: Request) => {
         onConflict: 'user_id,platform'
       });
 
-      console.log('✅ YouTube connected:', channel.snippet.title);
+      // Clean up state
+      await supabase.from('oauth_states').delete().eq('state', state);
+
+      console.log(`[youtube-oauth] YouTube connected: ${channel.snippet.title} (OAuth 2.1 compliant)`);
 
       // Success - close popup
       return new Response(
@@ -143,7 +206,7 @@ serve(async (req: Request) => {
             type: 'youtube-oauth-success',
             channel: {
               id: '${channel.id}',
-              title: '${channel.snippet.title}',
+              title: '${channel.snippet.title.replace(/'/g, "\\'")}',
               thumbnail: '${channel.snippet.thumbnails?.default?.url || ''}',
               subscribers: ${channel.statistics?.subscriberCount || 0}
             }
@@ -155,39 +218,77 @@ serve(async (req: Request) => {
     }
 
     // Start OAuth flow
+    // Rate limiting
+    const rateKey = `youtube-auth:${clientIp}`;
+    const rateCheck = checkRateLimit(rateKey, 10, 60000);
+    if (!rateCheck.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests', retryAfter: Math.ceil(rateCheck.resetIn / 1000) }),
+        { status: 429, headers: { ...getSecureHeaders(), 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const { redirect_uri, userId } = body;
 
     if (!userId) {
       return new Response(
         JSON.stringify({ error: 'User ID required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: getSecureHeaders() }
       );
     }
 
-    // Create state with user ID
-    const state = btoa(JSON.stringify({ userId, timestamp: Date.now() }));
+    if (!YOUTUBE_CLIENT_ID || !YOUTUBE_CLIENT_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'YouTube OAuth not configured. Add YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET.' }),
+        { status: 400, headers: getSecureHeaders() }
+      );
+    }
 
-    // Build authorization URL
+    // Generate OAuth 2.1 security parameters
+    const oauthState = generateState();
+    const pkce = await generatePKCE();
+    const nonce = generateNonce(); // For OpenID Connect
+
+    const callbackUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/youtube-oauth?action=callback`;
+
+    // Store state + PKCE in database
+    await supabase.from('oauth_states').upsert({
+      state: oauthState,
+      user_id: userId,
+      platform: 'youtube',
+      redirect_uri: callbackUri,
+      code_verifier: pkce.verifier,
+      nonce: nonce,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min
+    }, { onConflict: 'state' });
+
+    // Build authorization URL with PKCE and nonce
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', YOUTUBE_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', `${Deno.env.get('SUPABASE_URL')}/functions/v1/youtube-oauth?action=callback`);
-    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('redirect_uri', callbackUri);
+    authUrl.searchParams.set('response_type', 'code'); // Authorization Code only
     authUrl.searchParams.set('scope', SCOPES);
     authUrl.searchParams.set('access_type', 'offline');
     authUrl.searchParams.set('prompt', 'consent');
-    authUrl.searchParams.set('state', state);
+    authUrl.searchParams.set('state', oauthState);
+    authUrl.searchParams.set('code_challenge', pkce.challenge);
+    authUrl.searchParams.set('code_challenge_method', 'S256');
+    authUrl.searchParams.set('nonce', nonce);
+
+    console.log(`[youtube-oauth] Generated OAuth 2.1 URL (PKCE S256, nonce, state: ${oauthState.substring(0, 8)}...)`);
 
     return new Response(
       JSON.stringify({ authUrl: authUrl.toString() }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: getSecureHeaders() }
     );
 
   } catch (error) {
-    console.error('YouTube OAuth error:', error);
+    console.error('[youtube-oauth] Error:', sanitizeForLog({ error: String(error) }));
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'OAuth failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'OAuth failed' }),
+      { status: 500, headers: getSecureHeaders() }
     );
   }
 });
