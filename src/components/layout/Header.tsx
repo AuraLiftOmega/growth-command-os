@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bell, ExternalLink, Globe, FileCode } from "lucide-react";
+import { Bell, ExternalLink, Globe, FileCode, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { DominionLogo } from "@/components/DominionLogo";
@@ -20,11 +20,10 @@ export const Header = () => {
           transition={{ duration: 0.4 }}
           className="bg-gradient-to-r from-success/30 via-primary/20 to-accent/30 border-b border-success/40 py-2 px-4"
         >
-          <div className="flex items-center justify-center gap-3 text-sm font-semibold">
+          <div className="flex items-center justify-center gap-2 md:gap-3 text-xs md:text-sm font-semibold flex-wrap">
             <Badge variant="outline" className="text-[10px] py-0.5 px-2 border-success bg-success/20 text-success animate-pulse">
               🚀 LIVE
             </Badge>
-            <span className="text-foreground">Live at</span>
             <a 
               href={DOMAINS.primary.url}
               target="_blank"
@@ -36,7 +35,17 @@ export const Header = () => {
               <ExternalLink className="w-3 h-3" />
             </a>
             <span className="text-muted-foreground">–</span>
-            <span className="text-foreground">Tech Docs at</span>
+            <a 
+              href={DOMAINS.store.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-accent hover:text-accent/80 transition-colors font-bold"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+              <span>{DOMAINS.store.domain}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <span className="text-muted-foreground">–</span>
             <a 
               href={DOMAINS.tech.url}
               target="_blank"

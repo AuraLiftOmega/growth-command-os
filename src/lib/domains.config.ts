@@ -14,6 +14,14 @@ export const DOMAINS = {
     type: 'application' as const,
   },
   
+  // Shopify storefront domain
+  store: {
+    domain: 'auraliftessentials.com',
+    url: 'https://www.auraliftessentials.com',
+    label: 'AuraLift Store',
+    type: 'storefront' as const,
+  },
+  
   // Tech documentation domain
   tech: {
     domain: 'omegaalpha.io',
