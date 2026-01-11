@@ -269,7 +269,7 @@ serve(async (req) => {
     console.log(`Product: ${product.title}`);
 
     // Generate dynamic script per-product, per-store
-    const storeUrl = Deno.env.get('SITE_URL') || 'your-store.com';
+    const storeUrl = Deno.env.get('SITE_URL') || 'https://www.auraliftessentials.com';
     const storeDomain = storeUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
     
     let script = customScript;
