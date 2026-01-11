@@ -20,6 +20,7 @@ import AcceptInvite from "./pages/AcceptInvite";
 import UsersManagement from "./pages/UsersManagement";
 import ShopifyCallback from "./pages/ShopifyCallback";
 import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
+import LiveChat from "./pages/LiveChat";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -170,6 +171,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <SocialChannelsDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Live Chat Dashboard (protected) */}
+      <Route 
+        path="/dashboard/live-chat" 
+        element={
+          <ProtectedRoute>
+            <LiveChat />
           </ProtectedRoute>
         } 
       />
