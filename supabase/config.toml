@@ -161,3 +161,6 @@ verify_jwt = false
 
 [functions.clean-launch-sequence]
 verify_jwt = false
+
+[functions.grok-query]
+verify_jwt = false
