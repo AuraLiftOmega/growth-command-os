@@ -24,59 +24,30 @@ const TIKTOK_SHOP_API = {
   productSearch: 'https://open-api.tiktok.com/api/products/search',
 };
 
-// AuraLift product mapping to Shopify
-const AURALIFT_PRODUCTS: Record<string, { 
-  shopifyHandle: string; 
-  shopifyId: string;
-  hashtags: string[];
-}> = {
-  'radiance vitamin c serum': {
-    shopifyHandle: 'radiance-vitamin-c-serum',
-    shopifyId: 'gid://shopify/Product/8123456789',
-    hashtags: ['#VitaminC', '#Skincare', '#GlowUp', '#Serum', '#DarkSpots']
-  },
-  'hydra-glow retinol night cream': {
-    shopifyHandle: 'hydra-glow-retinol-night-cream',
-    shopifyId: 'gid://shopify/Product/8123456790',
-    hashtags: ['#Retinol', '#NightCream', '#AntiAging', '#Skincare', '#GlowSkin']
-  },
-  'ultra hydration hyaluronic serum': {
-    shopifyHandle: 'ultra-hydration-hyaluronic-serum',
-    shopifyId: 'gid://shopify/Product/8123456791',
-    hashtags: ['#HyaluronicAcid', '#Hydration', '#Skincare', '#Serum', '#GlassySkin']
-  },
-  'omega glow collagen peptide moisturizer': {
-    shopifyHandle: 'omega-glow-collagen-moisturizer',
-    shopifyId: 'gid://shopify/Product/8123456792',
-    hashtags: ['#Collagen', '#Moisturizer', '#Peptides', '#Skincare', '#AntiAging']
-  },
-  'luxe rose quartz face roller set': {
-    shopifyHandle: 'luxe-rose-quartz-face-roller',
-    shopifyId: 'gid://shopify/Product/8123456793',
-    hashtags: ['#RoseQuartz', '#FaceRoller', '#SelfCare', '#Skincare', '#Gua']
-  }
-};
+// Dynamic product hashtag generation
+function getProductHashtags(productName: string): string[] {
+  const name = productName.toLowerCase();
+  if (name.includes('serum')) return ['#Serum', '#Skincare', '#GlowUp', '#Beauty'];
+  if (name.includes('cream') || name.includes('moisturizer')) return ['#Moisturizer', '#Skincare', '#Hydration', '#Beauty'];
+  if (name.includes('retinol')) return ['#Retinol', '#AntiAging', '#Skincare', '#NightCream'];
+  return ['#Shopping', '#Trending', '#MustHave', '#ProductReview'];
+}
 
-// Generate Omega-optimized caption for TikTok Shop
-function generateShoppableCaption(productName: string, customCaption?: string): string {
-  const productKey = productName.toLowerCase();
-  const productData = Object.entries(AURALIFT_PRODUCTS).find(([key]) => 
-    productKey.includes(key) || key.includes(productKey.split(' ').slice(0, 3).join(' '))
-  );
-  
-  const hashtags = productData ? productData[1].hashtags.join(' ') : '#Skincare #AuraLift #GlowUp';
-  const shopLink = 'auraliftessentials.com';
+// Generate dynamic caption for TikTok Shop
+function generateShoppableCaption(productName: string, storeUrl?: string, customCaption?: string): string {
+  const hashtags = getProductHashtags(productName).join(' ');
+  const shopLink = (storeUrl || Deno.env.get('SITE_URL') || 'your-store.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
   
   if (customCaption) {
     return `${customCaption}\n\n🛒 Shop now: ${shopLink}\n${hashtags} #TikTokShop #ShopNow`;
   }
   
-  // Omega-optimized templates for different products
+  // Dynamic templates
   const templates = [
-    `✨ Transform your skincare routine with ${productName}!\n\nResults you can see. Shop the link 🔗\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`,
-    `POV: You just discovered ${productName} 💫\n\nYour glow-up starts now! Tap to shop.\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`,
+    `✨ Transform your routine with ${productName}!\n\nResults you can see. Shop the link 🔗\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`,
+    `POV: You just discovered ${productName} 💫\n\nYour transformation starts now! Tap to shop.\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`,
     `The ${productName} everyone's talking about 👀\n\nSee why it's selling out! Link in bio.\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`,
-    `🌟 ${productName} — Your new skincare obsession\n\nDon't just scroll. Shop now!\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`
+    `🌟 ${productName} — Your new obsession\n\nDon't just scroll. Shop now!\n\n🛒 ${shopLink}\n${hashtags} #TikTokShop`
   ];
   
   return templates[Math.floor(Math.random() * templates.length)];
@@ -147,19 +118,26 @@ serve(async (req: Request) => {
     const accessToken = tokenData.access_token_encrypted;
     const appKey = Deno.env.get('TIKTOK_SHOP_APP_KEY') || Deno.env.get('TIKTOK_CLIENT_KEY');
 
+    // Get user's connected store URL
+    const { data: storeData } = await supabase
+      .from('user_shopify_connections')
+      .select('shop_domain')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+    
+    const storeUrl = storeData?.shop_domain || Deno.env.get('SITE_URL') || 'your-store.com';
+    const storeDomain = storeUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
     // Generate optimized caption
     const caption = optimize_caption 
-      ? generateShoppableCaption(product_name || title, description)
+      ? generateShoppableCaption(product_name || title, storeUrl, description)
       : (description || title);
 
-    // Build product link
-    const productKey = (product_name || title || '').toLowerCase();
-    const productData = Object.entries(AURALIFT_PRODUCTS).find(([key]) => 
-      productKey.includes(key) || key.includes(productKey.split(' ').slice(0, 3).join(' '))
-    );
-    const shopifyLink = productData 
-      ? `https://www.auraliftessentials.com/products/${productData[1].shopifyHandle}`
-      : 'https://www.auraliftessentials.com';
+    // Build dynamic product link
+    const productHandle = product_handle || (product_name || title || '').toLowerCase().replace(/\s+/g, '-');
+    const shopifyLink = `https://${storeDomain}/products/${productHandle}`;
 
     // Initialize video upload to TikTok
     // Note: TikTok Shop video API requires specific format
@@ -180,13 +158,13 @@ serve(async (req: Request) => {
     };
 
     // Add product tags if enabled
-    if (add_product_tags && productData) {
+    if (add_product_tags && product_id) {
       (uploadPayload as any).post_info.commerce_info = {
         branded_content_toggle: true,
         shopping: {
-          product_ids: [productData[1].shopifyId],
+          product_ids: [product_id],
           products: [{
-            product_id: productData[1].shopifyId,
+            product_id: product_id,
             product_name: product_name || title,
             product_link: shopifyLink
           }]

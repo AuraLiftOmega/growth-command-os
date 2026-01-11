@@ -15,23 +15,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Target TikTok account
+// Target TikTok account - dynamic per user
 const TIKTOK_TARGET = {
-  username: "@ryan.auralift",
-  email: "ryanauralift@gmail.com",
-  profile_url: "https://www.tiktok.com/@ryan.auralift",
-};
-
-// Product info
-const RADIANCE_PRODUCT = {
-  name: "Radiance Vitamin C Serum",
-  shopify_id: "10511372452145",
-  image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800",
-  store_url: "https://www.auraliftessentials.com",
-  script: `Your skin deserves to glow. Introducing Radiance Vitamin C Serum from AuraLift Essentials. 
-Our premium formula brightens dark spots, fights aging, and leaves you with luminous, radiant skin in just weeks. 
-Powered by pure Vitamin C and hyaluronic acid. Real results, real glow. 
-Shop now at auraliftessentials.com. Your radiant transformation starts today!`
+  username: "@user",
+  email: "",
+  profile_url: "https://www.tiktok.com/@user",
 };
 
 // ElevenLabs Sarah voice
@@ -44,44 +32,63 @@ const DID_AVATARS = {
   emma: "https://create-images-results.d-id.com/DefaultPresenters/emma_1.jpg",
 };
 
-// Omega-optimized captions
-const SOCIAL_CAPTIONS = {
-  tiktok: `✨ Your glow-up starts NOW! Radiance Vitamin C Serum is here to transform your skin 🌟
+// Default product config - used when no product is provided in request
+// All values can be overridden by request body parameters
+function getDefaultProductConfig(storeUrl?: string) {
+  const domain = storeUrl || Deno.env.get('SITE_URL') || 'your-store.com';
+  const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  return {
+    name: "Premium Product",
+    shopify_id: "",
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800",
+    store_url: domain,
+    domain: cleanDomain,
+    script: `Discover this amazing product. Transform your routine today. Shop now at ${cleanDomain}. Your transformation starts today!`
+  };
+}
 
-Real results. Real confidence. Real glow.
+// Dynamic captions generator - per-product, per-store  
+function generateSocialCaptions(productName: string, storeUrl?: string) {
+  const domain = (storeUrl || Deno.env.get('SITE_URL') || 'your-store.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  
+  return {
+    tiktok: `✨ Your transformation starts NOW! ${productName} is here 🌟
 
-Shop: auraliftessentials.com
+Real results. Real confidence. Real transformation.
 
-#skincare #vitaminc #glowup #skincaretiktok #beautytok #fyp #viral #serumreview #skincareroutine #auralift`,
+Shop: ${domain}
 
-  pinterest: `Radiance Vitamin C Serum - Premium Skincare for Luminous Glow ✨
+#fyp #viral #trending #productreview #glowup #musthave`,
 
-Transform dark spots into radiant, youthful skin with our bestselling serum.
+    pinterest: `${productName} - Premium Quality ✨
 
-🌟 Brightens & Evens Skin Tone
-🌟 Fights Signs of Aging  
-🌟 Hydrates & Nourishes
-🌟 Visible Results in Weeks
+🌟 Top-Rated Product
+🌟 Fast Results  
+🌟 Customer Favorite
+🌟 Limited Availability
 
-Shop now: auraliftessentials.com
+Shop now: ${domain}
 
-#VitaminCSerum #Skincare #GlowUp #RadiantSkin #SkincareRoutine #AntiAging #BeautyTips`,
+#Shopping #Trending #MustHave #ProductReview #Lifestyle`,
 
-  instagram: `✨ GLOW SEASON IS HERE ✨
+    instagram: `✨ NEW DROP ✨
 
-Meet your new skincare obsession: Radiance Vitamin C Serum 🍊
+Meet your new obsession: ${productName}
 
-💫 Brightens dark spots
-💫 Fights fine lines
-💫 24-hour hydration
-💫 Visible results in 2 weeks
+💫 Premium quality
+💫 Fast shipping
+💫 Customer favorite
+💫 Limited stock
 
-Your transformation starts with one drop. Are you ready?
+Ready to transform? Link in bio 🔗 ${domain}
 
-Shop link in bio 🔗 auraliftessentials.com
+#Shopping #NewArrivals #Trending #MustHave #ProductReview #Lifestyle`
+  };
+}
 
-#Skincare #VitaminC #GlowUp #SkincareRoutine #BeautyTips #RadiantSkin #SkincareTok #AuraLift #SelfCare #BeautyRoutine`
-};
+// Legacy constant for backwards compatibility - wraps the function
+const RADIANCE_PRODUCT = getDefaultProductConfig();
+const SOCIAL_CAPTIONS = generateSocialCaptions(RADIANCE_PRODUCT.name);
 
 // Poll D-ID video completion
 async function pollDIDVideo(talkId: string, apiKey: string, maxMinutes = 10) {

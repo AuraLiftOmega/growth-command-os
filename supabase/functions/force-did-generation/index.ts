@@ -14,11 +14,17 @@ const corsHeaders = {
  * Bypasses all credit checks - force generation
  */
 
-// Premium skincare script
-const RADIANCE_SCRIPT = `Your skin deserves to glow. Introducing Radiance Vitamin C Serum from AuraLift Essentials. 
-Our premium formula brightens dark spots, fights aging, and leaves you with luminous, radiant skin in just weeks. 
-Powered by pure Vitamin C and hyaluronic acid. Real results, real glow. 
-Shop now at auraliftessentials.com. Your radiant transformation starts today!`;
+// Dynamic script generator - per-product, per-store
+function generateProductScript(productName?: string, description?: string, storeUrl?: string): string {
+  const name = productName || 'this amazing product';
+  const desc = description || 'Transform your routine today.';
+  const storeDomain = (storeUrl || Deno.env.get('SITE_URL') || 'your-store.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  
+  return `Discover ${name}. ${desc}. Shop now at ${storeDomain}. Your transformation starts today!`;
+}
+
+// Legacy constant for backwards compatibility
+const RADIANCE_SCRIPT = generateProductScript();
 
 // ElevenLabs voice - Sarah (warm female)
 const SARAH_VOICE_ID = "EXAVITQu4vr4xnSDxMaL";
