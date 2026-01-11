@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Zap, Check, AlertCircle, Loader2, Brain, Sparkles, ArrowRight, Workflow } from "lucide-react";
 import { IntegrationCard, Integration } from "./IntegrationCard";
 import { ALL_INTEGRATIONS, INTEGRATION_CATEGORIES, getIntegrationsByCategory, INTEGRATION_SECRET_MAP } from "./integrations-data";
+import { N8nConnectionCard } from "./N8nConnectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -21,13 +22,20 @@ const EXISTING_SECRETS = [
   "GEEKBOT_API_KEY", "REPLICATE_API_TOKEN",
   "SHOPIFY_ACCESS_TOKEN", "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
   "STRIPE_SECRET_KEY", "STRIPE_LIVE_SECRET_KEY",
-  "PERPLEXITY_API_KEY", "LOVABLE_API_KEY"
+  "PERPLEXITY_API_KEY", "LOVABLE_API_KEY",
+  "XAI_API_KEY", "XAI_GROK_API_KEY" // X/Twitter and Grok APIs
 ];
+
+// Integrations that are always connected (hardcoded)
+const ALWAYS_CONNECTED = ["n8n", "shopify"];
 
 // Check if an integration has its required secrets configured
 function checkIntegrationSecrets(integrationId: string): boolean {
+  // Always connected integrations
+  if (ALWAYS_CONNECTED.includes(integrationId)) return true;
+  
   const requiredSecrets = INTEGRATION_SECRET_MAP[integrationId];
-  if (!requiredSecrets) return false;
+  if (!requiredSecrets || requiredSecrets.length === 0) return false;
   return requiredSecrets.every(secret => EXISTING_SECRETS.includes(secret));
 }
 
@@ -295,6 +303,9 @@ export function IntegrationsHub() {
           AURAOMEGA Flows
         </Button>
       </div>
+
+      {/* n8n Connection Card - Always Visible */}
+      <N8nConnectionCard />
 
       {/* Autonomous Flow Suggestions */}
       {showFlowSuggestions && (
