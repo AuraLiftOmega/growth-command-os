@@ -16,8 +16,9 @@ import { CJDropshippingDashboard } from "@/components/dashboard/CJDropshippingDa
 import { DomainSalesManager } from "@/components/dashboard/DomainSalesManager";
 import { Loader2 } from "lucide-react";
 
-// Lazy load ElevenLabs dashboard for better performance
+// Lazy load heavy dashboards for better performance
 const ElevenLabsDashboard = lazy(() => import("@/pages/ElevenLabsDashboard"));
+const RevenueEngine = lazy(() => import("@/pages/RevenueEngine"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
@@ -42,6 +43,14 @@ const Dashboard = () => {
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
         <Route path="cj-dropshipping" element={<CJDropshippingDashboard />} />
         <Route path="domain-sales" element={<DomainSalesManager />} />
+        <Route 
+          path="revenue-engine"
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <RevenueEngine />
+            </Suspense>
+          } 
+        />
         <Route 
           path="elevenlabs"
           element={
