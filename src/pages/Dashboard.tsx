@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 const ElevenLabsDashboard = lazy(() => import("@/pages/ElevenLabsDashboard"));
 const RevenueEngine = lazy(() => import("@/pages/RevenueEngine"));
 const IntegrationsPage = lazy(() => import("@/pages/Integrations"));
+const BotTeamDashboard = lazy(() => import("@/pages/BotTeamDashboard"));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
@@ -51,6 +52,22 @@ const Dashboard = () => {
         <Route path="super-grok-ceo" element={<SuperGrokCEODashboard />} />
         <Route path="cj-dropshipping" element={<CJDropshippingDashboard />} />
         <Route path="domain-sales" element={<DomainSalesManager />} />
+        <Route 
+          path="bot-team"
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <BotTeamDashboard />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="bot-analytics"
+          element={
+            <Suspense fallback={<LoadingFallback />}>
+              <BotTeamDashboard />
+            </Suspense>
+          } 
+        />
         <Route 
           path="revenue-engine"
           element={

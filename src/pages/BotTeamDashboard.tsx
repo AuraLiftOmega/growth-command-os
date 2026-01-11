@@ -8,12 +8,13 @@ import { toast } from "sonner";
 import { 
   BOT_TEAMS, TEAM_ORDER, getTotalBots,
   BotTeamSection, GrokBrainPanel, LiveBotLogs, TeamPerformanceChart,
-  BotAutoScalingPanel
+  BotAutoScalingPanel, BotAnalyticsDashboard
 } from "@/components/bot-team";
 import { 
   Bot, Power, Zap, Activity, DollarSign, 
-  TrendingUp, Brain, RefreshCw, Layers
+  TrendingUp, Brain, RefreshCw, Layers, BarChart3
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BotLog {
   id: string;
@@ -192,33 +193,58 @@ export default function BotTeamDashboard() {
         </motion.div>
       </div>
 
-      {/* Grok Brain */}
-      <GrokBrainPanel onThink={handleGrokThink} lastThinking={lastThinking} isThinking={isThinking} />
+      {/* Main Tabs */}
+      <Tabs defaultValue="control" className="w-full">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
+          <TabsTrigger value="control" className="gap-2">
+            <Bot className="w-4 h-4" />
+            Bot Control
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="scaling" className="gap-2">
+            <Layers className="w-4 h-4" />
+            Auto-Scaling
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Auto-Scaling Engine */}
-      <BotAutoScalingPanel />
+        <TabsContent value="control" className="mt-6 space-y-6">
+          {/* Grok Brain */}
+          <GrokBrainPanel onThink={handleGrokThink} lastThinking={lastThinking} isThinking={isThinking} />
 
-      {/* Performance & Logs */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamPerformanceChart stats={teamStats} />
-        <LiveBotLogs logs={logs} isLive={isLive} />
-      </div>
+          {/* Performance & Logs */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TeamPerformanceChart stats={teamStats} />
+            <LiveBotLogs logs={logs} isLive={isLive} />
+          </div>
 
-      {/* Bot Teams */}
-      <div className="space-y-4">
-        {TEAM_ORDER.map(teamKey => (
-          <BotTeamSection
-            key={teamKey}
-            teamKey={teamKey}
-            team={BOT_TEAMS[teamKey]}
-            activeBots={activeBots}
-            botStats={botStats}
-            onToggleBot={handleToggleBot}
-            onBotAction={handleBotAction}
-            onActivateTeam={handleActivateTeam}
-          />
-        ))}
-      </div>
+          {/* Bot Teams */}
+          <div className="space-y-4">
+            {TEAM_ORDER.map(teamKey => (
+              <BotTeamSection
+                key={teamKey}
+                teamKey={teamKey}
+                team={BOT_TEAMS[teamKey]}
+                activeBots={activeBots}
+                botStats={botStats}
+                onToggleBot={handleToggleBot}
+                onBotAction={handleBotAction}
+                onActivateTeam={handleActivateTeam}
+              />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <BotAnalyticsDashboard />
+        </TabsContent>
+
+        <TabsContent value="scaling" className="mt-6">
+          <BotAutoScalingPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
