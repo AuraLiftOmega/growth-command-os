@@ -7,11 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   BOT_TEAMS, TEAM_ORDER, getTotalBots,
-  BotTeamSection, GrokBrainPanel, LiveBotLogs, TeamPerformanceChart 
+  BotTeamSection, GrokBrainPanel, LiveBotLogs, TeamPerformanceChart,
+  BotAutoScalingPanel
 } from "@/components/bot-team";
 import { 
   Bot, Power, Zap, Activity, DollarSign, 
-  TrendingUp, Brain, RefreshCw
+  TrendingUp, Brain, RefreshCw, Layers
 } from "lucide-react";
 
 interface BotLog {
@@ -193,6 +194,9 @@ export default function BotTeamDashboard() {
 
       {/* Grok Brain */}
       <GrokBrainPanel onThink={handleGrokThink} lastThinking={lastThinking} isThinking={isThinking} />
+
+      {/* Auto-Scaling Engine */}
+      <BotAutoScalingPanel />
 
       {/* Performance & Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
