@@ -41,7 +41,8 @@ export function ShopifyConnectionsPanel() {
   } = useUserShopifyConnections();
   
   const { subscription, planFeatures } = useSubscription();
-  const [shopDomain, setShopDomain] = useState('');
+  // Pre-fill with Aura Lift Essentials store
+  const [shopDomain, setShopDomain] = useState('aura-lift-essentials');
   const [isConnecting, setIsConnecting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
@@ -253,10 +254,43 @@ export function ShopifyConnectionsPanel() {
               </div>
               
               <h3 className="text-xl font-semibold mb-2">Connect Your Shopify Store</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
                 Link your Shopify store to manage products, generate AI videos, 
                 and automate social media posting — all from one dashboard.
               </p>
+              
+              {/* Quick Connect - Aura Lift Essentials */}
+              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 mb-6 max-w-md mx-auto">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <Store className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-green-600">Recommended Store</p>
+                    <p className="text-xs text-muted-foreground">aura-lift-essentials.myshopify.com</p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setShopDomain('aura-lift-essentials');
+                    handleConnect();
+                  }}
+                  className="w-full gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                  disabled={isConnecting}
+                >
+                  {isConnecting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" />
+                      1-Click Connect Aura Lift Essentials
+                    </>
+                  )}
+                </Button>
+              </div>
 
               {/* Features List */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 max-w-lg mx-auto">
