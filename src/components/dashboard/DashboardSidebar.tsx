@@ -113,6 +113,12 @@ const mainNavItems = [
     badge: "Web3",
   },
   {
+    title: "Domain Sales",
+    icon: DollarSign,
+    path: "/dashboard/domain-sales",
+    badge: "💰",
+  },
+  {
     title: "Sales Analytics",
     icon: BarChart3,
     path: "/dashboard/analytics",
