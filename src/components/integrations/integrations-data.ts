@@ -34,6 +34,7 @@ export const INTEGRATION_SECRET_MAP: Record<string, string[]> = {
   tldv: ["TLDV_API_KEY"],
   leadconnector: ["LEADCONNECTOR_API_KEY"],
   heygen: ["HEYGEN_API_KEY"],
+  did: ["DID_API_KEY"], // D-ID video generation
   elevenlabs: ["ELEVENLABS_API_KEY"],
   pinterest: ["PINTEREST_APP_ID", "PINTEREST_APP_SECRET"],
   tiktok: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET"],
@@ -42,7 +43,9 @@ export const INTEGRATION_SECRET_MAP: Record<string, string[]> = {
   geekbot: ["GEEKBOT_API_KEY"],
   replicate: ["REPLICATE_API_TOKEN"],
   n8n: [], // n8n is always connected - hardcoded server URL
-  x_twitter: ["XAI_API_KEY"], // Use existing X API key
+  x_twitter: ["X_API_KEY"], // X/Twitter API
+  grok: ["XAI_GROK_API_KEY"], // xAI Grok
+  perplexity: ["PERPLEXITY_API_KEY"],
 };
 
 export const INTEGRATION_CATEGORIES = {
@@ -506,6 +509,30 @@ export const ALL_INTEGRATIONS: Integration[] = [
     isConnected: false,
     docsUrl: "https://platform.openai.com/docs/",
   },
+  {
+    id: "grok",
+    name: "xAI Grok",
+    description: "Super Grok CEO - autonomous business intelligence",
+    icon: "🧠",
+    category: "ai",
+    connectionType: "api_key",
+    isConnected: true, // Connected via XAI_GROK_API_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://x.ai/",
+  },
+  {
+    id: "perplexity",
+    name: "Perplexity AI",
+    description: "AI-powered search and research assistant",
+    icon: "🔍",
+    category: "ai",
+    connectionType: "api_key",
+    isConnected: true, // Connected via connector
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://docs.perplexity.ai/",
+  },
 
   // Video
   {
@@ -518,6 +545,42 @@ export const ALL_INTEGRATIONS: Integration[] = [
     isConnected: false,
     docsUrl: "https://developers.google.com/youtube/",
   },
+  {
+    id: "did",
+    name: "D-ID Video Pro",
+    description: "AI avatar video generation with talking heads",
+    icon: "🎭",
+    category: "video",
+    connectionType: "api_key",
+    isConnected: true, // Connected via DID_API_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://docs.d-id.com/",
+  },
+  {
+    id: "heygen",
+    name: "HeyGen",
+    description: "AI video generation with digital avatars",
+    icon: "🎥",
+    category: "video",
+    connectionType: "api_key",
+    isConnected: true, // Connected via HEYGEN_API_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://docs.heygen.com/",
+  },
+  {
+    id: "elevenlabs",
+    name: "ElevenLabs",
+    description: "AI voice generation and text-to-speech",
+    icon: "🔊",
+    category: "video",
+    connectionType: "api_key",
+    isConnected: true, // Connected via connector
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://elevenlabs.io/docs",
+  },
   
   // Social Media
   {
@@ -527,10 +590,62 @@ export const ALL_INTEGRATIONS: Integration[] = [
     icon: "𝕏",
     category: "communication",
     connectionType: "api_key",
-    isConnected: true, // Connected via XAI_API_KEY
+    isConnected: true, // Connected via X_API_KEY
     syncStatus: "success",
     lastSyncAt: new Date().toISOString(),
     docsUrl: "https://developer.x.com/",
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    description: "Short-form video social platform",
+    icon: "📱",
+    category: "communication",
+    connectionType: "oauth",
+    isConnected: true, // Connected via TIKTOK_CLIENT_KEY/SECRET
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://developers.tiktok.com/",
+  },
+  {
+    id: "pinterest",
+    name: "Pinterest",
+    description: "Visual discovery and bookmarking platform",
+    icon: "📌",
+    category: "communication",
+    connectionType: "oauth",
+    isConnected: true, // Connected via PINTEREST_APP_ID/SECRET
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://developers.pinterest.com/",
+  },
+
+  // Payments
+  {
+    id: "stripe",
+    name: "Stripe",
+    description: "Payment processing and revenue tracking",
+    icon: "💳",
+    category: "ecommerce",
+    connectionType: "api_key",
+    isConnected: true, // Connected via STRIPE_SECRET_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://stripe.com/docs/api",
+  },
+
+  // Email
+  {
+    id: "resend",
+    name: "Resend",
+    description: "Modern email API for developers",
+    icon: "📨",
+    category: "email_marketing",
+    connectionType: "api_key",
+    isConnected: true, // Connected via RESEND_API_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://resend.com/docs",
   },
 ];
 
