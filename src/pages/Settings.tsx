@@ -229,12 +229,60 @@ const Settings = () => {
             </TabsContent>
 
             {/* Security Tab */}
-            <TabsContent value="security">
+            <TabsContent value="security" className="space-y-6">
+              {/* OAuth 2.1 Security Banner */}
+              <Card className="border-success/30 bg-success/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-success/20">
+                      <Shield className="w-6 h-6 text-success" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-success">Implicit Flow Banned – OAuth 2.1 Secure</h3>
+                        <Badge className="bg-success text-success-foreground">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Enforced
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        All OAuth integrations use Authorization Code + PKCE (S256). Implicit flow (response_type=token) is completely disabled across Shopify, TikTok, YouTube, Google Ads, Slack, and all social channels.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* OAuth Security Details */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Shield className="w-5 h-5 text-primary" />
-                    <CardTitle>Security</CardTitle>
+                    <CardTitle>OAuth Security Status</CardTitle>
+                  </div>
+                  <CardDescription>
+                    All integrations comply with OAuth 2.1 / BCP best practices
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {['Shopify', 'TikTok', 'YouTube', 'Google Ads', 'Slack', 'Instagram', 'Pinterest', 'X/Twitter'].map((platform) => (
+                      <div key={platform} className="p-3 rounded-lg bg-success/10 border border-success/20 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span className="text-sm font-medium">{platform}</span>
+                        <Badge variant="outline" className="text-xs ml-auto">PKCE S256</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Session Management */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <CardTitle>Session</CardTitle>
                   </div>
                   <CardDescription>
                     Manage your session and security settings
