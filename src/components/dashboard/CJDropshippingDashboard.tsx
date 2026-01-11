@@ -320,7 +320,7 @@ export function CJDropshippingDashboard() {
             <Package className="w-6 h-6 text-orange-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">CJ Dropshipping → AuraLift Essentials</h1>
+            <h1 className="text-2xl font-bold">CJ Dropshipping → Your Shopify Store</h1>
             <p className="text-sm text-muted-foreground">Source products • One-click add to Shopify • Auto-gen viral ads</p>
           </div>
         </div>

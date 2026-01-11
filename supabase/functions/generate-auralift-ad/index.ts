@@ -100,7 +100,7 @@ const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       title: "Serum dropper close-up",
       duration: 14
     },
-    voiceover_script: "Discover Radiance Vitamin C Serum from AuraLift Essentials. Brightens skin, fights dark spots, and gives you that radiant glow in weeks. Shop now at auraliftessentials.com.",
+    voiceover_script: "Discover Radiance Vitamin C Serum. Brightens skin, fights dark spots, and gives you that radiant glow in weeks. Shop now!",
     match_quality: 'high'
   },
   "hydra-glow-retinol-night-cream": {
@@ -116,7 +116,7 @@ const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       title: "Premium cream texture",
       duration: 10
     },
-    voiceover_script: "Transform your skin overnight with Hydra-Glow Retinol Night Cream. Repairs, rejuvenates, and reduces fine lines while you sleep. Shop AuraLift Essentials.",
+    voiceover_script: "Transform your skin overnight with Hydra-Glow Retinol Night Cream. Repairs, rejuvenates, and reduces fine lines while you sleep. Link in bio!",
     match_quality: 'high'
   },
   "ultra-hydration-hyaluronic-serum": {
@@ -132,7 +132,7 @@ const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       title: "Dewy skin serum",
       duration: 15
     },
-    voiceover_script: "Quench your skin with Ultra Hydration Hyaluronic Serum. Deep moisture that plumps, smooths, and locks in hydration all day. Shop AuraLift Essentials.",
+    voiceover_script: "Quench your skin with Ultra Hydration Hyaluronic Serum. Deep moisture that plumps, smooths, and locks in hydration all day. Link in bio!",
     match_quality: 'high'
   },
   "omega-glow-collagen-peptide-moisturizer": {
@@ -148,7 +148,7 @@ const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       title: "Luxury cream display",
       duration: 10
     },
-    voiceover_script: "Boost your skin with Omega Glow Collagen Peptide Moisturizer. Firms, lifts, and restores youthful elasticity. Shop AuraLift Essentials now.",
+    voiceover_script: "Boost your skin with Omega Glow Collagen Peptide Moisturizer. Firms, lifts, and restores youthful elasticity. Shop now!",
     match_quality: 'high'
   },
   "luxe-rose-quartz-face-roller-set": {
@@ -164,7 +164,7 @@ const FALLBACK_VIDEOS: Record<string, FallbackVideoConfig> = {
       title: "Skincare tools",
       duration: 11
     },
-    voiceover_script: "Elevate your skincare ritual with Luxe Rose Quartz Face Roller Set. Depuffs, promotes circulation, spa-quality at home. Shop AuraLift.",
+    voiceover_script: "Elevate your skincare ritual with Luxe Rose Quartz Face Roller Set. Depuffs, promotes circulation, spa-quality at home. Link in bio!",
     match_quality: 'high'
   }
 };
@@ -183,7 +183,7 @@ const GENERIC_FALLBACK: FallbackVideoConfig = {
     title: "Beauty routine",
     duration: 12
   },
-  voiceover_script: "Discover premium skincare from AuraLift Essentials. Radiant, hydrated, youthful skin starts here. Shop now at auraliftessentials.com.",
+  voiceover_script: "Discover premium skincare. Radiant, hydrated, youthful skin starts here. Link in bio!",
   match_quality: 'category'
 };
 

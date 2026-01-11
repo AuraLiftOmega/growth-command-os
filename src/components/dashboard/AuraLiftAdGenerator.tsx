@@ -484,8 +484,8 @@ export function AuraLiftAdGenerator({ onAdGenerated }: AuraLiftAdGeneratorProps)
           ad_id: generatedAd.id,
           metadata: { 
             product: generatedAd.product_name,
-            board_name: boardName || 'AuraLift Skincare Favorites',
-            link: 'https://www.auraliftessentials.com'
+            board_name: boardName || 'Skincare Favorites',
+            link: activeStore?.fullUrl || ''
           }
         }
       });

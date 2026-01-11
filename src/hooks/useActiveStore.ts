@@ -10,6 +10,7 @@ export interface ActiveStoreConfig {
   storeName: string;
   role: StoreRole;
   storeId?: string;
+  fullUrl: string;
 }
 
 interface ActiveStoreState {
@@ -26,6 +27,22 @@ export const useActiveStoreState = create<ActiveStoreState>()(
     { name: 'active-store' }
   )
 );
+
+// Helper to build public URL from store domain
+// Converts xxx.myshopify.com to https://www.xxx.com or uses custom domain if available
+function buildStoreUrl(storeDomain: string, storeName?: string): string {
+  // Extract store handle from myshopify domain
+  const handle = storeDomain.replace('.myshopify.com', '').toLowerCase();
+  
+  // For common stores, use their known public domains
+  // Otherwise construct a reasonable public URL
+  if (handle === 'aura-lift-essentials') {
+    return 'https://www.auraliftessentials.com';
+  }
+  
+  // Default: construct URL from store handle
+  return `https://www.${handle.replace(/-/g, '')}.com`;
+}
 
 export function useActiveStore() {
   const { stores, primaryStore } = useUserStore();
@@ -44,19 +61,24 @@ export function useActiveStore() {
         storeName: primaryStore.store_name,
         role: 'personal',
         storeId: primaryStore.id,
+        fullUrl: buildStoreUrl(primaryStore.store_domain, primaryStore.store_name),
       };
     }
 
     const selectedStore = stores.find(s => s.id === activeStoreId);
     if (!selectedStore) {
       // Return primary store or null
-      return primaryStore ? {
-        storeDomain: primaryStore.store_domain,
-        storefrontToken: primaryStore.storefront_access_token,
-        storeName: primaryStore.store_name,
-        role: 'personal',
-        storeId: primaryStore.id,
-      } : null;
+      if (primaryStore) {
+        return {
+          storeDomain: primaryStore.store_domain,
+          storefrontToken: primaryStore.storefront_access_token,
+          storeName: primaryStore.store_name,
+          role: 'personal',
+          storeId: primaryStore.id,
+          fullUrl: buildStoreUrl(primaryStore.store_domain, primaryStore.store_name),
+        };
+      }
+      return null;
     }
 
     return {
@@ -65,16 +87,18 @@ export function useActiveStore() {
       storeName: selectedStore.store_name,
       role: selectedStore.is_primary ? 'personal' : 'customer',
       storeId: selectedStore.id,
+      fullUrl: buildStoreUrl(selectedStore.store_domain, selectedStore.store_name),
     };
   };
 
   // Separate stores by role
-  const userStores = stores.map(s => ({
+  const userStores: ActiveStoreConfig[] = stores.map(s => ({
     storeDomain: s.store_domain,
     storefrontToken: s.storefront_access_token,
     storeName: s.store_name,
     role: (s.is_primary ? 'personal' : 'customer') as StoreRole,
     storeId: s.id,
+    fullUrl: buildStoreUrl(s.store_domain, s.store_name),
   }));
 
   // All available stores (user connected only)

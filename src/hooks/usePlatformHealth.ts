@@ -13,15 +13,15 @@ export interface PlatformAccount {
   created_at: string;
 }
 
-// Test mode platforms - all connected and healthy
-// REAL MODE platforms - TikTok connected with real keys
+// Test mode platforms - dynamic per-user stores
+// Removed all hardcoded store references
 const TEST_MODE_PLATFORMS: PlatformAccount[] = [
-  { id: 'shopify', platform: 'shopify', handle: '@aura-essentials', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
-  { id: 'tiktok', platform: 'tiktok', handle: '@aurabeauty', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
-  { id: 'instagram', platform: 'instagram', handle: '@aura.essentials', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
-  { id: 'facebook', platform: 'facebook', handle: 'Aura Lift Essentials', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
-  { id: 'youtube', platform: 'youtube', handle: '@AuraBeautyOfficial', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
-  { id: 'pinterest', platform: 'pinterest', handle: '@auraessentials', is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'shopify', platform: 'shopify', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'tiktok', platform: 'tiktok', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'instagram', platform: 'instagram', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'facebook', platform: 'facebook', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'youtube', platform: 'youtube', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
+  { id: 'pinterest', platform: 'pinterest', handle: null, is_connected: true, health_status: 'healthy', last_health_check: new Date().toISOString(), created_at: new Date().toISOString() },
 ];
 
 export const usePlatformHealth = () => {
