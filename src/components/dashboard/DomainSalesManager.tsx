@@ -17,7 +17,8 @@ import {
   MessageSquare,
   Zap,
   Target,
-  Shield
+  Shield,
+  Brain
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { GrokChatInterface } from "./GrokChatInterface";
 
 // REAL Domain Portfolio - User's Unstoppable Domains
 // Excludes: auraliftessentials.com, profitreaper.com, omegaalpha.io (kept for primary use)
@@ -338,11 +340,15 @@ Ideal for yacht clubs, luxury rentals, or travel agencies entering Web3. Escrow 
 
       {/* Main Tabs */}
       <Tabs defaultValue="portfolio" className="space-y-4">
-        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+        <TabsList className="grid grid-cols-5 w-full max-w-3xl">
           <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
           <TabsTrigger value="bundles">Bundles</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="leads">Leads</TabsTrigger>
+          <TabsTrigger value="ai-agent" className="flex items-center gap-1">
+            <Brain className="w-3 h-3" />
+            Grok AI
+          </TabsTrigger>
         </TabsList>
 
         {/* Portfolio Tab */}
@@ -609,6 +615,74 @@ Ideal for yacht clubs, luxury rentals, or travel agencies entering Web3. Escrow 
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* AI Agent Tab */}
+        <TabsContent value="ai-agent" className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <GrokChatInterface 
+              onDomainIdea={(domain) => {
+                toast.success(`New domain idea: ${domain}`);
+              }}
+            />
+            
+            {/* Quick Stats for AI */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-warning" />
+                    AI Capabilities
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <span className="font-medium text-sm">Domain Mining</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Find premium .crypto, .nft domains based on trends</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <DollarSign className="w-4 h-4 text-success" />
+                      <span className="font-medium text-sm">Valuation</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Get instant domain valuations with confidence scores</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Target className="w-4 h-4 text-destructive" />
+                      <span className="font-medium text-sm">Sales Agent</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Generate killer DMs and X threads that convert</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-info" />
+                      <span className="font-medium text-sm">Market Intel</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Real-time Web3 trends and buyer identification</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Brain className="w-5 h-5 text-primary mt-1" />
+                    <div>
+                      <p className="font-medium text-sm">🚀 Powered by xAI Grok-3</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Real-time X/Twitter search, web knowledge, and tool calling enabled. 
+                        Ask anything about domains, market trends, or sales strategies.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

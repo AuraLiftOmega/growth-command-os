@@ -2239,6 +2239,42 @@ export type Database = {
         }
         Relationships: []
       }
+      grok_query_history: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string | null
+          model: string | null
+          prompt: string
+          response: string | null
+          tokens_used: number | null
+          tool_calls: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string | null
+          model?: string | null
+          prompt: string
+          response?: string | null
+          tokens_used?: number | null
+          tool_calls?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string | null
+          model?: string | null
+          prompt?: string
+          response?: string | null
+          tokens_used?: number | null
+          tool_calls?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       integration_tokens: {
         Row: {
           access_token_encrypted: string | null
