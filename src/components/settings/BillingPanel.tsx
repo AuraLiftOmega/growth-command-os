@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, Zap, Building2, Crown, Check, Loader2 } from 'lucide-react';
+import { CreditCard, Zap, Building2, Crown, Check, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription, PLAN_FEATURES } from '@/hooks/useSubscription';
-import { useStripeCheckout } from '@/hooks/useStripeCheckout';
+import { SubscriptionModal } from '@/components/payments/SubscriptionModal';
+import { StripePlanId, STRIPE_PLANS } from '@/lib/stripe';
 
 const tierIcons = {
   free: Zap,
@@ -27,20 +28,24 @@ const tierColors = {
 
 export function BillingPanel() {
   const { subscription, isLoading: subLoading, isTrialing, trialDaysLeft, planFeatures, isAdmin } = useSubscription();
-  const { createCheckoutSession, isLoading: checkoutLoading } = useStripeCheckout();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<StripePlanId | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const currentPlan = subscription?.plan || 'free';
 
-  const handleUpgrade = async (plan: 'starter' | 'growth' | 'enterprise') => {
+  const handleUpgrade = (plan: StripePlanId) => {
     setSelectedPlan(plan);
-    await createCheckoutSession(plan, 'monthly');
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
     setSelectedPlan(null);
   };
 
   const plans = [
     {
-      id: 'free',
+      id: 'free' as const,
       name: 'Free',
       price: 0,
       description: 'Get started with basic features',
@@ -53,51 +58,27 @@ export function BillingPanel() {
       ],
     },
     {
-      id: 'starter',
+      id: 'starter' as StripePlanId,
       name: 'Starter',
       price: 49,
       description: 'For growing businesses',
-      features: [
-        '3 Shopify store connections',
-        '50 AI videos per month',
-        'Unlimited social posts',
-        'Advanced analytics',
-        'Priority support',
-        'CJ Dropshipping integration',
-      ],
+      features: STRIPE_PLANS.starter.features,
       popular: false,
     },
     {
-      id: 'growth',
+      id: 'growth' as StripePlanId,
       name: 'Pro',
       price: 99,
       description: 'For scaling businesses',
-      features: [
-        '10 Shopify store connections',
-        'Unlimited AI videos',
-        'Unlimited social posts',
-        'Super Grok CEO AI',
-        'Autonomous campaigns',
-        'White-label options',
-        'Priority support',
-      ],
+      features: STRIPE_PLANS.growth.features,
       popular: true,
     },
     {
-      id: 'enterprise',
+      id: 'enterprise' as StripePlanId,
       name: 'Business',
       price: 299,
       description: 'For large operations',
-      features: [
-        'Unlimited store connections',
-        'Unlimited everything',
-        'Custom AI training',
-        'Dedicated account manager',
-        'SLA guarantees',
-        'Custom integrations',
-        'Multi-user RBAC',
-        'API access',
-      ],
+      features: STRIPE_PLANS.enterprise.features,
     },
   ];
 
@@ -113,6 +94,14 @@ export function BillingPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Stripe Security Badge */}
+      <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-success/10 border border-success/30">
+        <Shield className="w-4 h-4 text-success" />
+        <span className="text-sm text-success font-medium">
+          Secured by Stripe • PCI DSS Compliant • 3D Secure 2.0 Enabled
+        </span>
+      </div>
+
       {/* Current Plan Status */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
         <CardHeader>
@@ -202,17 +191,9 @@ export function BillingPanel() {
                     ) : isUpgrade && plan.id !== 'free' ? (
                       <Button 
                         className="w-full" 
-                        onClick={() => handleUpgrade(plan.id as 'starter' | 'growth' | 'enterprise')}
-                        disabled={checkoutLoading && selectedPlan === plan.id}
+                        onClick={() => handleUpgrade(plan.id as StripePlanId)}
                       >
-                        {checkoutLoading && selectedPlan === plan.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                            Processing...
-                          </>
-                        ) : (
-                          'Upgrade'
-                        )}
+                        Upgrade with Card
                       </Button>
                     ) : (
                       <Button variant="outline" className="w-full" disabled>
@@ -226,6 +207,16 @@ export function BillingPanel() {
           );
         })}
       </div>
+
+      {/* Subscription Modal with Stripe Elements */}
+      {selectedPlan && (
+        <SubscriptionModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          plan={selectedPlan}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }

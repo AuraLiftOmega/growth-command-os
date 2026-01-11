@@ -21,8 +21,8 @@ const STRIPE_PLANS = {
   },
   growth: {
     name: "Growth", 
-    monthlyPrice: 14900, // $149
-    annualPrice: 142800, // $1428/year
+    monthlyPrice: 9900, // $99
+    annualPrice: 95000, // $950/year
     features: {
       stores_limit: 10,
       monthly_video_credits: 200,
@@ -31,8 +31,8 @@ const STRIPE_PLANS = {
   },
   enterprise: {
     name: "Enterprise",
-    monthlyPrice: 49900, // $499
-    annualPrice: 478800, // $4788/year
+    monthlyPrice: 29900, // $299
+    annualPrice: 287000, // $2870/year
     features: {
       stores_limit: -1, // Unlimited
       monthly_video_credits: -1,
@@ -41,118 +41,68 @@ const STRIPE_PLANS = {
   },
 };
 
+// Helper to get Stripe key
+function getStripeKey(): { key: string; isLive: boolean } | null {
+  const liveSecretKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+  const mainSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+  
+  if (liveSecretKey?.startsWith("sk_live_")) {
+    return { key: liveSecretKey, isLive: true };
+  }
+  if (mainSecretKey?.startsWith("sk_live_")) {
+    return { key: mainSecretKey, isLive: true };
+  }
+  if (mainSecretKey?.startsWith("sk_test_")) {
+    return { key: mainSecretKey, isLive: false };
+  }
+  if (liveSecretKey) {
+    return { key: liveSecretKey, isLive: liveSecretKey.startsWith("sk_live_") };
+  }
+  return null;
+}
+
 serve(async (req) => {
   console.log("🚀 [stripe-checkout] Function invoked at", new Date().toISOString());
   
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    console.log("📋 CORS preflight request handled");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // FORCE LIVE KEYS: Check both key locations
-    const liveSecretKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-    const mainSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    const stripeConfig = getStripeKey();
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
-    // Log for debugging (redacted)
-    console.log("🔐 [stripe-checkout] Stripe Key Check:", {
-      hasLiveSecretKey: !!liveSecretKey,
-      liveKeyPrefix: liveSecretKey ? liveSecretKey.substring(0, 8) + "..." : "none",
-      hasMainKey: !!mainSecretKey,
-      mainKeyPrefix: mainSecretKey ? mainSecretKey.substring(0, 8) + "..." : "none",
+    console.log("🔐 [stripe-checkout] Key status:", {
+      hasKey: !!stripeConfig,
+      isLive: stripeConfig?.isLive,
       hasWebhookSecret: !!webhookSecret,
     });
-    
-    // Determine which key to use - PRIORITIZE LIVE KEYS
-    let stripeSecretKey: string | undefined;
-    let isLiveKey = false;
-    let isTestKey = false;
-    
-    // First check STRIPE_LIVE_SECRET_KEY
-    if (liveSecretKey && liveSecretKey.startsWith("sk_live_")) {
-      stripeSecretKey = liveSecretKey;
-      isLiveKey = true;
-      console.log("💰 Using STRIPE_LIVE_SECRET_KEY (sk_live_)");
-    }
-    // Then check if STRIPE_SECRET_KEY is a live key
-    else if (mainSecretKey && mainSecretKey.startsWith("sk_live_")) {
-      stripeSecretKey = mainSecretKey;
-      isLiveKey = true;
-      console.log("💰 Using STRIPE_SECRET_KEY (sk_live_)");
-    }
-    // Fallback to test key for status checks only
-    else if (mainSecretKey && mainSecretKey.startsWith("sk_test_")) {
-      stripeSecretKey = mainSecretKey;
-      isTestKey = true;
-      console.log("⚠️ Using test key (sk_test_) - NOT for real payments");
-    }
-    // Or if STRIPE_LIVE_SECRET_KEY exists but isn't properly formatted
-    else if (liveSecretKey) {
-      stripeSecretKey = liveSecretKey;
-      isLiveKey = liveSecretKey.startsWith("sk_live_");
-      isTestKey = liveSecretKey.startsWith("sk_test_");
-      console.log("🔑 Using STRIPE_LIVE_SECRET_KEY as-is");
-    }
-    
-    const keyType = isLiveKey ? "live" : isTestKey ? "test" : "none";
-    
+
     const body = await req.json();
     
-    // Handle verify-live-mode action (no auth required for status check)
+    // Handle verify-live-mode action
     if (body.action === "verify-live-mode") {
-      console.log("🔍 [stripe-checkout] Verifying live mode...");
-      
-      // Provide detailed diagnostics
-      const liveSecretKeyPrefix = liveSecretKey ? liveSecretKey.substring(0, 7) : "none";
-      const mainKeyPrefix = mainSecretKey ? mainSecretKey.substring(0, 7) : "none";
-      
-      // If we have a live key, also verify it works by making a test API call
       let verified = false;
       let verificationError: string | null = null;
       
-      if (stripeSecretKey && isLiveKey) {
+      if (stripeConfig?.isLive) {
         try {
-          console.log("🔄 [stripe-checkout] Testing Stripe API connection...");
-          const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-          const balance = await stripe.balance.retrieve();
+          const stripe = new Stripe(stripeConfig.key, { apiVersion: "2023-10-16" });
+          await stripe.balance.retrieve();
           verified = true;
-          console.log("✅ [stripe-checkout] Live key verified with Stripe API - Balance retrieved successfully");
         } catch (err) {
           verificationError = err instanceof Error ? err.message : "Verification failed";
-          console.error("❌ [stripe-checkout] Live key verification failed:", verificationError);
         }
-      } else {
-        console.log("⚠️ [stripe-checkout] No live key available for verification. keyType:", keyType);
       }
       
-      const response = {
-        isConnected: !!stripeSecretKey,
-        isLiveMode: isLiveKey,
+      return new Response(JSON.stringify({
+        isConnected: !!stripeConfig,
+        isLiveMode: stripeConfig?.isLive || false,
         hasWebhookSecret: !!webhookSecret,
-        keyType: keyType,
-        liveKeyConfigured: isLiveKey,
-        verified: verified,
-        message: verified 
-          ? "💰 LIVE CONNECTED — VERIFIED 💰" 
-          : isLiveKey && verificationError
-          ? `Live key found but verification failed: ${verificationError}`
-          : `Live keys required. Current key prefix: ${liveSecretKeyPrefix}. Expected: sk_live_`,
-        debug: {
-          liveSecretKeyExists: !!liveSecretKey,
-          liveSecretKeyPrefix: liveSecretKeyPrefix,
-          mainKeyExists: !!mainSecretKey,
-          mainKeyPrefix: mainKeyPrefix,
-          verified: verified,
-          expectedFormat: "sk_live_xxxxx (from Stripe Dashboard → Developers → API Keys)",
-          timestamp: new Date().toISOString(),
-        }
-      };
-      
-      console.log("📤 [stripe-checkout] verify-live-mode response:", JSON.stringify(response, null, 2));
-      
-      return new Response(JSON.stringify(response), {
+        verified,
+        message: verified ? "💰 LIVE CONNECTED — VERIFIED 💰" : "Live keys required",
+      }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -162,90 +112,20 @@ serve(async (req) => {
     if (body.action === "ping") {
       return new Response(JSON.stringify({ 
         status: "ok",
-        isLive: isLiveKey,
-        keyType: keyType,
-        message: isLiveKey ? "💰 LIVE MODE ACTIVE 💰" : "Test mode - no real money",
+        isLive: stripeConfig?.isLive,
+        message: stripeConfig?.isLive ? "💰 LIVE MODE ACTIVE 💰" : "Test mode",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    
-    // Handle test-charge action for verification
-    if (body.action === "test-live-connection") {
-      if (!stripeSecretKey) {
-        return new Response(JSON.stringify({ 
-          error: "No Stripe key configured",
-          isLive: false,
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      
-      if (!isLiveKey) {
-        return new Response(JSON.stringify({ 
-          error: "Live key required (sk_live_) for real money verification",
-          keyType: keyType,
-          isLive: false,
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      
-      const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-      
-      // Verify connection by fetching account
-      try {
-        const account = await stripe.accounts.retrieve();
-        return new Response(JSON.stringify({
-          success: true,
-          isLive: true,
-          message: "💰 REAL MONEY LIVE — CONNECTED 💰",
-          accountId: account.id,
-          chargesEnabled: account.charges_enabled,
-          payoutsEnabled: account.payouts_enabled,
-        }), {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      } catch (stripeErr) {
-        return new Response(JSON.stringify({
-          error: "Failed to verify Stripe account",
-          details: stripeErr instanceof Error ? stripeErr.message : "Unknown error",
-          isLive: false,
-        }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
 
-    // For actual checkout, ENFORCE LIVE KEYS ONLY
-    if (!stripeSecretKey) {
+    // Require valid Stripe key for all other actions
+    if (!stripeConfig) {
       throw new Error("Stripe secret key not configured");
     }
-    
-    // CRITICAL: Reject test keys for real checkout
-    if (!isLiveKey) {
-      console.error("🚫 REJECTED: Test key used for checkout. Live keys (sk_live_) REQUIRED for real money.");
-      return new Response(JSON.stringify({ 
-        error: "LIVE STRIPE KEYS REQUIRED. Test keys (sk_test_) cannot process real payments. Add STRIPE_LIVE_SECRET_KEY or update STRIPE_SECRET_KEY with sk_live_ key.",
-        keyType: keyType,
-        solution: "Update STRIPE_SECRET_KEY with your sk_live_ key from Stripe Dashboard",
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
-    console.log("💰 Processing checkout with LIVE Stripe key — REAL MONEY MODE");
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
-    });
-
+    const stripe = new Stripe(stripeConfig.key, { apiVersion: "2023-10-16" });
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -269,6 +149,201 @@ serve(async (req) => {
       });
     }
 
+    // ========================================
+    // ACTION: Create subscription directly with PaymentMethod (Stripe Elements)
+    // ========================================
+    if (body.action === "create-subscription-direct") {
+      const { paymentMethodId, plan, billingCycle } = body;
+
+      if (!paymentMethodId || !plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
+        return new Response(JSON.stringify({ error: "Invalid parameters" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const planConfig = STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS];
+      const isAnnual = billingCycle === "annual";
+      const priceAmount = isAnnual ? planConfig.annualPrice : planConfig.monthlyPrice;
+      const interval = isAnnual ? "year" : "month";
+
+      // Get or create customer
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("stripe_customer_id")
+        .eq("user_id", user.id)
+        .single();
+
+      let customerId = subscription?.stripe_customer_id;
+
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          payment_method: paymentMethodId,
+          invoice_settings: { default_payment_method: paymentMethodId },
+          metadata: { supabase_user_id: user.id, environment: stripeConfig.isLive ? "LIVE" : "TEST" },
+        });
+        customerId = customer.id;
+      } else {
+        // Attach payment method to existing customer
+        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: paymentMethodId },
+        });
+      }
+
+      // Create or get product
+      const productName = `DOMINION ${planConfig.name}`;
+      const products = await stripe.products.search({ query: `name:'${productName}'` });
+      
+      let productId: string;
+      if (products.data.length > 0) {
+        productId = products.data[0].id;
+      } else {
+        const product = await stripe.products.create({
+          name: productName,
+          metadata: { plan_key: plan, ...planConfig.features },
+        });
+        productId = product.id;
+      }
+
+      // Create price
+      const price = await stripe.prices.create({
+        product: productId,
+        unit_amount: priceAmount,
+        currency: "usd",
+        recurring: { interval },
+        metadata: { plan_key: plan, billing_cycle: billingCycle },
+      });
+
+      // Create subscription
+      const stripeSubscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{ price: price.id }],
+        payment_behavior: "default_incomplete",
+        payment_settings: { save_default_payment_method: "on_subscription" },
+        expand: ["latest_invoice.payment_intent"],
+        metadata: { supabase_user_id: user.id, plan, billing_cycle: billingCycle },
+        trial_period_days: 14,
+      });
+
+      const invoice = stripeSubscription.latest_invoice as Stripe.Invoice;
+      const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent;
+
+      // If trial, subscription is active immediately
+      if (stripeSubscription.status === "trialing" || stripeSubscription.status === "active") {
+        console.log(`✅ Subscription created for user ${user.id}, status: ${stripeSubscription.status}`);
+        
+        return new Response(JSON.stringify({
+          subscription: stripeSubscription,
+          status: "active",
+          isLiveMode: stripeConfig.isLive,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Handle 3D Secure if required
+      if (paymentIntent?.status === "requires_action") {
+        return new Response(JSON.stringify({
+          subscription: stripeSubscription,
+          clientSecret: paymentIntent.client_secret,
+          requiresAction: true,
+          isLiveMode: stripeConfig.isLive,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        subscription: stripeSubscription,
+        status: stripeSubscription.status,
+        isLiveMode: stripeConfig.isLive,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================
+    // ACTION: Create one-time payment (PaymentIntent)
+    // ========================================
+    if (body.action === "create-payment-intent") {
+      const { paymentMethodId, amount, productName, description, metadata } = body;
+
+      if (!paymentMethodId || !amount) {
+        return new Response(JSON.stringify({ error: "Invalid parameters" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Get or create customer
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("stripe_customer_id")
+        .eq("user_id", user.id)
+        .single();
+
+      let customerId = subscription?.stripe_customer_id;
+
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          payment_method: paymentMethodId,
+          metadata: { supabase_user_id: user.id },
+        });
+        customerId = customer.id;
+      } else {
+        await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
+      }
+
+      // Create PaymentIntent
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount,
+        currency: "usd",
+        customer: customerId,
+        payment_method: paymentMethodId,
+        confirm: true,
+        automatic_payment_methods: {
+          enabled: true,
+          allow_redirects: "never",
+        },
+        description: productName || description,
+        metadata: {
+          supabase_user_id: user.id,
+          product_name: productName,
+          ...metadata,
+        },
+      });
+
+      if (paymentIntent.status === "requires_action") {
+        return new Response(JSON.stringify({
+          paymentIntentId: paymentIntent.id,
+          clientSecret: paymentIntent.client_secret,
+          requiresAction: true,
+          isLiveMode: stripeConfig.isLive,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        paymentIntentId: paymentIntent.id,
+        status: paymentIntent.status,
+        isLiveMode: stripeConfig.isLive,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ========================================
+    // DEFAULT: Checkout Session (redirect flow)
+    // ========================================
     const { plan, billingCycle, successUrl, cancelUrl } = body;
 
     if (!plan || !STRIPE_PLANS[plan as keyof typeof STRIPE_PLANS]) {
@@ -283,7 +358,7 @@ serve(async (req) => {
     const priceAmount = isAnnual ? planConfig.annualPrice : planConfig.monthlyPrice;
     const interval = isAnnual ? "year" : "month";
 
-    // Check for existing Stripe customer
+    // Get or create customer
     const { data: subscription } = await supabase
       .from("subscriptions")
       .select("stripe_customer_id")
@@ -292,25 +367,17 @@ serve(async (req) => {
 
     let customerId = subscription?.stripe_customer_id;
 
-    // Create or retrieve Stripe customer
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: {
-          supabase_user_id: user.id,
-          environment: "LIVE",
-        },
+        metadata: { supabase_user_id: user.id, environment: stripeConfig.isLive ? "LIVE" : "TEST" },
       });
       customerId = customer.id;
     }
 
-    // Create a product and price on the fly (or use existing)
+    // Create or get product
     const productName = `DOMINION ${planConfig.name}`;
-    
-    // Search for existing product
-    const products = await stripe.products.search({
-      query: `name:'${productName}'`,
-    });
+    const products = await stripe.products.search({ query: `name:'${productName}'` });
 
     let productId: string;
     if (products.data.length > 0) {
@@ -318,86 +385,53 @@ serve(async (req) => {
     } else {
       const product = await stripe.products.create({
         name: productName,
-        metadata: {
-          plan_key: plan,
-          stores_limit: String(planConfig.features.stores_limit),
-          monthly_video_credits: String(planConfig.features.monthly_video_credits),
-          monthly_ai_credits: String(planConfig.features.monthly_ai_credits),
-          environment: "LIVE",
-        },
+        metadata: { plan_key: plan },
       });
       productId = product.id;
     }
 
-    // Create price for this checkout
+    // Create price
     const price = await stripe.prices.create({
       product: productId,
       unit_amount: priceAmount,
       currency: "usd",
-      recurring: {
-        interval: interval,
-      },
-      metadata: {
-        plan_key: plan,
-        billing_cycle: billingCycle,
-        environment: "LIVE",
-      },
+      recurring: { interval },
+      metadata: { plan_key: plan, billing_cycle: billingCycle },
     });
 
     // Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: price.id,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: price.id, quantity: 1 }],
       mode: "subscription",
       success_url: successUrl || `${req.headers.get("origin")}/pricing?success=true`,
       cancel_url: cancelUrl || `${req.headers.get("origin")}/pricing?canceled=true`,
       subscription_data: {
-        metadata: {
-          supabase_user_id: user.id,
-          plan: plan,
-          billing_cycle: billingCycle,
-          environment: "LIVE",
-        },
-        trial_period_days: 14, // 14-day trial
+        metadata: { supabase_user_id: user.id, plan, billing_cycle: billingCycle },
+        trial_period_days: 14,
       },
-      metadata: {
-        supabase_user_id: user.id,
-        plan: plan,
-        environment: "LIVE",
-      },
+      metadata: { supabase_user_id: user.id, plan },
       allow_promotion_codes: true,
     });
 
-    console.log(`💰 LIVE checkout session created for user ${user.id}, plan: ${plan} — REAL MONEY`);
+    console.log(`💰 Checkout session created for user ${user.id}, plan: ${plan}`);
 
-    return new Response(
-      JSON.stringify({ 
-        sessionId: session.id, 
-        url: session.url,
-        customerId: customerId,
-        isLiveMode: true,
-        message: "💰 REAL MONEY CHECKOUT — LIVE MODE",
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ 
+      sessionId: session.id, 
+      url: session.url,
+      customerId,
+      isLiveMode: stripeConfig.isLive,
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error: unknown) {
     console.error("Stripe checkout error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
