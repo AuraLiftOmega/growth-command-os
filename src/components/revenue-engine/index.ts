@@ -4,3 +4,5 @@ export { CartRecoveryPanel } from './CartRecoveryPanel';
 export { PinterestConnect } from './PinterestConnect';
 export { RevenueEngineDashboard } from './RevenueEngineDashboard';
 export { RevenueAppsGrid } from './RevenueAppsGrid';
+export { LiveRevenueMonitor } from './LiveRevenueMonitor';
+export { LiveBotActivityFeed } from './LiveBotActivityFeed';
