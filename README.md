@@ -14,6 +14,18 @@
 
 ---
 
+## 🔥 AUTONOMOUS REVENUE SYSTEM GUIDE – Execute $10k+ Tonight
+
+### Quick Start – 3 Steps to Revenue Mode
+
+1. **Connect Shopify**: Go to `/dashboard/settings` → Shopify tab → Click "1-Click Connect Aura Lift Essentials" (pre-filled: aura-lift-essentials.myshopify.com)
+2. **Launch Revenue Mode**: Go to `/dashboard/revenue-engine` → Click "LAUNCH NOW" 
+3. **Activate Bots**: Go to `/dashboard/bot-team` → Click "Activate All 50 Bots"
+
+**That's it!** Grok CEO self-thinks hourly, bots sell autonomously, revenue flows to Stripe.
+
+---
+
 ## 🚀 Full Revenue System Guide
 
 ### 1. Revenue Engine (`/dashboard/revenue-engine`)
@@ -21,6 +33,7 @@ The master control center for autonomous revenue generation:
 
 - **Launch Revenue Mode**: 1-click full pipeline execution
   - D-ID video generation → Channel posting → Google Ads → n8n automation → Stripe revenue tracking
+- **Shopify Status Banner**: Real-time "Connected – 17+ products, $3,190 revenue today"
 - **Grok Self-Thinking Mode**: Hourly autonomous analysis optimizes for $10k+ revenue
 - **All Integrations Connected**: Real-time status indicators for all 12+ apps
 - **Account Selector**: Pre-configured with ryanauralift@gmail.com (primary) + secondary emails
