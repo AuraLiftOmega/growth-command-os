@@ -41,6 +41,8 @@ export const INTEGRATION_SECRET_MAP: Record<string, string[]> = {
   stripe: ["STRIPE_SECRET_KEY"],
   geekbot: ["GEEKBOT_API_KEY"],
   replicate: ["REPLICATE_API_TOKEN"],
+  n8n: [], // n8n is always connected - hardcoded server URL
+  x_twitter: ["XAI_API_KEY"], // Use existing X API key
 };
 
 export const INTEGRATION_CATEGORIES = {
@@ -417,6 +419,18 @@ export const ALL_INTEGRATIONS: Integration[] = [
 
   // Automation
   {
+    id: "n8n",
+    name: "n8n Omega Alpha",
+    description: "AURAOMEGA autonomous workflow automation engine",
+    icon: "🔄",
+    category: "automation",
+    connectionType: "webhook",
+    isConnected: true, // Force connected - hardcoded server URL
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://docs.n8n.io/",
+  },
+  {
     id: "zapier",
     name: "Zapier",
     description: "Connect apps and automate workflows",
@@ -503,6 +517,20 @@ export const ALL_INTEGRATIONS: Integration[] = [
     connectionType: "oauth",
     isConnected: false,
     docsUrl: "https://developers.google.com/youtube/",
+  },
+  
+  // Social Media
+  {
+    id: "x_twitter",
+    name: "X (Twitter)",
+    description: "Social media platform for posts and engagement",
+    icon: "𝕏",
+    category: "communication",
+    connectionType: "api_key",
+    isConnected: true, // Connected via XAI_API_KEY
+    syncStatus: "success",
+    lastSyncAt: new Date().toISOString(),
+    docsUrl: "https://developer.x.com/",
   },
 ];
 

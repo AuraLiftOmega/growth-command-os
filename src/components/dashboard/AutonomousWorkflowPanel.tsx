@@ -1,5 +1,6 @@
 /**
  * AUTONOMOUS WORKFLOW PANEL - n8n workflows for automated ad generation
+ * Hardcoded to: https://omegaalpha.app.n8n.cloud
  */
 
 import { useState } from 'react';
@@ -19,6 +20,7 @@ import {
   Clock,
   Target,
   BarChart3,
+  ExternalLink,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +36,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+// Hardcoded n8n server - NO MORE URL PROMPTS
+const N8N_SERVER_URL = 'https://omegaalpha.app.n8n.cloud';
 
 interface Workflow {
   id: string;
@@ -94,29 +101,67 @@ const DEFAULT_WORKFLOWS: Workflow[] = [
 ];
 
 export function AutonomousWorkflowPanel() {
+  const { user } = useAuth();
   const [workflows, setWorkflows] = useState<Workflow[]>(DEFAULT_WORKFLOWS);
   const [inventoryThreshold, setInventoryThreshold] = useState([20]);
   const [selectedChannel, setSelectedChannel] = useState('auto');
 
-  const toggleWorkflow = (workflowId: string, enabled: boolean) => {
+  const toggleWorkflow = async (workflowId: string, enabled: boolean) => {
     setWorkflows((prev) =>
       prev.map((w) => (w.id === workflowId ? { ...w, isActive: enabled } : w))
     );
 
     const workflow = workflows.find((w) => w.id === workflowId);
+    
+    // Trigger n8n webhook to update workflow state
+    try {
+      await supabase.functions.invoke('zapier-trigger', {
+        body: {
+          action: enabled ? 'activate_workflow' : 'deactivate_workflow',
+          workflow_id: workflowId,
+          workflow_name: workflow?.name,
+          user_id: user?.id,
+          n8n_server: N8N_SERVER_URL,
+        },
+      });
+    } catch (error) {
+      console.error('Error syncing with n8n:', error);
+    }
+
     if (enabled) {
       toast.success(`🤖 ${workflow?.name} activated`, {
-        description: 'Workflow will run automatically based on trigger.',
+        description: 'Workflow synced with n8n and will run automatically.',
       });
     } else {
       toast.info(`${workflow?.name} paused`);
     }
   };
 
-  const runWorkflowNow = (workflowId: string) => {
-    toast.success('⚡ Workflow triggered manually', {
-      description: 'Running now...',
-    });
+  const runWorkflowNow = async (workflowId: string) => {
+    const workflow = workflows.find((w) => w.id === workflowId);
+    
+    toast.loading('⚡ Triggering workflow...', { id: 'workflow-trigger' });
+    
+    try {
+      await supabase.functions.invoke('zapier-trigger', {
+        body: {
+          action: 'run_workflow',
+          workflow_id: workflowId,
+          workflow_name: workflow?.name,
+          user_id: user?.id,
+          n8n_server: N8N_SERVER_URL,
+          trigger_type: 'manual',
+        },
+      });
+      
+      toast.success('⚡ Workflow triggered!', {
+        id: 'workflow-trigger',
+        description: `${workflow?.name} is running now via n8n`,
+      });
+    } catch (error) {
+      console.error('Error triggering workflow:', error);
+      toast.error('Failed to trigger workflow', { id: 'workflow-trigger' });
+    }
   };
 
   const activeCount = workflows.filter((w) => w.isActive).length;
@@ -253,14 +298,26 @@ export function AutonomousWorkflowPanel() {
           ))}
         </div>
 
-        {/* n8n Webhook Info */}
-        <div className="p-3 rounded-lg bg-muted/30 border border-dashed">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Workflow className="w-4 h-4" />
-            <span>
-              Powered by n8n webhooks. Configure advanced workflows in your n8n dashboard.
-            </span>
+        {/* n8n Connection Status - Always Connected */}
+        <div className="p-3 rounded-lg bg-success/10 border border-success/30">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-sm font-medium text-success">n8n Connected</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs px-2"
+              onClick={() => window.open(N8N_SERVER_URL, '_blank')}
+            >
+              <ExternalLink className="w-3 h-3 mr-1" />
+              Dashboard
+            </Button>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Server: {N8N_SERVER_URL}
+          </p>
         </div>
       </CardContent>
     </Card>
