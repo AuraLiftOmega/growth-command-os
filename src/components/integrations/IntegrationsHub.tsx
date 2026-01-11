@@ -9,6 +9,7 @@ import { Search, Zap, Check, AlertCircle, Loader2, Brain, Sparkles, ArrowRight, 
 import { IntegrationCard, Integration } from "./IntegrationCard";
 import { ALL_INTEGRATIONS, INTEGRATION_CATEGORIES, getIntegrationsByCategory, INTEGRATION_SECRET_MAP } from "./integrations-data";
 import { N8nConnectionCard } from "./N8nConnectionCard";
+import { ClickUpConnectionCard } from "./ClickUpConnectionCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -23,11 +24,12 @@ const EXISTING_SECRETS = [
   "SHOPIFY_ACCESS_TOKEN", "SHOPIFY_STOREFRONT_ACCESS_TOKEN",
   "STRIPE_SECRET_KEY", "STRIPE_LIVE_SECRET_KEY",
   "PERPLEXITY_API_KEY", "LOVABLE_API_KEY",
-  "XAI_API_KEY", "XAI_GROK_API_KEY" // X/Twitter and Grok APIs
+  "XAI_API_KEY", "XAI_GROK_API_KEY", // X/Twitter and Grok APIs
+  "CLICKUP_API_TOKEN" // ClickUp integration
 ];
 
 // Integrations that are always connected (hardcoded)
-const ALWAYS_CONNECTED = ["n8n", "shopify"];
+const ALWAYS_CONNECTED = ["n8n", "shopify", "clickup"];
 
 // Check if an integration has its required secrets configured
 function checkIntegrationSecrets(integrationId: string): boolean {
@@ -304,8 +306,11 @@ export function IntegrationsHub() {
         </Button>
       </div>
 
-      {/* n8n Connection Card - Always Visible */}
-      <N8nConnectionCard />
+      {/* Connected Services - n8n & ClickUp Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <N8nConnectionCard />
+        <ClickUpConnectionCard />
+      </div>
 
       {/* Autonomous Flow Suggestions */}
       {showFlowSuggestions && (
