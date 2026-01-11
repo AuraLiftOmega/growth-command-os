@@ -33,21 +33,16 @@ const TIKTOK_BUSINESS_CONFIG = {
   ]
 };
 
-// Generate PKCE code verifier and challenge
-function generatePKCE(): { verifier: string; challenge: string } {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  const verifier = btoa(String.fromCharCode(...array))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-  
-  // For S256 challenge
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  
-  return { verifier, challenge: verifier }; // Using plain for simplicity
-}
+// Import OAuth 2.1 security utilities
+import { 
+  generatePKCE, 
+  generateState, 
+  validateRedirectUri,
+  checkRateLimit,
+  validateTokenResponse,
+  isStateExpired,
+  getSecureHeaders
+} from "../_shared/oauth-security.ts";
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -105,16 +100,18 @@ serve(async (req: Request) => {
           );
         }
 
-        if (!redirect_uri || !redirect_uri.startsWith('http')) {
+        // Validate redirect URI (OAuth 2.1 BCP)
+        const uriValidation = validateRedirectUri(redirect_uri, ['lovable.dev', 'profitreaper.com', 'localhost']);
+        if (!uriValidation.valid) {
           return new Response(
-            JSON.stringify({ error: 'Invalid redirect_uri' }),
+            JSON.stringify({ error: uriValidation.error }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Generate state and PKCE
-        const oauthState = crypto.randomUUID();
-        const pkce = generatePKCE();
+        // Generate high-entropy state and PKCE with S256
+        const oauthState = generateState();
+        const pkce = await generatePKCE();
         
         // Store state + PKCE verifier in database
         if (userId) {
@@ -125,11 +122,11 @@ serve(async (req: Request) => {
             redirect_uri,
             code_verifier: pkce.verifier,
             created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+            expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min expiry
           }, { onConflict: 'state' });
         }
 
-        // Build TikTok Business OAuth URL
+        // Build TikTok Business OAuth URL with S256 PKCE
         const params = new URLSearchParams({
           client_key: clientKey,
           scope: TIKTOK_BUSINESS_CONFIG.scopes.join(','),
@@ -137,12 +134,12 @@ serve(async (req: Request) => {
           redirect_uri: redirect_uri,
           state: oauthState,
           code_challenge: pkce.challenge,
-          code_challenge_method: 'plain'
+          code_challenge_method: 'S256' // OAuth 2.1 mandatory
         });
 
         const authUrl = `${TIKTOK_BUSINESS_CONFIG.authUrl}?${params.toString()}`;
         
-        console.log(`[tiktok-business-oauth] Generated auth URL for TikTok Business Suite`);
+        console.log(`[tiktok-business-oauth] Generated secure auth URL (PKCE S256)`);
 
         return new Response(
           JSON.stringify({ success: true, authUrl, channel: 'tiktok_business', state: oauthState }),

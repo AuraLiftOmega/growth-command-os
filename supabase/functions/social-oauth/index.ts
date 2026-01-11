@@ -1,12 +1,20 @@
 /**
- * SOCIAL OAUTH - Unified OAuth Handler for All Channels
+ * SOCIAL OAUTH - Unified OAuth 2.1/BCP Handler for All Channels
+ * 
+ * Security Features:
+ * - PKCE with S256 mandatory (OAuth 2.1)
+ * - High-entropy state parameter
+ * - Strict redirect URI validation
+ * - Rate limiting on token endpoints
+ * - No token logging
+ * - Short-lived access tokens, rotated refresh tokens
  * 
  * Handles real OAuth flows for:
  * - TikTok (PKCE + video upload)
  * - Meta (Instagram/Facebook)
  * - YouTube (Google OAuth)
  * - Pinterest
- * - Twitter/X
+ * - Twitter/X (PKCE mandatory)
  * - LinkedIn
  * 
  * Actions: authorize, callback, refresh, revoke, check_status
@@ -14,10 +22,23 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { 
+  generatePKCE, 
+  generateState, 
+  validateRedirectUri,
+  checkRateLimit,
+  validateTokenResponse,
+  sanitizeForLog,
+  getSecureHeaders,
+  isStateExpired,
+  validateScopes
+} from "../_shared/oauth-security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Cache-Control': 'no-store',
+  'Pragma': 'no-cache',
 };
 
 interface OAuthConfig {
@@ -26,11 +47,12 @@ interface OAuthConfig {
   scopes: string[];
   clientIdEnv: string;
   clientSecretEnv: string;
-  usePKCE?: boolean;
+  usePKCE: boolean; // Now mandatory for OAuth 2.1
   scopeSeparator?: string;
+  allowedDomains?: string[];
 }
 
-// Complete OAuth configurations for all channels
+// Complete OAuth configurations for all channels - PKCE enabled for all
 const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
   tiktok: {
     authUrl: 'https://www.tiktok.com/v2/auth/authorize',
@@ -40,6 +62,7 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     clientSecretEnv: 'TIKTOK_CLIENT_SECRET',
     usePKCE: true,
     scopeSeparator: ',',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   instagram: {
     authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
@@ -47,7 +70,9 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['instagram_basic', 'instagram_content_publish', 'instagram_manage_comments', 'pages_show_list', 'pages_read_engagement'],
     clientIdEnv: 'META_APP_ID',
     clientSecretEnv: 'META_APP_SECRET',
+    usePKCE: true,
     scopeSeparator: ',',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   facebook: {
     authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
@@ -55,7 +80,9 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['pages_manage_posts', 'pages_read_engagement', 'pages_messaging', 'publish_video'],
     clientIdEnv: 'META_APP_ID',
     clientSecretEnv: 'META_APP_SECRET',
+    usePKCE: true,
     scopeSeparator: ',',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   youtube: {
     authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -63,7 +90,9 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtube.readonly'],
     clientIdEnv: 'YOUTUBE_CLIENT_ID',
     clientSecretEnv: 'YOUTUBE_CLIENT_SECRET',
+    usePKCE: true,
     scopeSeparator: ' ',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   pinterest: {
     authUrl: 'https://www.pinterest.com/oauth/',
@@ -71,7 +100,9 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['boards:read', 'boards:write', 'pins:read', 'pins:write', 'user_accounts:read'],
     clientIdEnv: 'PINTEREST_APP_ID',
     clientSecretEnv: 'PINTEREST_APP_SECRET',
+    usePKCE: true,
     scopeSeparator: ',',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   twitter: {
     authUrl: 'https://twitter.com/i/oauth2/authorize',
@@ -81,6 +112,7 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     clientSecretEnv: 'TWITTER_CLIENT_SECRET',
     usePKCE: true,
     scopeSeparator: ' ',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
   linkedin: {
     authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
@@ -88,25 +120,31 @@ const OAUTH_CONFIGS: Record<string, OAuthConfig> = {
     scopes: ['r_liteprofile', 'w_member_social', 'r_organization_social'],
     clientIdEnv: 'LINKEDIN_CLIENT_ID',
     clientSecretEnv: 'LINKEDIN_CLIENT_SECRET',
+    usePKCE: true,
     scopeSeparator: ' ',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
+  },
+  google_ads: {
+    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+    tokenUrl: 'https://oauth2.googleapis.com/token',
+    scopes: ['https://www.googleapis.com/auth/adwords'],
+    clientIdEnv: 'GOOGLE_ADS_CLIENT_ID',
+    clientSecretEnv: 'GOOGLE_ADS_CLIENT_SECRET',
+    usePKCE: true,
+    scopeSeparator: ' ',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
+  },
+  threads: {
+    authUrl: 'https://www.facebook.com/v19.0/dialog/oauth',
+    tokenUrl: 'https://graph.facebook.com/v19.0/oauth/access_token',
+    scopes: ['threads_basic', 'threads_content_publish', 'threads_manage_replies'],
+    clientIdEnv: 'META_APP_ID',
+    clientSecretEnv: 'META_APP_SECRET',
+    usePKCE: true,
+    scopeSeparator: ',',
+    allowedDomains: ['lovable.dev', 'profitreaper.com', 'localhost'],
   },
 };
-
-// Generate PKCE code verifier and challenge
-function generatePKCE(): { verifier: string; challenge: string } {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  const verifier = btoa(String.fromCharCode(...array))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-  
-  // For challenge, we use SHA-256
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  
-  return { verifier, challenge: verifier }; // Simplified for demo
-}
 
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -166,6 +204,16 @@ serve(async (req: Request) => {
       }
 
       case 'authorize': {
+        // Rate limiting check
+        const rateLimitKey = `authorize:${userId || 'anonymous'}:${channel}`;
+        const rateCheck = checkRateLimit(rateLimitKey, 10, 60000);
+        if (!rateCheck.allowed) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded', retry_after: Math.ceil(rateCheck.resetIn / 1000) }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(Math.ceil(rateCheck.resetIn / 1000)) } }
+          );
+        }
+
         const clientId = Deno.env.get(config.clientIdEnv);
         const clientSecret = Deno.env.get(config.clientSecretEnv);
         
@@ -181,39 +229,32 @@ serve(async (req: Request) => {
           );
         }
 
-        if (!redirect_uri || !redirect_uri.startsWith('http')) {
+        // Validate redirect URI (OAuth 2.1 BCP - exact match, no wildcards)
+        const uriValidation = validateRedirectUri(redirect_uri, config.allowedDomains || []);
+        if (!uriValidation.valid) {
           return new Response(
-            JSON.stringify({ error: 'Invalid redirect_uri' }),
+            JSON.stringify({ error: uriValidation.error }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Generate state for CSRF protection
-        const oauthState = crypto.randomUUID();
+        // Generate high-entropy state for CSRF protection (256-bit)
+        const oauthState = generateState();
         
-        // Generate PKCE if needed
-        let pkce: { verifier: string; challenge: string } | null = null;
-        if (config.usePKCE) {
-          pkce = generatePKCE();
-        }
+        // Generate PKCE with S256 (mandatory for OAuth 2.1)
+        const pkce = await generatePKCE();
         
-        // Store state in database
+        // Store state + PKCE verifier in database
         if (userId) {
           await supabase.from('oauth_states').upsert({
             state: oauthState,
             user_id: userId,
             platform: channel,
             redirect_uri,
+            code_verifier: pkce.verifier, // Store verifier for callback
             created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 min expiry
+            expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min expiry (shorter for security)
           }, { onConflict: 'state' });
-
-          // Store PKCE verifier if used
-          if (pkce) {
-            await supabase.from('oauth_states').update({
-              code_verifier: pkce.verifier
-            }).eq('state', oauthState);
-          }
         }
 
         // Build OAuth URL
@@ -229,21 +270,21 @@ serve(async (req: Request) => {
         params.append('scope', config.scopes.join(config.scopeSeparator || ' '));
         params.append('response_type', 'code');
         params.append('state', oauthState);
+        
+        // Add PKCE challenge (S256 method - OAuth 2.1 mandatory)
+        params.append('code_challenge', pkce.challenge);
+        params.append('code_challenge_method', 'S256');
 
         // Platform-specific params
-        if (channel === 'youtube') {
+        if (channel === 'youtube' || channel === 'google_ads') {
           params.append('access_type', 'offline');
           params.append('prompt', 'consent');
-        }
-        
-        if (channel === 'twitter' && pkce) {
-          params.append('code_challenge', pkce.challenge);
-          params.append('code_challenge_method', 'plain');
         }
 
         const authUrl = `${config.authUrl}?${params.toString()}`;
         
-        console.log(`[social-oauth] Generated auth URL for ${channel}`);
+        // Log without sensitive data
+        console.log(`[social-oauth] Generated secure auth URL for ${channel} (PKCE S256)`);
 
         return new Response(
           JSON.stringify({ success: true, authUrl, channel, state: oauthState }),
@@ -252,7 +293,17 @@ serve(async (req: Request) => {
       }
 
       case 'callback': {
-        // Verify state
+        // Rate limiting on token endpoint
+        const rateLimitKey = `callback:${state || 'unknown'}`;
+        const rateCheck = checkRateLimit(rateLimitKey, 5, 60000);
+        if (!rateCheck.allowed) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Verify state exists and is not expired
         const { data: stateData, error: stateError } = await supabase
           .from('oauth_states')
           .select('*')
@@ -260,9 +311,27 @@ serve(async (req: Request) => {
           .single();
 
         if (stateError || !stateData) {
-          console.error('[social-oauth] Invalid state:', stateError);
+          console.error('[social-oauth] Invalid state - possible CSRF attack');
           return new Response(
             JSON.stringify({ error: 'Invalid or expired state parameter' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Check state expiry
+        if (isStateExpired(stateData.expires_at)) {
+          await supabase.from('oauth_states').delete().eq('state', state);
+          return new Response(
+            JSON.stringify({ error: 'State expired - please restart authorization' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Verify PKCE verifier exists (mandatory for OAuth 2.1)
+        if (!stateData.code_verifier) {
+          console.error('[social-oauth] Missing PKCE verifier - rejecting request');
+          return new Response(
+            JSON.stringify({ error: 'Missing PKCE verifier' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -284,13 +353,10 @@ serve(async (req: Request) => {
         tokenParams.append('code', code);
         tokenParams.append('redirect_uri', stateData.redirect_uri);
         tokenParams.append('grant_type', 'authorization_code');
+        tokenParams.append('code_verifier', stateData.code_verifier);
 
-        // Add PKCE verifier if stored
-        if (stateData.code_verifier) {
-          tokenParams.append('code_verifier', stateData.code_verifier);
-        }
-
-        console.log(`[social-oauth] Exchanging code for ${channel} tokens`);
+        // Log without sensitive data
+        console.log(`[social-oauth] Exchanging code for ${channel} tokens (PKCE verified)`);
 
         const tokenResponse = await fetch(config.tokenUrl, {
           method: 'POST',
@@ -303,15 +369,19 @@ serve(async (req: Request) => {
           body: tokenParams,
         });
 
-        const tokens = await tokenResponse.json();
-
-        if (tokens.error || tokens.error_code) {
-          console.error('[social-oauth] Token error:', tokens);
+        const tokenJson = await tokenResponse.json();
+        
+        // Validate token response
+        const tokenValidation = validateTokenResponse(tokenJson);
+        if (!tokenValidation.valid) {
+          console.error('[social-oauth] Token validation failed:', tokenValidation.error);
           return new Response(
-            JSON.stringify({ error: tokens.error_description || tokens.error || 'Token exchange failed' }),
+            JSON.stringify({ error: tokenValidation.error }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        
+        const tokens = tokenValidation.tokens!;
 
         // Fetch user info based on channel
         let accountInfo = { id: null, name: null, avatar: null };
