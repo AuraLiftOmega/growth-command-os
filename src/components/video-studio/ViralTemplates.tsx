@@ -21,6 +21,56 @@ export interface ViralTemplate {
 }
 
 export const VIRAL_TEMPLATES: ViralTemplate[] = [
+  // ===== RETINOL POWER SCRIPTS (2026 Scaling Strategy) =====
+  {
+    id: 'retinol-beginner',
+    name: 'Retinol Beginner Hook',
+    emoji: '🌙',
+    description: 'Gentle retinol for new users',
+    hook: 'Scared of retinol irritation?',
+    style: 'educational',
+    viralScore: 96,
+    bestFor: ['retinol', 'anti-aging', 'beginners'],
+    scriptTemplate: "Struggling with fine lines but scared of retinol irritation? Our gentle Retinol Cream is encapsulated for slow release — smooths wrinkles, boosts collagen without the redness! See real results: dull texture to plump glow in weeks. Don't wait — your younger-looking skin starts tonight! Tap shop now before stock runs low!",
+    tags: ['retinol', 'antiaging', 'gentleskincare', 'fyp', 'skincareover30']
+  },
+  {
+    id: 'retinol-timeline',
+    name: 'Transformation Timeline',
+    emoji: '📅',
+    description: '6-month glow-up journey',
+    hook: 'Month 1 → Month 6 Results',
+    style: 'timeline',
+    viralScore: 97,
+    bestFor: ['retinol', 'before-after', 'results'],
+    scriptTemplate: "Month 1 with our Retinol Cream: Bye-bye rough texture. Month 3: Fine lines fading fast. Month 6: That 'glass skin' everyone wants! Powered by proven retinol plus hydrators to fight aging gently. Transform your routine today — limited intro offer! Grab yours now and glow up!",
+    tags: ['transformation', 'glassskin', 'retinolresults', 'skincaretimeline', 'viral']
+  },
+  {
+    id: 'retinol-bundle',
+    name: 'Bundle + Urgency',
+    emoji: '💎',
+    description: 'Anti-aging bundle upsell',
+    hook: 'Want MAX anti-aging?',
+    style: 'bundle',
+    viralScore: 94,
+    bestFor: ['bundles', 'upsell', 'routine'],
+    scriptTemplate: "Want max anti-aging? Pair our Retinol Cream with Hyaluronic Serum for the ultimate 'sandwich' method — hydrate, renew, glow! Go from tired to radiant in months. Top seller at 28% of sales — but stock is flying! Secure your bundle now — tap to shop before it's gone!",
+    tags: ['retinolsandwich', 'skincareroutine', 'antiaging', 'bundle', 'limitedstock']
+  },
+  {
+    id: 'retinol-metaphor',
+    name: 'Pain Point + Metaphor',
+    emoji: '🍑',
+    description: 'Viral texture comparison',
+    hook: 'Fine lines creeping in?',
+    style: 'metaphor',
+    viralScore: 95,
+    bestFor: ['retinol', 'viral', 'relatable'],
+    scriptTemplate: "Those fine lines creeping in? Imagine your skin like this — then THIS! Our Retinol Cream delivers real collagen boost without the drama. Real users seeing results fast. Don't let aging win — claim yours today and wake up younger tomorrow!",
+    tags: ['beforeafter', 'texturecheck', 'skincaretiktok', 'agingskin', 'fyp']
+  },
+  // ===== EXISTING VIRAL TEMPLATES =====
   {
     id: 'pov-glow-up',
     name: 'POV Glow Up',
