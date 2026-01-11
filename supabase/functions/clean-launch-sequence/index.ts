@@ -35,21 +35,21 @@ const DID_AVATARS = {
 // Default product config - used when no product is provided in request
 // All values can be overridden by request body parameters
 function getDefaultProductConfig(storeUrl?: string) {
-  const domain = storeUrl || Deno.env.get('SITE_URL') || 'your-store.com';
+  const domain = storeUrl || Deno.env.get('SITE_URL') || 'https://www.auraliftessentials.com';
   const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
   return {
-    name: "Premium Product",
+    name: "AuraLift Premium Serum",
     shopify_id: "",
     image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800",
     store_url: domain,
     domain: cleanDomain,
-    script: `Discover this amazing product. Transform your routine today. Shop now at ${cleanDomain}. Your transformation starts today!`
+    script: `Discover AuraLift skincare. Transform your beauty routine today. Shop now at ${cleanDomain}. Your transformation starts today!`
   };
 }
 
 // Dynamic captions generator - per-product, per-store  
 function generateSocialCaptions(productName: string, storeUrl?: string) {
-  const domain = (storeUrl || Deno.env.get('SITE_URL') || 'your-store.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const domain = (storeUrl || Deno.env.get('SITE_URL') || 'https://www.auraliftessentials.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
   
   return {
     tiktok: `✨ Your transformation starts NOW! ${productName} is here 🌟

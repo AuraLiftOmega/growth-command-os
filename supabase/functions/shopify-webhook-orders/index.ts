@@ -71,7 +71,7 @@ function extractAttribution(order: ShopifyOrder): {
   // Check landing site for UTM params
   if (order.landing_site) {
     try {
-      const url = new URL(`https://example.com${order.landing_site}`);
+      const url = new URL(`https://www.auraliftessentials.com${order.landing_site}`);
       const utmSource = url.searchParams.get('utm_source');
       const utmContent = url.searchParams.get('utm_content');
       
