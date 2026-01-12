@@ -65,6 +65,62 @@ export function VideoIdeasBrain() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('all');
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [nextGenerationTime, setNextGenerationTime] = useState<Date | null>(null);
+  const [autoGenerateCountdown, setAutoGenerateCountdown] = useState<string>('');
+
+  // Auto-generate loop - runs every hour when auto mode is ON
+  useEffect(() => {
+    if (!autoMode || !user) return;
+
+    // Generate immediately when auto mode is turned on
+    generateIdeas(20);
+    
+    // Set next generation time
+    const nextTime = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    setNextGenerationTime(nextTime);
+
+    // Set up hourly interval
+    const hourlyInterval = setInterval(() => {
+      generateIdeas(20);
+      setNextGenerationTime(new Date(Date.now() + 60 * 60 * 1000));
+    }, 60 * 60 * 1000); // Every hour
+
+    return () => clearInterval(hourlyInterval);
+  }, [autoMode, user]);
+
+  // Countdown timer for next generation
+  useEffect(() => {
+    if (!nextGenerationTime || !autoMode) {
+      setAutoGenerateCountdown('');
+      return;
+    }
+
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = nextGenerationTime.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setAutoGenerateCountdown('Generating...');
+        return;
+      }
+
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      setAutoGenerateCountdown(`${minutes}m ${seconds}s`);
+    };
+
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(countdownInterval);
+  }, [nextGenerationTime, autoMode]);
+
+  // Auto-generate 10 ideas on first mount if none exist
+  useEffect(() => {
+    if (!isLoading && ideas.length === 0 && user) {
+      // Generate initial batch of 10 ideas
+      generateIdeas(10);
+    }
+  }, [isLoading, ideas.length, user]);
 
   // Fetch existing ideas
   const fetchIdeas = useCallback(async () => {
@@ -213,15 +269,23 @@ ${idea.hashtags?.join(' ') || ''}
             </div>
 
             <div className="flex items-center gap-3">
-              <Button
-                variant={autoMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setAutoMode(!autoMode)}
-                className={autoMode ? 'bg-green-600 hover:bg-green-700' : ''}
-              >
-                <Zap className={`h-4 w-4 mr-1 ${autoMode ? 'animate-pulse' : ''}`} />
-                {autoMode ? 'Auto Mode ON' : 'Auto Mode'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={autoMode ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAutoMode(!autoMode)}
+                  className={autoMode ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  <Zap className={`h-4 w-4 mr-1 ${autoMode ? 'animate-pulse' : ''}`} />
+                  {autoMode ? '24/7 AUTO ON' : 'Enable 24/7'}
+                </Button>
+                {autoMode && autoGenerateCountdown && (
+                  <Badge variant="outline" className="bg-green-500/20 text-green-300 border-green-500/30">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Next: {autoGenerateCountdown}
+                  </Badge>
+                )}
+              </div>
               <Button
                 onClick={() => generateIdeas(20)}
                 disabled={isGenerating}
