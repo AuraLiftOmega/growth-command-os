@@ -145,14 +145,14 @@ export function MultiChannelPoster({
       try {
         const { data, error } = await supabase.functions.invoke('autonomous-publisher', {
           body: {
-            platform: channel.id,
-            video_url: videoUrl,
-            thumbnail_url: videoThumbnail,
-            caption: `${caption}\n\n${hashtags.map(h => `#${h}`).join(' ')}`,
-            product_name: productName,
-            product_link: productUrl || 'https://www.auraliftessentials.com',
-            hashtags,
-            schedule: 'now'
+            user_id: user?.id,
+            platforms: [channel.id],
+            content: {
+              caption: `${caption}\n\n${hashtags.map(h => `#${h}`).join(' ')}`,
+              hashtags,
+              video_url: videoUrl,
+              product_url: productUrl || 'https://www.auraliftessentials.com',
+            }
           }
         });
 

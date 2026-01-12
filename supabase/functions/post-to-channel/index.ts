@@ -49,8 +49,10 @@ serve(async (req: Request) => {
   }
 
   try {
+    const body = await req.json();
     const { 
       channel, 
+      platform, // Support both 'channel' and 'platform' params
       video_url, 
       caption, 
       hashtags, 
@@ -58,9 +60,20 @@ serve(async (req: Request) => {
       ad_id,
       schedule_time,
       metadata 
-    } = await req.json();
+    } = body;
 
-    console.log(`[post-to-channel] Posting to ${channel}`);
+    // Use channel or platform (support both naming conventions)
+    const targetChannel = channel || platform;
+    
+    if (!targetChannel) {
+      console.error('[post-to-channel] Missing channel/platform parameter:', JSON.stringify(body));
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameter: channel or platform' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[post-to-channel] Posting to ${targetChannel}`);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -84,29 +97,42 @@ serve(async (req: Request) => {
       );
     }
 
-    // Get stored token for channel
+    // Get stored token for channel (check both social_tokens and platform_accounts)
     const { data: tokenData, error: tokenError } = await supabase
       .from('social_tokens')
       .select('*')
       .eq('user_id', user.id)
-      .eq('channel', channel)
+      .eq('channel', targetChannel)
       .eq('is_connected', true)
       .single();
 
-    if (tokenError || !tokenData?.access_token_encrypted) {
+    // Also check platform_accounts as fallback
+    let platformData = null;
+    if (tokenError || !tokenData) {
+      const { data: pData } = await supabase
+        .from('platform_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('platform', targetChannel)
+        .eq('is_connected', true)
+        .single();
+      platformData = pData;
+    }
+
+    if ((tokenError || !tokenData?.access_token_encrypted) && !platformData) {
       return new Response(
-        JSON.stringify({ error: `Not connected to ${channel}. Please connect your account first.` }),
+        JSON.stringify({ error: `Not connected to ${targetChannel}. Please connect your account first.` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const accessToken = tokenData.access_token_encrypted;
+    const accessToken = tokenData?.access_token_encrypted || platformData?.access_token;
     const fullCaption = hashtags ? `${caption}\n\n${hashtags}` : caption;
 
     let postResult: any = { success: false };
 
     // Channel-specific posting logic
-    switch (channel) {
+    switch (targetChannel) {
       case 'tiktok': {
         // TikTok Video Upload API
         const initResponse = await fetch(CHANNEL_APIS.tiktok.upload, {
@@ -350,7 +376,7 @@ serve(async (req: Request) => {
       user_id: user.id,
       ad_id: ad_id || null,
       creative_id: creative_id || null,
-      channel,
+      channel: targetChannel,
       post_id: postResult.post_id,
       post_url: postResult.post_url,
       status: postResult.success ? 'published' : 'failed',
@@ -366,7 +392,7 @@ serve(async (req: Request) => {
       console.error('[post-to-channel] Failed to save post record:', insertError);
     }
 
-    console.log(`[post-to-channel] ${channel} post result:`, postResult.success ? 'SUCCESS' : 'FAILED');
+    console.log(`[post-to-channel] ${targetChannel} post result:`, postResult.success ? 'SUCCESS' : 'FAILED');
 
     return new Response(
       JSON.stringify(postResult),
