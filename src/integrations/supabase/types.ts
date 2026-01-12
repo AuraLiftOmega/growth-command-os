@@ -4561,6 +4561,99 @@ export type Database = {
           },
         ]
       }
+      video_ideas_brain: {
+        Row: {
+          avatar_style: string | null
+          body_duration_seconds: number | null
+          body_script: string | null
+          created_at: string
+          cta: string
+          cta_duration_seconds: number | null
+          emotional_trigger: string | null
+          full_script: string | null
+          generated_video_id: string | null
+          hashtags: string[] | null
+          hook: string
+          hook_duration_seconds: number | null
+          id: string
+          idea_number: number | null
+          performance_metrics: Json | null
+          product_focus: string
+          product_id: string | null
+          status: string | null
+          target_audience: Json | null
+          target_platforms: string[] | null
+          title: string
+          trending_elements: string[] | null
+          updated_at: string
+          user_id: string
+          virality_reason: string | null
+          virality_score: number | null
+          visual_style: string | null
+          visuals: string
+        }
+        Insert: {
+          avatar_style?: string | null
+          body_duration_seconds?: number | null
+          body_script?: string | null
+          created_at?: string
+          cta: string
+          cta_duration_seconds?: number | null
+          emotional_trigger?: string | null
+          full_script?: string | null
+          generated_video_id?: string | null
+          hashtags?: string[] | null
+          hook: string
+          hook_duration_seconds?: number | null
+          id?: string
+          idea_number?: number | null
+          performance_metrics?: Json | null
+          product_focus: string
+          product_id?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          target_platforms?: string[] | null
+          title: string
+          trending_elements?: string[] | null
+          updated_at?: string
+          user_id: string
+          virality_reason?: string | null
+          virality_score?: number | null
+          visual_style?: string | null
+          visuals: string
+        }
+        Update: {
+          avatar_style?: string | null
+          body_duration_seconds?: number | null
+          body_script?: string | null
+          created_at?: string
+          cta?: string
+          cta_duration_seconds?: number | null
+          emotional_trigger?: string | null
+          full_script?: string | null
+          generated_video_id?: string | null
+          hashtags?: string[] | null
+          hook?: string
+          hook_duration_seconds?: number | null
+          id?: string
+          idea_number?: number | null
+          performance_metrics?: Json | null
+          product_focus?: string
+          product_id?: string | null
+          status?: string | null
+          target_audience?: Json | null
+          target_platforms?: string[] | null
+          title?: string
+          trending_elements?: string[] | null
+          updated_at?: string
+          user_id?: string
+          virality_reason?: string | null
+          virality_score?: number | null
+          visual_style?: string | null
+          visuals?: string
+        }
+        Relationships: []
+      }
       video_jobs: {
         Row: {
           adherence_score: number | null
