@@ -516,6 +516,72 @@ export type Database = {
           },
         ]
       }
+      ar_experiences: {
+        Row: {
+          ar_effect: string
+          ar_project_id: string | null
+          ar_provider: string | null
+          ar_url: string | null
+          conversion_rate: number | null
+          created_at: string
+          experience_name: string
+          experience_type: string | null
+          id: string
+          preview_image_url: string | null
+          product_id: string | null
+          product_name: string | null
+          qr_code_url: string | null
+          revenue_attributed: number | null
+          status: string | null
+          total_conversions: number | null
+          total_views: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ar_effect: string
+          ar_project_id?: string | null
+          ar_provider?: string | null
+          ar_url?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          experience_name: string
+          experience_type?: string | null
+          id?: string
+          preview_image_url?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          qr_code_url?: string | null
+          revenue_attributed?: number | null
+          status?: string | null
+          total_conversions?: number | null
+          total_views?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ar_effect?: string
+          ar_project_id?: string | null
+          ar_provider?: string | null
+          ar_url?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          experience_name?: string
+          experience_type?: string | null
+          id?: string
+          preview_image_url?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          qr_code_url?: string | null
+          revenue_attributed?: number | null
+          status?: string | null
+          total_conversions?: number | null
+          total_views?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_jobs: {
         Row: {
           completed_at: string | null
@@ -2593,6 +2659,90 @@ export type Database = {
           platform?: string
           revenue_generated?: number | null
           status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nft_mints: {
+        Row: {
+          ai_prompt: string | null
+          blockchain: string | null
+          contract_address: string | null
+          created_at: string
+          customer_email: string | null
+          id: string
+          image_url: string | null
+          listed_at: string | null
+          marketplace_url: string | null
+          metadata_url: string | null
+          mint_price: number | null
+          mint_status: string | null
+          minted_at: string | null
+          nft_description: string | null
+          nft_name: string
+          nft_type: string | null
+          order_id: string | null
+          product_id: string | null
+          product_name: string | null
+          royalty_percentage: number | null
+          sale_price: number | null
+          sold_at: string | null
+          token_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_prompt?: string | null
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          image_url?: string | null
+          listed_at?: string | null
+          marketplace_url?: string | null
+          metadata_url?: string | null
+          mint_price?: number | null
+          mint_status?: string | null
+          minted_at?: string | null
+          nft_description?: string | null
+          nft_name: string
+          nft_type?: string | null
+          order_id?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          royalty_percentage?: number | null
+          sale_price?: number | null
+          sold_at?: string | null
+          token_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_prompt?: string | null
+          blockchain?: string | null
+          contract_address?: string | null
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          image_url?: string | null
+          listed_at?: string | null
+          marketplace_url?: string | null
+          metadata_url?: string | null
+          mint_price?: number | null
+          mint_status?: string | null
+          minted_at?: string | null
+          nft_description?: string | null
+          nft_name?: string
+          nft_type?: string | null
+          order_id?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          royalty_percentage?: number | null
+          sale_price?: number | null
+          sold_at?: string | null
+          token_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -4793,6 +4943,48 @@ export type Database = {
           message?: string | null
           severity?: string | null
           title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      web3_revenue: {
+        Row: {
+          ar_conversions: number | null
+          ar_revenue: number | null
+          created_at: string
+          id: string
+          nft_revenue: number | null
+          nft_royalties: number | null
+          nft_sales_count: number | null
+          revenue_date: string
+          total_web3_revenue: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ar_conversions?: number | null
+          ar_revenue?: number | null
+          created_at?: string
+          id?: string
+          nft_revenue?: number | null
+          nft_royalties?: number | null
+          nft_sales_count?: number | null
+          revenue_date?: string
+          total_web3_revenue?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ar_conversions?: number | null
+          ar_revenue?: number | null
+          created_at?: string
+          id?: string
+          nft_revenue?: number | null
+          nft_royalties?: number | null
+          nft_sales_count?: number | null
+          revenue_date?: string
+          total_web3_revenue?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
