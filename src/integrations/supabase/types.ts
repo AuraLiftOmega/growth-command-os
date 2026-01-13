@@ -4860,6 +4860,138 @@ export type Database = {
         }
         Relationships: []
       }
+      winning_product_hunts: {
+        Row: {
+          added_at: string | null
+          ads_generated: number | null
+          ads_published: number | null
+          ai_benefits: string[] | null
+          ai_description: string | null
+          ai_hooks: string[] | null
+          aov_lift_percentage: number | null
+          bundle_affinity_score: number | null
+          bundle_suggestions: Json | null
+          cac_estimate: string | null
+          category: string
+          competitor_refs: Json | null
+          complements_products: string[] | null
+          cost_price: number | null
+          created_at: string
+          discovered_at: string | null
+          id: string
+          image_urls: string[] | null
+          kill_reason: string | null
+          killed_at: string | null
+          ltv_potential: string | null
+          margin_percentage: number | null
+          overall_score: number | null
+          performance_status: string | null
+          price_range: string | null
+          product_name: string
+          revenue: number | null
+          roas: number | null
+          sales_count: number | null
+          shopify_handle: string | null
+          shopify_product_id: string | null
+          source: string
+          source_product_id: string | null
+          source_url: string | null
+          status: string | null
+          suggested_price: number | null
+          tiktok_potential: number | null
+          trend_tags: string[] | null
+          updated_at: string
+          user_id: string
+          viral_score: number | null
+        }
+        Insert: {
+          added_at?: string | null
+          ads_generated?: number | null
+          ads_published?: number | null
+          ai_benefits?: string[] | null
+          ai_description?: string | null
+          ai_hooks?: string[] | null
+          aov_lift_percentage?: number | null
+          bundle_affinity_score?: number | null
+          bundle_suggestions?: Json | null
+          cac_estimate?: string | null
+          category: string
+          competitor_refs?: Json | null
+          complements_products?: string[] | null
+          cost_price?: number | null
+          created_at?: string
+          discovered_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          kill_reason?: string | null
+          killed_at?: string | null
+          ltv_potential?: string | null
+          margin_percentage?: number | null
+          overall_score?: number | null
+          performance_status?: string | null
+          price_range?: string | null
+          product_name: string
+          revenue?: number | null
+          roas?: number | null
+          sales_count?: number | null
+          shopify_handle?: string | null
+          shopify_product_id?: string | null
+          source: string
+          source_product_id?: string | null
+          source_url?: string | null
+          status?: string | null
+          suggested_price?: number | null
+          tiktok_potential?: number | null
+          trend_tags?: string[] | null
+          updated_at?: string
+          user_id: string
+          viral_score?: number | null
+        }
+        Update: {
+          added_at?: string | null
+          ads_generated?: number | null
+          ads_published?: number | null
+          ai_benefits?: string[] | null
+          ai_description?: string | null
+          ai_hooks?: string[] | null
+          aov_lift_percentage?: number | null
+          bundle_affinity_score?: number | null
+          bundle_suggestions?: Json | null
+          cac_estimate?: string | null
+          category?: string
+          competitor_refs?: Json | null
+          complements_products?: string[] | null
+          cost_price?: number | null
+          created_at?: string
+          discovered_at?: string | null
+          id?: string
+          image_urls?: string[] | null
+          kill_reason?: string | null
+          killed_at?: string | null
+          ltv_potential?: string | null
+          margin_percentage?: number | null
+          overall_score?: number | null
+          performance_status?: string | null
+          price_range?: string | null
+          product_name?: string
+          revenue?: number | null
+          roas?: number | null
+          sales_count?: number | null
+          shopify_handle?: string | null
+          shopify_product_id?: string | null
+          source?: string
+          source_product_id?: string | null
+          source_url?: string | null
+          status?: string | null
+          suggested_price?: number | null
+          tiktok_potential?: number | null
+          trend_tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+          viral_score?: number | null
+        }
+        Relationships: []
+      }
       workflow_executions: {
         Row: {
           completed_at: string | null
