@@ -439,6 +439,26 @@ export function PayoutMonitorDashboard() {
         </CardContent>
       </Card>
 
+      {/* Store Connection Notice */}
+      <Card className="border-amber-500/30 bg-amber-500/5">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-amber-400">Store Connection Notice</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                This project is connected to <strong className="text-foreground">lovable-project-7fb70.myshopify.com</strong>. 
+                To use <strong className="text-amber-400">lovable-project-i664s.myshopify.com</strong> (with 5 beauty products), 
+                you need to create a new Lovable project and connect that store there.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Shopify store connections are permanent per project and cannot be switched.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Action Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Button 
