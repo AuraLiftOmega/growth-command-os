@@ -3,7 +3,8 @@ import { RevenueEngineDashboard } from "@/components/revenue-engine/RevenueEngin
 import { RevenueAppsGrid } from "@/components/revenue-engine/RevenueAppsGrid";
 import { LiveRevenueMonitor } from "@/components/revenue-engine/LiveRevenueMonitor";
 import { LiveBotActivityFeed } from "@/components/revenue-engine/LiveBotActivityFeed";
-import { Rocket, Plug, BarChart3, Bot, Activity, DollarSign, TrendingUp, Zap } from "lucide-react";
+import { PayoutMonitorDashboard } from "@/components/revenue-engine/PayoutMonitorDashboard";
+import { Rocket, Plug, BarChart3, Bot, Activity, DollarSign, TrendingUp, Zap, BanknoteIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
@@ -106,7 +107,7 @@ export default function RevenueEngine() {
       </div>
 
       <Tabs defaultValue="engine" className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <TabsList className="grid w-full max-w-3xl grid-cols-5">
           <TabsTrigger value="engine" className="gap-2">
             <Rocket className="w-4 h-4" />
             Revenue Engine
@@ -114,6 +115,10 @@ export default function RevenueEngine() {
           <TabsTrigger value="live" className="gap-2">
             <Activity className="w-4 h-4" />
             Live Monitor
+          </TabsTrigger>
+          <TabsTrigger value="payouts" className="gap-2">
+            <BanknoteIcon className="w-4 h-4" />
+            Payouts
           </TabsTrigger>
           <TabsTrigger value="bots" className="gap-2">
             <Bot className="w-4 h-4" />
@@ -131,6 +136,10 @@ export default function RevenueEngine() {
 
         <TabsContent value="live" className="mt-6">
           <LiveRevenueMonitor initialRevenue={3190} targetRevenue={10000} />
+        </TabsContent>
+
+        <TabsContent value="payouts" className="mt-6">
+          <PayoutMonitorDashboard />
         </TabsContent>
 
         <TabsContent value="bots" className="mt-6">
