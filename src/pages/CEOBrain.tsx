@@ -23,6 +23,7 @@ import {
   Skull,
   Crown,
   Atom,
+  Globe,
 } from 'lucide-react';
 import { SmartSidebar } from '@/components/layout/SmartSidebar';
 import { Header } from '@/components/layout/Header';
@@ -40,7 +41,7 @@ import { AutonomousLoopsPanel } from '@/components/ceo-engine/AutonomousLoopsPan
 import { CEOCalendarWidget } from '@/components/ceo-engine/CEOCalendarWidget';
 import { OmegaCEOBrain } from '@/components/ceo-engine/OmegaCEOBrain';
 import { SalesTeamAgents } from '@/components/ceo-engine/SalesTeamAgents';
-import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer } from '@/components/ceo-brain';
+import { ProductIntelligenceEngine, MarketingSwarmEngine, PredictiveDecisionEngine, RuthlessOptimizer, InternationalBlitzscaleEngine } from '@/components/ceo-brain';
 import { OmegaBrainPanel } from '@/components/omega/OmegaBrainPanel';
 import { AgentActivityLog } from '@/components/omega/AgentActivityLog';
 import { supabase } from '@/integrations/supabase/client';
@@ -291,8 +292,11 @@ export default function CEOBrain() {
           </div>
 
           {/* SUPERINTELLIGENT CEO BRAIN - Tabbed Interface */}
-          <Tabs defaultValue="mega-brain" className="w-full">
-            <TabsList className="w-full grid grid-cols-8 mb-6">
+          <Tabs defaultValue="blitzscale" className="w-full">
+            <TabsList className="w-full grid grid-cols-9 mb-6">
+              <TabsTrigger value="blitzscale" className="gap-2">
+                <Globe className="w-4 h-4" /> 13.3x Blitz
+              </TabsTrigger>
               <TabsTrigger value="mega-brain" className="gap-2">
                 <Atom className="w-4 h-4" /> Mega Brain
               </TabsTrigger>
@@ -318,6 +322,10 @@ export default function CEOBrain() {
                 <Skull className="w-4 h-4" /> Ruthless
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="blitzscale">
+              <InternationalBlitzscaleEngine />
+            </TabsContent>
 
             <TabsContent value="mega-brain">
               <OmegaCEOBrain />
