@@ -21,6 +21,7 @@ import UsersManagement from "./pages/UsersManagement";
 import ShopifyCallback from "./pages/ShopifyCallback";
 import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
 import LiveChat from "./pages/LiveChat";
+import SecurityAudit from "./pages/SecurityAudit";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -181,6 +182,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <LiveChat />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Security Audit Dashboard (protected) */}
+      <Route 
+        path="/dashboard/security-audit" 
+        element={
+          <ProtectedRoute>
+            <SecurityAudit />
           </ProtectedRoute>
         } 
       />
