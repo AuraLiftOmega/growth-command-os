@@ -22,6 +22,7 @@ import ShopifyCallback from "./pages/ShopifyCallback";
 import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
 import LiveChat from "./pages/LiveChat";
 import SecurityAudit from "./pages/SecurityAudit";
+import PaymentsSpine from "./pages/PaymentsSpine";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -192,6 +193,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <SecurityAudit />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Payments Spine Dashboard (protected) */}
+      <Route 
+        path="/dashboard/payments-spine" 
+        element={
+          <ProtectedRoute>
+            <PaymentsSpine />
           </ProtectedRoute>
         } 
       />
