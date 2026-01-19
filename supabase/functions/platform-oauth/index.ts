@@ -136,21 +136,33 @@ const ALLOWED_REDIRECT_DOMAINS = [
   '127.0.0.1',
 ];
 
+// Normalize platform names (handle hyphen vs underscore variants)
+const normalizePlatformName = (platform: string): string => {
+  const platformMap: Record<string, string> = {
+    'google-ads': 'google_ads',
+    'tiktok-ads': 'tiktok_ads',
+  };
+  return platformMap[platform] || platform;
+};
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { platform, action, redirect_uri, code, state } = await req.json();
+    const body = await req.json();
+    const rawPlatform = body.platform;
+    const platform = normalizePlatformName(rawPlatform);
+    const { action, redirect_uri, code, state } = body;
     const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
 
-    console.log(`[platform-oauth] Action: ${action}, Platform: ${platform}, IP: ${clientIp.split(',')[0]}`);
+    console.log(`[platform-oauth] Action: ${action}, Platform: ${platform} (raw: ${rawPlatform}), IP: ${clientIp.split(',')[0]}`);
 
     const config = OAUTH_CONFIGS[platform];
     if (!config && action !== 'test_connect') {
       return new Response(
-        JSON.stringify({ error: 'Unsupported platform', platform }),
+        JSON.stringify({ error: 'Unsupported platform', platform: rawPlatform, supported: Object.keys(OAUTH_CONFIGS) }),
         { status: 400, headers: getSecureHeaders() }
       );
     }
