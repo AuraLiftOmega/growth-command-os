@@ -113,17 +113,17 @@ export function EnhancedVideoAdStudio() {
   const [hashtags, setHashtags] = useState<string[]>(['fyp', 'viral', 'skincare', 'beauty', 'glowup']);
   const [caption, setCaption] = useState('');
 
-  // Auto-select first product and identify hot sellers
+  // Identify hot sellers - only run once when products load, don't auto-select
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
   useEffect(() => {
-    if (products.length > 0) {
+    if (products.length > 0 && !hasInitialized) {
       // Sort by price (simulating hot sellers - in real app would use revenue data)
       const sorted = [...products].sort((a, b) => b.price - a.price);
       setHotProducts(sorted.slice(0, 3));
-      if (!selectedProduct) {
-        setSelectedProduct(products[0]);
-      }
+      setHasInitialized(true);
     }
-  }, [products, selectedProduct]);
+  }, [products, hasInitialized]);
 
   // Auto-generate script when template/product changes
   useEffect(() => {
@@ -309,15 +309,11 @@ export function EnhancedVideoAdStudio() {
       <div className="grid grid-cols-12 gap-6">
         {/* Left Panel - Wizard Steps */}
         <div className="col-span-12 lg:col-span-5 space-y-4">
-          <AnimatePresence mode="wait">
-            {/* Step 1: Product Selection */}
+          <div className="min-h-[400px]">
+            {/* Step 1: Product Selection - NO AnimatePresence to prevent flicker */}
             {currentStep === 1 && (
-              <motion.div
-                key="step1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-              >
+              <div className="animate-in fade-in-50 duration-200">
+              
                 <Card className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold flex items-center gap-2">
@@ -361,52 +357,66 @@ export function EnhancedVideoAdStudio() {
                     </div>
                   )}
 
-                  <ScrollArea className="h-[250px]">
-                    <div className="space-y-2">
-                      {loadingProducts ? (
-                        <div className="flex items-center justify-center py-8">
-                          <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
-                        </div>
-                      ) : products.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          No products found. Connect Shopify store.
-                        </p>
-                      ) : (
-                        products.map((product) => (
+                  {/* Stable Product Grid - no flicker */}
+                  <ScrollArea className="h-[280px]">
+                    {loadingProducts ? (
+                      <div className="grid grid-cols-2 gap-2 p-1">
+                        {[1,2,3,4].map(i => (
+                          <div key={i} className="aspect-square rounded-xl bg-muted/50 animate-pulse" />
+                        ))}
+                      </div>
+                    ) : products.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                        <p className="text-sm font-medium">No products found</p>
+                        <p className="text-xs text-muted-foreground">Connect your Shopify store to get started</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 p-1">
+                        {products.map((product) => (
                           <div
                             key={product.id}
                             onClick={() => setSelectedProduct(product)}
-                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
+                            className={`group relative aspect-square rounded-xl cursor-pointer transition-all duration-200 overflow-hidden border-2 ${
                               selectedProduct?.id === product.id
-                                ? 'bg-primary/10 ring-2 ring-primary/30'
-                                : 'hover:bg-muted/50'
+                                ? 'border-primary ring-2 ring-primary/30 scale-[1.02]'
+                                : 'border-transparent hover:border-primary/30 hover:scale-[1.01]'
                             }`}
                           >
                             {product.imageUrl ? (
                               <img 
                                 src={product.imageUrl} 
                                 alt={product.title}
-                                className="w-12 h-12 rounded-lg object-cover"
+                                className="w-full h-full object-cover"
+                                loading="lazy"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                              <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                                <ImageIcon className="w-8 h-8 text-muted-foreground" />
                               </div>
                             )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{product.title}</p>
-                              <p className="text-xs text-muted-foreground">${product.price.toFixed(2)}</p>
-                            </div>
+                            
+                            {/* Selection overlay */}
                             {selectedProduct?.id === product.id && (
-                              <CheckCircle className="w-4 h-4 text-primary" />
+                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                <div className="bg-primary text-primary-foreground rounded-full p-1.5">
+                                  <CheckCircle className="w-5 h-5" />
+                                </div>
+                              </div>
                             )}
+                            
+                            {/* Product info overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-2">
+                              <p className="font-medium text-[11px] text-white truncate leading-tight">{product.title}</p>
+                              <p className="text-[10px] text-white/80 font-semibold">${product.price.toFixed(2)}</p>
+                            </div>
                           </div>
-                        ))
-                      )}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </ScrollArea>
                 </Card>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 2: Style/Template Selection */}
@@ -637,7 +647,7 @@ export function EnhancedVideoAdStudio() {
                 />
               </motion.div>
             )}
-          </AnimatePresence>
+          </div>
 
           {/* Navigation */}
           <div className="flex gap-2">
