@@ -1,81 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.14.0?target=deno";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-// Stripe plan configurations
-const STRIPE_PLANS = {
-  starter: {
-    name: "Starter",
-    monthlyPrice: 4900, // $49 in cents
-    annualPrice: 47000, // $470/year (2 months free)
-    features: {
-      stores_limit: 3,
-      monthly_video_credits: 50,
-      monthly_ai_credits: 500,
-    },
-  },
-  growth: {
-    name: "Growth", 
-    monthlyPrice: 9900, // $99
-    annualPrice: 95000, // $950/year
-    features: {
-      stores_limit: 10,
-      monthly_video_credits: 200,
-      monthly_ai_credits: 2000,
-    },
-  },
-  enterprise: {
-    name: "Enterprise",
-    monthlyPrice: 29900, // $299
-    annualPrice: 287000, // $2870/year
-    features: {
-      stores_limit: -1, // Unlimited
-      monthly_video_credits: -1,
-      monthly_ai_credits: -1,
-    },
-  },
-};
-
-// Helper to get Stripe key
-function getStripeKey(): { key: string; isLive: boolean } | null {
-  const liveSecretKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-  const mainSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-  
-  if (liveSecretKey?.startsWith("sk_live_")) {
-    return { key: liveSecretKey, isLive: true };
-  }
-  if (mainSecretKey?.startsWith("sk_live_")) {
-    return { key: mainSecretKey, isLive: true };
-  }
-  if (mainSecretKey?.startsWith("sk_test_")) {
-    return { key: mainSecretKey, isLive: false };
-  }
-  if (liveSecretKey) {
-    return { key: liveSecretKey, isLive: liveSecretKey.startsWith("sk_live_") };
-  }
-  return null;
-}
+import { 
+  createStripeClient, 
+  validateCanonicalAccount,
+  STRIPE_PLANS,
+  corsHeaders, 
+  handleCorsPreflightRequest,
+  createErrorResponse,
+} from "../_shared/stripe-config.ts";
 
 serve(async (req) => {
   console.log("🚀 [stripe-checkout] Function invoked at", new Date().toISOString());
   
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
-    const stripeConfig = getStripeKey();
+    // Use canonical Stripe configuration
+    const stripeClient = createStripeClient();
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
     console.log("🔐 [stripe-checkout] Key status:", {
-      hasKey: !!stripeConfig,
-      isLive: stripeConfig?.isLive,
+      hasKey: !!stripeClient,
+      isLive: stripeClient?.config.isLive,
+      platformAccount: stripeClient?.config.platformAccountId || "not set",
       hasWebhookSecret: !!webhookSecret,
     });
 
@@ -85,21 +36,31 @@ serve(async (req) => {
     if (body.action === "verify-live-mode") {
       let verified = false;
       let verificationError: string | null = null;
+      let accountId: string | null = null;
       
-      if (stripeConfig?.isLive) {
+      if (stripeClient?.config.isLive) {
         try {
-          const stripe = new Stripe(stripeConfig.key, { apiVersion: "2023-10-16" });
-          await stripe.balance.retrieve();
-          verified = true;
+          const account = await stripeClient.stripe.accounts.retrieve();
+          accountId = account.id;
+          
+          // Validate canonical account
+          if (stripeClient.config.platformAccountId && account.id !== stripeClient.config.platformAccountId) {
+            verificationError = `Account mismatch: expected ${stripeClient.config.platformAccountId}, got ${account.id}`;
+          } else {
+            await stripeClient.stripe.balance.retrieve();
+            verified = true;
+          }
         } catch (err) {
           verificationError = err instanceof Error ? err.message : "Verification failed";
         }
       }
       
       return new Response(JSON.stringify({
-        isConnected: !!stripeConfig,
-        isLiveMode: stripeConfig?.isLive || false,
+        isConnected: !!stripeClient,
+        isLiveMode: stripeClient?.config.isLive || false,
         hasWebhookSecret: !!webhookSecret,
+        platformAccountId: stripeClient?.config.platformAccountId || null,
+        accountId,
         verified,
         message: verified ? "💰 LIVE CONNECTED — VERIFIED 💰" : "Live keys required",
       }), {
@@ -112,8 +73,9 @@ serve(async (req) => {
     if (body.action === "ping") {
       return new Response(JSON.stringify({ 
         status: "ok",
-        isLive: stripeConfig?.isLive,
-        message: stripeConfig?.isLive ? "💰 LIVE MODE ACTIVE 💰" : "Test mode",
+        isLive: stripeClient?.config.isLive,
+        platformAccountId: stripeClient?.config.platformAccountId || null,
+        message: stripeClient?.config.isLive ? "💰 LIVE MODE ACTIVE 💰" : "Test mode",
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -121,11 +83,19 @@ serve(async (req) => {
     }
 
     // Require valid Stripe key for all other actions
-    if (!stripeConfig) {
+    if (!stripeClient) {
       throw new Error("Stripe secret key not configured");
     }
 
-    const stripe = new Stripe(stripeConfig.key, { apiVersion: "2023-10-16" });
+    const { stripe, config } = stripeClient;
+    
+    // Validate canonical account for payment operations
+    const isValidAccount = await validateCanonicalAccount(stripe, config);
+    if (!isValidAccount && config.platformAccountId) {
+      console.error("🚨 [stripe-checkout] Canonical account validation failed!");
+      throw new Error("Stripe account mismatch - cannot process payments");
+    }
+    
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -181,7 +151,7 @@ serve(async (req) => {
           email: user.email,
           payment_method: paymentMethodId,
           invoice_settings: { default_payment_method: paymentMethodId },
-          metadata: { supabase_user_id: user.id, environment: stripeConfig.isLive ? "LIVE" : "TEST" },
+          metadata: { supabase_user_id: user.id, environment: config.isLive ? "LIVE" : "TEST" },
         });
         customerId = customer.id;
       } else {
@@ -237,7 +207,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           subscription: stripeSubscription,
           status: "active",
-          isLiveMode: stripeConfig.isLive,
+          isLiveMode: config.isLive,
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -250,7 +220,7 @@ serve(async (req) => {
           subscription: stripeSubscription,
           clientSecret: paymentIntent.client_secret,
           requiresAction: true,
-          isLiveMode: stripeConfig.isLive,
+          isLiveMode: config.isLive,
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -260,7 +230,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         subscription: stripeSubscription,
         status: stripeSubscription.status,
-        isLiveMode: stripeConfig.isLive,
+        isLiveMode: config.isLive,
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -324,7 +294,7 @@ serve(async (req) => {
           paymentIntentId: paymentIntent.id,
           clientSecret: paymentIntent.client_secret,
           requiresAction: true,
-          isLiveMode: stripeConfig.isLive,
+          isLiveMode: config.isLive,
         }), {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -334,7 +304,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         paymentIntentId: paymentIntent.id,
         status: paymentIntent.status,
-        isLiveMode: stripeConfig.isLive,
+        isLiveMode: config.isLive,
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -370,7 +340,7 @@ serve(async (req) => {
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: { supabase_user_id: user.id, environment: stripeConfig.isLive ? "LIVE" : "TEST" },
+        metadata: { supabase_user_id: user.id, environment: config.isLive ? "LIVE" : "TEST" },
       });
       customerId = customer.id;
     }
@@ -421,7 +391,7 @@ serve(async (req) => {
       sessionId: session.id, 
       url: session.url,
       customerId,
-      isLiveMode: stripeConfig.isLive,
+      isLiveMode: config.isLive,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
