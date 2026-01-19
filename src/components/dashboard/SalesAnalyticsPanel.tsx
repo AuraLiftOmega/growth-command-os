@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   Calendar,
   Filter,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
-import { useLiveMetrics } from "@/hooks/useLiveMetrics";
+import { useStripeAnalytics } from "@/hooks/useStripeAnalytics";
 
 function formatCurrency(num: number): string {
   if (num >= 1000000) return `$${(num / 1000000).toFixed(2)}M`;
@@ -30,31 +31,42 @@ function formatCurrency(num: number): string {
 }
 
 export function SalesAnalyticsPanel() {
-  const { metrics } = useLiveMetrics();
+  const { metrics: stripeMetrics, isLoading, isLive } = useStripeAnalytics();
 
-  const topProducts = [
-    { name: "Product 1", revenue: 12450, orders: 156, growth: 24 },
-    { name: "Product 2", revenue: 9820, orders: 98, growth: 18 },
-    { name: "Product 3", revenue: 7650, orders: 85, growth: -5 },
-    { name: "Product 4", revenue: 6420, orders: 72, growth: 12 },
-    { name: "Product 5", revenue: 4890, orders: 63, growth: 31 },
-  ];
+  // Use real Stripe data for top products
+  const topProducts = stripeMetrics.topProducts.length > 0
+    ? stripeMetrics.topProducts
+    : [];
 
-  const salesByChannel = [
-    { name: "Direct", value: 45, revenue: 32400 },
-    { name: "TikTok", value: 28, revenue: 20160 },
-    { name: "Instagram", value: 15, revenue: 10800 },
-    { name: "Pinterest", value: 12, revenue: 8640 },
-  ];
+  // Calculate sales by channel from revenue events
+  const channelRevenue: Record<string, number> = {};
+  stripeMetrics.revenueEvents.forEach(event => {
+    const channel = event.channel || 'Direct';
+    channelRevenue[channel] = (channelRevenue[channel] || 0) + event.amount;
+  });
+
+  const totalChannelRevenue = Object.values(channelRevenue).reduce((sum, v) => sum + v, 0);
+  const salesByChannel = Object.entries(channelRevenue)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([name, revenue]) => ({
+      name,
+      value: totalChannelRevenue > 0 ? Math.round((revenue / totalChannelRevenue) * 100) : 0,
+      revenue,
+    }));
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Sales Analytics</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
+            Sales Analytics
+            {isLive && <Badge className="bg-green-500 text-xs">💰 LIVE</Badge>}
+            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+          </h1>
           <p className="text-muted-foreground">
-            Track revenue, orders, and sales performance
+            Real-time revenue, orders, and sales performance from Stripe
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -89,14 +101,13 @@ export function SalesAnalyticsPanel() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
                   <p className="text-2xl lg:text-3xl font-bold font-mono mt-1">
-                    {formatCurrency(metrics.mrr * 12)}
+                    {formatCurrency(stripeMetrics.monthRevenue)}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <ArrowUpRight className="w-3.5 h-3.5 text-success" />
                     <span className="text-xs text-success font-medium">
-                      +{metrics.mrrChange}%
+                      ${stripeMetrics.todayRevenue.toFixed(0)} today
                     </span>
-                    <span className="text-xs text-muted-foreground">vs last period</span>
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-primary/10">
@@ -118,12 +129,11 @@ export function SalesAnalyticsPanel() {
                 <div>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
                   <p className="text-2xl lg:text-3xl font-bold font-mono mt-1">
-                    {metrics.totalDeals}
+                    {stripeMetrics.weekConversions}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
                     <ArrowUpRight className="w-3.5 h-3.5 text-success" />
-                    <span className="text-xs text-success font-medium">+12%</span>
-                    <span className="text-xs text-muted-foreground">vs last period</span>
+                    <span className="text-xs text-success font-medium">{stripeMetrics.todayConversions} today</span>
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-accent/10">
@@ -145,12 +155,10 @@ export function SalesAnalyticsPanel() {
                 <div>
                   <p className="text-sm text-muted-foreground">Avg Order Value</p>
                   <p className="text-2xl lg:text-3xl font-bold font-mono mt-1">
-                    $87.50
+                    ${stripeMetrics.avgOrderValue.toFixed(2)}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
-                    <ArrowUpRight className="w-3.5 h-3.5 text-success" />
-                    <span className="text-xs text-success font-medium">+8%</span>
-                    <span className="text-xs text-muted-foreground">vs last period</span>
+                    <span className="text-xs text-muted-foreground">From Stripe data</span>
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-success/10">
@@ -172,14 +180,10 @@ export function SalesAnalyticsPanel() {
                 <div>
                   <p className="text-sm text-muted-foreground">Customers</p>
                   <p className="text-2xl lg:text-3xl font-bold font-mono mt-1">
-                    {metrics.totalLeads}
+                    {stripeMetrics.totalCustomers}
                   </p>
                   <div className="flex items-center gap-1 mt-2">
-                    <ArrowUpRight className="w-3.5 h-3.5 text-success" />
-                    <span className="text-xs text-success font-medium">
-                      +{metrics.leadsChange}
-                    </span>
-                    <span className="text-xs text-muted-foreground">new this week</span>
+                    <span className="text-xs text-muted-foreground">From Stripe</span>
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-warning/10">
@@ -214,29 +218,36 @@ export function SalesAnalyticsPanel() {
               <CardTitle className="text-lg">Sales by Channel</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {salesByChannel.map((channel, index) => (
-                  <div key={channel.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{channel.name}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {formatCurrency(channel.revenue)}
-                      </span>
+              {salesByChannel.length > 0 ? (
+                <div className="space-y-4">
+                  {salesByChannel.map((channel, index) => (
+                    <div key={channel.name} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{channel.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {formatCurrency(channel.revenue)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${channel.value}%` }}
+                          transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+                          className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground text-right">
+                        {channel.value}%
+                      </p>
                     </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${channel.value}%` }}
-                        transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
-                        className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground text-right">
-                      {channel.value}%
-                    </p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="text-sm">No sales data yet</p>
+                  <p className="text-xs mt-1">Sales will appear from Stripe</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -258,58 +269,65 @@ export function SalesAnalyticsPanel() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-xs text-muted-foreground border-b border-border">
-                    <th className="pb-3 font-medium">Product</th>
-                    <th className="pb-3 font-medium text-right">Revenue</th>
-                    <th className="pb-3 font-medium text-right">Orders</th>
-                    <th className="pb-3 font-medium text-right">Growth</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topProducts.map((product, index) => (
-                    <tr
-                      key={product.name}
-                      className="border-b border-border/50 last:border-0"
-                    >
-                      <td className="py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold">
-                            {index + 1}
-                          </div>
-                          <span className="font-medium text-sm">{product.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 text-right font-mono font-medium">
-                        {formatCurrency(product.revenue)}
-                      </td>
-                      <td className="py-4 text-right text-muted-foreground">
-                        {product.orders}
-                      </td>
-                      <td className="py-4 text-right">
-                        <Badge
-                          variant="outline"
-                          className={
-                            product.growth >= 0
-                              ? "border-success/30 text-success bg-success/10"
-                              : "border-destructive/30 text-destructive bg-destructive/10"
-                          }
-                        >
-                          {product.growth >= 0 ? (
-                            <TrendingUp className="w-3 h-3 mr-1" />
-                          ) : (
-                            <TrendingDown className="w-3 h-3 mr-1" />
-                          )}
-                          {Math.abs(product.growth)}%
-                        </Badge>
-                      </td>
+            {topProducts.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-xs text-muted-foreground border-b border-border">
+                      <th className="pb-3 font-medium">Product</th>
+                      <th className="pb-3 font-medium text-right">Revenue</th>
+                      <th className="pb-3 font-medium text-right">Orders</th>
+                      <th className="pb-3 font-medium text-right">Growth</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {topProducts.map((product, index) => (
+                      <tr
+                        key={product.name}
+                        className="border-b border-border/50 last:border-0"
+                      >
+                        <td className="py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold">
+                              {index + 1}
+                            </div>
+                            <span className="font-medium text-sm">{product.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 text-right font-mono font-medium">
+                          {formatCurrency(product.revenue)}
+                        </td>
+                        <td className="py-4 text-right text-muted-foreground">
+                          {product.orders}
+                        </td>
+                        <td className="py-4 text-right">
+                          <Badge
+                            variant="outline"
+                            className={
+                              product.growth >= 0
+                                ? "border-success/30 text-success bg-success/10"
+                                : "border-destructive/30 text-destructive bg-destructive/10"
+                            }
+                          >
+                            {product.growth >= 0 ? (
+                              <TrendingUp className="w-3 h-3 mr-1" />
+                            ) : (
+                              <TrendingDown className="w-3 h-3 mr-1" />
+                            )}
+                            {Math.abs(product.growth)}%
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">No product data yet</p>
+                <p className="text-xs mt-1">Product sales will appear from Stripe</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
