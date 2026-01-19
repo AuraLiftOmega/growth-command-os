@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Bell, ExternalLink, Globe, FileCode, ShoppingBag } from "lucide-react";
+import { Bell, ExternalLink, Globe, ShoppingBag, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { DominionLogo } from "@/components/DominionLogo";
@@ -12,7 +12,7 @@ const SHOW_DOMAIN_BANNER = true;
 export const Header = () => {
   return (
     <div className="flex flex-col">
-      {/* Dual-Domain Production Banner */}
+      {/* Canonical Domain Architecture Banner */}
       {SHOW_DOMAIN_BANNER && (
         <motion.div
           initial={{ y: -20, opacity: 0 }}
@@ -34,26 +34,26 @@ export const Header = () => {
               <span>{DOMAINS.primary.domain}</span>
               <ExternalLink className="w-3 h-3" />
             </a>
-            <span className="text-muted-foreground">–</span>
+            <span className="text-muted-foreground">•</span>
             <a 
-              href={DOMAINS.store.url}
+              href={DOMAINS.storefront.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-accent hover:text-accent/80 transition-colors font-bold"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
-              <span>{DOMAINS.store.domain}</span>
+              <span>{DOMAINS.storefront.domain}</span>
               <ExternalLink className="w-3 h-3" />
             </a>
-            <span className="text-muted-foreground">–</span>
+            <span className="text-muted-foreground">•</span>
             <a 
-              href={DOMAINS.tech.url}
+              href={DOMAINS.secondary.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-bold"
             >
-              <FileCode className="w-3.5 h-3.5" />
-              <span>{DOMAINS.tech.domain}</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>{DOMAINS.secondary.domain}</span>
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
