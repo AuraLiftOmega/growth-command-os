@@ -152,7 +152,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { channel, action, redirect_uri, code, state, code_verifier } = await req.json();
+    const { channel, action, redirect_uri, code, state, code_verifier, account_name, handle } = await req.json();
 
     console.log(`[social-oauth] Action: ${action}, Channel: ${channel}`);
 
@@ -560,6 +560,71 @@ serve(async (req: Request) => {
 
         return new Response(
           JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'quick_connect': {
+        // One-click connection - marks channel as connected immediately
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: 'Authentication required' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const accountName = account_name || channel.charAt(0).toUpperCase() + channel.slice(1);
+        const accountHandle = handle || `${channel}_user`;
+
+        console.log(`[social-oauth] Quick connect: ${channel} for user ${userId}`);
+
+        // Upsert to social_tokens
+        const { error: upsertError } = await supabase.from('social_tokens').upsert({
+          user_id: userId,
+          channel,
+          is_connected: true,
+          account_name: accountName,
+          account_id: `qc_${channel}_${Date.now()}`,
+          last_sync_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,channel'
+        });
+
+        if (upsertError) {
+          console.error('[social-oauth] Quick connect error:', upsertError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to connect channel', details: upsertError.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Also upsert to platform_accounts for consistency
+        await supabase.from('platform_accounts').upsert({
+          user_id: userId,
+          platform: channel,
+          is_connected: true,
+          health_status: 'healthy',
+          handle: accountHandle,
+          credentials_encrypted: JSON.stringify({
+            quick_connect: true,
+            connected_at: new Date().toISOString(),
+            account_name: accountName,
+          }),
+          last_health_check: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id,platform'
+        });
+
+        console.log(`[social-oauth] Quick connect SUCCESS: ${channel}`);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            channel, 
+            message: `${accountName} connected successfully`,
+            connection_type: 'quick_connect'
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

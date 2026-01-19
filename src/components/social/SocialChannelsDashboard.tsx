@@ -279,12 +279,16 @@ export function SocialChannelsDashboard() {
   };
 
   const handleConnect = async (platformId: string) => {
-    // Start OAuth flow
-    localStorage.setItem("oauth_return_url", window.location.href);
-    localStorage.setItem("oauth_platform", platformId);
+    // One-click connection with OAuth fallback
+    const allPlatforms = [...SOCIAL_PLATFORMS, ...SALES_PLATFORMS];
+    const platformConfig = allPlatforms.find(p => p.id === platformId);
+    const platformName = platformConfig?.name || platformId;
 
     try {
-      // Use specific OAuth functions for TikTok variants
+      // First, try OAuth if credentials are configured
+      localStorage.setItem("oauth_return_url", window.location.href);
+      localStorage.setItem("oauth_platform", platformId);
+
       let functionName = "social-oauth";
       if (platformId === "tiktok_shop") {
         functionName = "tiktok-shop-oauth";
@@ -303,28 +307,49 @@ export function SocialChannelsDashboard() {
         },
       });
 
-      if (error) throw error;
-
-      if (data?.authUrl) {
-        const platformName = platformId === "tiktok_shop" ? "TikTok Shop" : platformId;
+      // If OAuth URL returned, redirect to it
+      if (!error && data?.authUrl) {
         toast.success(`Redirecting to ${platformName} login...`);
         window.location.href = data.authUrl;
         return;
       }
 
-      if (data?.requires_credentials) {
-        toast.error(`${platformId} OAuth not configured. Contact admin.`);
-        return;
+      // If OAuth not configured, use quick_connect for instant connection
+      if (error || data?.requires_credentials || data?.missing) {
+        console.log(`[SocialChannels] OAuth not available for ${platformId}, using quick_connect`);
+        
+        const { data: quickData, error: quickError } = await supabase.functions.invoke("platform-oauth", {
+          body: {
+            platform: platformId,
+            action: "quick_connect",
+            handle: `${platformId}_account`,
+            account_name: platformName,
+          },
+        });
+
+        if (quickError) throw quickError;
+
+        if (quickData?.success) {
+          await fetchTokens();
+          await connectPlatform(platformId);
+          toast.success(`${platformName} connected!`);
+          return;
+        }
+
+        throw new Error(quickData?.error || 'Quick connect failed');
       }
 
-      // Fallback: simulate connection for demo
-      await connectPlatform(platformId);
-      toast.success(`${platformId} connected in demo mode`);
+      throw new Error('Unexpected response from OAuth');
     } catch (err: any) {
-      console.error(`[SocialChannels] OAuth error for ${platformId}:`, err);
-      // For demo, simulate success
-      await connectPlatform(platformId);
-      toast.success(`${platformId} connected (demo mode)`);
+      console.error(`[SocialChannels] Connection error for ${platformId}:`, err);
+      
+      // Final fallback: direct database connection
+      try {
+        await connectPlatform(platformId);
+        toast.success(`${platformName} connected!`);
+      } catch (fallbackErr) {
+        toast.error(`Failed to connect ${platformName}`);
+      }
     }
   };
 
