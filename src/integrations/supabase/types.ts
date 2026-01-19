@@ -3420,6 +3420,50 @@ export type Database = {
         }
         Relationships: []
       }
+      project_stripe_bindings: {
+        Row: {
+          created_at: string
+          env: string
+          id: string
+          last_validated_at: string | null
+          project_id: string
+          reported_platform_account_id: string
+          status: string
+          updated_at: string
+          validation_results: Json | null
+        }
+        Insert: {
+          created_at?: string
+          env: string
+          id?: string
+          last_validated_at?: string | null
+          project_id: string
+          reported_platform_account_id: string
+          status?: string
+          updated_at?: string
+          validation_results?: Json | null
+        }
+        Update: {
+          created_at?: string
+          env?: string
+          id?: string
+          last_validated_at?: string | null
+          project_id?: string
+          reported_platform_account_id?: string
+          status?: string
+          updated_at?: string
+          validation_results?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stripe_bindings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
       proof_assets: {
         Row: {
           approved_for: string[] | null
@@ -4206,6 +4250,178 @@ export type Database = {
         }
         Relationships: []
       }
+      spine_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          code: string
+          created_at: string
+          dedupe_key: string
+          env: string | null
+          id: string
+          message: string
+          meta_json: Json | null
+          notification_channels: string[] | null
+          notification_sent: boolean | null
+          project_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          code: string
+          created_at?: string
+          dedupe_key: string
+          env?: string | null
+          id?: string
+          message: string
+          meta_json?: Json | null
+          notification_channels?: string[] | null
+          notification_sent?: boolean | null
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          code?: string
+          created_at?: string
+          dedupe_key?: string
+          env?: string | null
+          id?: string
+          message?: string
+          meta_json?: Json | null
+          notification_channels?: string[] | null
+          notification_sent?: boolean | null
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spine_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
+      spine_audit_log: {
+        Row: {
+          action: string
+          actor: string
+          actor_type: string
+          created_at: string
+          env: string | null
+          id: string
+          ip_address: string | null
+          meta_json: Json | null
+          project_id: string | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor: string
+          actor_type: string
+          created_at?: string
+          env?: string | null
+          id?: string
+          ip_address?: string | null
+          meta_json?: Json | null
+          project_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string
+          actor_type?: string
+          created_at?: string
+          env?: string | null
+          id?: string
+          ip_address?: string | null
+          meta_json?: Json | null
+          project_id?: string | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spine_audit_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
+      spine_projects: {
+        Row: {
+          created_at: string
+          domain: string | null
+          env: string
+          id: string
+          last_seen_at: string | null
+          metadata: Json | null
+          name: string
+          project_id: string
+          registered_at: string
+          status: string
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          env: string
+          id?: string
+          last_seen_at?: string | null
+          metadata?: Json | null
+          name: string
+          project_id: string
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          env?: string
+          id?: string
+          last_seen_at?: string | null
+          metadata?: Json | null
+          name?: string
+          project_id?: string
+          registered_at?: string
+          status?: string
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
       store_setups: {
         Row: {
           created_at: string
@@ -4289,6 +4505,234 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      stripe_boot_validations: {
+        Row: {
+          account_id_matches: boolean | null
+          connect_enabled: boolean | null
+          duration_ms: number | null
+          env: string
+          id: string
+          project_id: string
+          status: string
+          stripe_api_reachable: boolean | null
+          validated_at: string
+          validation_details: Json | null
+          validation_mode: string
+          webhooks_configured: boolean | null
+        }
+        Insert: {
+          account_id_matches?: boolean | null
+          connect_enabled?: boolean | null
+          duration_ms?: number | null
+          env: string
+          id?: string
+          project_id: string
+          status: string
+          stripe_api_reachable?: boolean | null
+          validated_at?: string
+          validation_details?: Json | null
+          validation_mode: string
+          webhooks_configured?: boolean | null
+        }
+        Update: {
+          account_id_matches?: boolean | null
+          connect_enabled?: boolean | null
+          duration_ms?: number | null
+          env?: string
+          id?: string
+          project_id?: string
+          status?: string
+          stripe_api_reachable?: boolean | null
+          validated_at?: string
+          validation_details?: Json | null
+          validation_mode?: string
+          webhooks_configured?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_boot_validations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
+      stripe_canonical: {
+        Row: {
+          check_results: Json | null
+          created_at: string
+          env: string
+          id: string
+          last_check_at: string | null
+          status: string
+          stripe_platform_account_id: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          check_results?: Json | null
+          created_at?: string
+          env: string
+          id?: string
+          last_check_at?: string | null
+          status?: string
+          stripe_platform_account_id: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          check_results?: Json | null
+          created_at?: string
+          env?: string
+          id?: string
+          last_check_at?: string | null
+          status?: string
+          stripe_platform_account_id?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      stripe_metrics_daily: {
+        Row: {
+          active_subscriptions: number | null
+          churned_subscriptions: number | null
+          created_at: string
+          customers_created: number | null
+          date: string
+          disputes_closed: number | null
+          disputes_opened: number | null
+          env: string
+          failed_payments: number | null
+          id: string
+          mrr_cents: number | null
+          new_subscriptions: number | null
+          project_id: string | null
+          refunds_amount_cents: number | null
+          refunds_count: number | null
+          revenue_cents: number | null
+          successful_payments: number | null
+          updated_at: string
+          webhook_events_count: number | null
+          webhook_failures: number | null
+        }
+        Insert: {
+          active_subscriptions?: number | null
+          churned_subscriptions?: number | null
+          created_at?: string
+          customers_created?: number | null
+          date: string
+          disputes_closed?: number | null
+          disputes_opened?: number | null
+          env: string
+          failed_payments?: number | null
+          id?: string
+          mrr_cents?: number | null
+          new_subscriptions?: number | null
+          project_id?: string | null
+          refunds_amount_cents?: number | null
+          refunds_count?: number | null
+          revenue_cents?: number | null
+          successful_payments?: number | null
+          updated_at?: string
+          webhook_events_count?: number | null
+          webhook_failures?: number | null
+        }
+        Update: {
+          active_subscriptions?: number | null
+          churned_subscriptions?: number | null
+          created_at?: string
+          customers_created?: number | null
+          date?: string
+          disputes_closed?: number | null
+          disputes_opened?: number | null
+          env?: string
+          failed_payments?: number | null
+          id?: string
+          mrr_cents?: number | null
+          new_subscriptions?: number | null
+          project_id?: string | null
+          refunds_amount_cents?: number | null
+          refunds_count?: number | null
+          revenue_cents?: number | null
+          successful_payments?: number | null
+          updated_at?: string
+          webhook_events_count?: number | null
+          webhook_failures?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_metrics_daily_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
+      }
+      stripe_webhook_events: {
+        Row: {
+          account: string | null
+          api_version: string | null
+          created: string
+          error: string | null
+          id: string
+          livemode: boolean
+          payload_json: Json
+          processed_at: string | null
+          processing_time_ms: number | null
+          project_id: string | null
+          received_at: string
+          request_id: string | null
+          status: string
+          stripe_event_id: string
+          type: string
+        }
+        Insert: {
+          account?: string | null
+          api_version?: string | null
+          created: string
+          error?: string | null
+          id?: string
+          livemode?: boolean
+          payload_json: Json
+          processed_at?: string | null
+          processing_time_ms?: number | null
+          project_id?: string | null
+          received_at?: string
+          request_id?: string | null
+          status?: string
+          stripe_event_id: string
+          type: string
+        }
+        Update: {
+          account?: string | null
+          api_version?: string | null
+          created?: string
+          error?: string | null
+          id?: string
+          livemode?: boolean
+          payload_json?: Json
+          processed_at?: string | null
+          processing_time_ms?: number | null
+          project_id?: string | null
+          received_at?: string
+          request_id?: string | null
+          status?: string
+          stripe_event_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_webhook_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -4988,6 +5432,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      webhook_health_metrics: {
+        Row: {
+          avg_processing_time_ms: number | null
+          created_at: string
+          env: string
+          events_failed: number | null
+          events_processed: number | null
+          events_received: number | null
+          id: string
+          project_id: string | null
+          signature_failures: number | null
+          unique_event_types: string[] | null
+          window_end: string
+          window_start: string
+        }
+        Insert: {
+          avg_processing_time_ms?: number | null
+          created_at?: string
+          env: string
+          events_failed?: number | null
+          events_processed?: number | null
+          events_received?: number | null
+          id?: string
+          project_id?: string | null
+          signature_failures?: number | null
+          unique_event_types?: string[] | null
+          window_end: string
+          window_start: string
+        }
+        Update: {
+          avg_processing_time_ms?: number | null
+          created_at?: string
+          env?: string
+          events_failed?: number | null
+          events_processed?: number | null
+          events_received?: number | null
+          id?: string
+          project_id?: string | null
+          signature_failures?: number | null
+          unique_event_types?: string[] | null
+          window_end?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_health_metrics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "spine_projects"
+            referencedColumns: ["project_id"]
+          },
+        ]
       }
       webhook_logs: {
         Row: {
