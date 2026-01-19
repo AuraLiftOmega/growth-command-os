@@ -10,7 +10,7 @@
 |--------|---------|--------|
 | **[profitreaper.com](https://profitreaper.com)** | Primary Application | 🟢 LIVE |
 | **[omegaalpha.io](https://omegaalpha.io)** | Tech Docs & API | 🟢 LIVE |
-| **[auraliftessentials.com](https://www.auraliftessentials.com)** | Shopify Store | 🟢 LIVE |
+| **lovable-project-7fb70.myshopify.com** | Shopify Store | 🟢 CONNECTED |
 
 ---
 
@@ -18,7 +18,7 @@
 
 ### Quick Start – 3 Steps to Revenue Mode
 
-1. **Connect Shopify**: Go to `/dashboard/settings` → Shopify tab → Click "1-Click Connect Aura Lift Essentials" (pre-filled: aura-lift-essentials.myshopify.com)
+1. **Connect Shopify**: Go to `/dashboard/settings` → Shopify tab → Store already connected: `lovable-project-7fb70.myshopify.com`
 2. **Launch Revenue Mode**: Go to `/dashboard/revenue-engine` → Click "LAUNCH NOW" 
 3. **Activate Bots**: Go to `/dashboard/bot-team` → Click "Activate All 50 Bots"
 
@@ -99,8 +99,8 @@ View security status: `/dashboard/settings` → Security tab
 
 ## 🛍️ Shopify Integration
 
-- **Store**: aura-lift-essentials.myshopify.com
-- **Products**: 17+ synced via Storefront API
+- **Store**: lovable-project-7fb70.myshopify.com
+- **Products**: Dynamically synced via Storefront API
 - **Per-User OAuth**: Multi-tenant architecture
 - **Real-Time Sync**: Products, inventory, orders
 

@@ -34,14 +34,13 @@ function buildStoreUrl(storeDomain: string, storeName?: string): string {
   // Extract store handle from myshopify domain
   const handle = storeDomain.replace('.myshopify.com', '').toLowerCase();
   
-  // For common stores, use their known public domains
-  // Otherwise construct a reasonable public URL
-  if (handle === 'aura-lift-essentials') {
-    return 'https://www.auraliftessentials.com';
+  // For Lovable-managed stores, use the myshopify.com domain directly
+  if (handle.startsWith('lovable-project-')) {
+    return `https://${storeDomain}`;
   }
   
-  // Default: construct URL from store handle
-  return `https://www.${handle.replace(/-/g, '')}.com`;
+  // Default: use the myshopify domain as public URL
+  return `https://${storeDomain}`;
 }
 
 export function useActiveStore() {

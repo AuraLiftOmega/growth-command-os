@@ -259,20 +259,20 @@ export function ShopifyConnectionsPanel() {
                 and automate social media posting — all from one dashboard.
               </p>
               
-              {/* Quick Connect - Aura Lift Essentials */}
+              {/* Connected Store Info */}
               <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 mb-6 max-w-md mx-auto">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
                     <Store className="w-5 h-5 text-green-600" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-green-600">Recommended Store</p>
-                    <p className="text-xs text-muted-foreground">aura-lift-essentials.myshopify.com</p>
+                    <p className="font-medium text-green-600">Connected Store</p>
+                    <p className="text-xs text-muted-foreground">lovable-project-7fb70.myshopify.com</p>
                   </div>
                 </div>
                 <Button 
                   onClick={() => {
-                    setShopDomain('aura-lift-essentials');
+                    setShopDomain('lovable-project-7fb70');
                     handleConnect();
                   }}
                   className="w-full gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
@@ -286,7 +286,7 @@ export function ShopifyConnectionsPanel() {
                   ) : (
                     <>
                       <Zap className="h-4 w-4" />
-                      1-Click Connect Aura Lift Essentials
+                      Sync Store Connection
                     </>
                   )}
                 </Button>
