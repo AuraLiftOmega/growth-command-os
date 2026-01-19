@@ -161,15 +161,57 @@ export function EnhancedVideoAdStudio() {
     });
 
     try {
-      // Simulate progress
+      // Simulate progress for UI feedback
       const progressInterval = setInterval(() => {
         setGeneratedVideo(prev => prev && prev.progress < 90 
-          ? { ...prev, progress: prev.progress + 10 }
+          ? { ...prev, progress: prev.progress + 5 }
           : prev
         );
       }, 500);
 
-      // Call D-ID Pro + ElevenLabs generation
+      // Try AI Combo Stack first (Lovable AI + Grok + ElevenLabs + HeyGen)
+      const { data: comboData, error: comboError } = await supabase.functions.invoke('ai-combo-ad-generator', {
+        body: {
+          product_name: selectedProduct.title,
+          product_id: selectedProduct.id,
+          product_image: selectedProduct.imageUrl,
+          product_price: selectedProduct.price,
+          product_description: selectedProduct.description?.slice(0, 500),
+          script,
+          voice: selectedVoice.name.toLowerCase() as 'sarah' | 'laura' | 'jessica' | 'lily',
+          avatar: 'susan',
+          aspect_ratio: selectedPlatform.aspect === '2:3' ? '9:16' : selectedPlatform.aspect as '9:16' | '16:9' | '1:1',
+          duration: duration[0],
+          style: selectedTemplate?.style === 'before-after' ? 'testimonial' : 'viral',
+          platform: selectedPlatform.id as 'tiktok' | 'instagram' | 'pinterest' | 'youtube',
+          ai_stack: ['lovable', 'grok', 'elevenlabs', 'heygen'],
+          optimization_level: 'maximum'
+        }
+      });
+
+      clearInterval(progressInterval);
+
+      if (comboData?.success) {
+        setGeneratedVideo({
+          id: comboData.ad_id || `video-${Date.now()}`,
+          videoUrl: comboData.result?.video?.url || 'demo',
+          thumbnailUrl: selectedProduct.imageUrl,
+          status: 'completed',
+          progress: 100,
+          script: comboData.result?.script?.final || script
+        });
+
+        const providers = comboData.result?.providers_used || [];
+        toast.success(`🚀 AI Combo Stack Success!`, {
+          description: `Used ${providers.length} AI providers: ${providers.join(', ')}`,
+          duration: 5000
+        });
+
+        setCurrentStep(5);
+        return;
+      }
+
+      // Fallback to original generation if combo fails
       const { data, error } = await supabase.functions.invoke('generate-auralift-ad', {
         body: {
           product_handle: selectedProduct.handle,
@@ -186,13 +228,11 @@ export function EnhancedVideoAdStudio() {
         }
       });
 
-      clearInterval(progressInterval);
-
       if (error) throw error;
 
       setGeneratedVideo({
         id: data?.ad_id || `video-${Date.now()}`,
-        videoUrl: data?.video_url || 'https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
+        videoUrl: data?.video_url || 'demo',
         thumbnailUrl: selectedProduct.imageUrl,
         status: 'completed',
         progress: 100,
@@ -200,7 +240,7 @@ export function EnhancedVideoAdStudio() {
       });
 
       toast.success('🎬 Video generated with D-ID Pro + ElevenLabs!');
-      setCurrentStep(5); // Move to publish step
+      setCurrentStep(5);
 
     } catch (err) {
       console.error('Generation error:', err);
