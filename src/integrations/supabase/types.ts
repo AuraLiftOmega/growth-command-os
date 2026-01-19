@@ -735,6 +735,309 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_alerts: {
+        Row: {
+          code: string
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          message: string
+          meta_json: Json | null
+          project_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          message: string
+          meta_json?: Json | null
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          message?: string
+          meta_json?: Json | null
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      billing_customers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          metadata: Json | null
+          name: string | null
+          stripe_customer_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_entitlements: {
+        Row: {
+          created_at: string
+          entitlement_key: string
+          expires_at: string | null
+          granted_at: string
+          id: string
+          metadata: Json | null
+          plan: string | null
+          source: string | null
+          source_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entitlement_key: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          metadata?: Json | null
+          plan?: string | null
+          source?: string | null
+          source_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entitlement_key?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          metadata?: Json | null
+          plan?: string | null
+          source?: string | null
+          source_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_metrics_daily: {
+        Row: {
+          active_subscriptions: number | null
+          churned_subscriptions: number | null
+          created_at: string
+          date: string
+          disputes: number | null
+          env: string | null
+          failed_payments: number | null
+          id: string
+          mrr_cents: number | null
+          new_subscriptions: number | null
+          project_id: string | null
+          refunds_cents: number | null
+          revenue_cents: number | null
+          successful_payments: number | null
+        }
+        Insert: {
+          active_subscriptions?: number | null
+          churned_subscriptions?: number | null
+          created_at?: string
+          date: string
+          disputes?: number | null
+          env?: string | null
+          failed_payments?: number | null
+          id?: string
+          mrr_cents?: number | null
+          new_subscriptions?: number | null
+          project_id?: string | null
+          refunds_cents?: number | null
+          revenue_cents?: number | null
+          successful_payments?: number | null
+        }
+        Update: {
+          active_subscriptions?: number | null
+          churned_subscriptions?: number | null
+          created_at?: string
+          date?: string
+          disputes?: number | null
+          env?: string | null
+          failed_payments?: number | null
+          id?: string
+          mrr_cents?: number | null
+          new_subscriptions?: number | null
+          project_id?: string | null
+          refunds_cents?: number | null
+          revenue_cents?: number | null
+          successful_payments?: number | null
+        }
+        Relationships: []
+      }
+      billing_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          description: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          livemode: boolean | null
+          metadata: Json | null
+          product_name: string | null
+          receipt_url: string | null
+          status: string
+          stripe_charge_id: string | null
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          livemode?: boolean | null
+          metadata?: Json | null
+          product_name?: string | null
+          receipt_url?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          livemode?: boolean | null
+          metadata?: Json | null
+          product_name?: string | null
+          receipt_url?: string | null
+          status?: string
+          stripe_charge_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_subscriptions: {
+        Row: {
+          amount: number | null
+          billing_cycle: string | null
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
+          created_at: string
+          currency: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          metadata: Json | null
+          plan: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          billing_cycle?: string | null
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          billing_cycle?: string | null
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          created_at?: string
+          currency?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json | null
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blockchain_logs: {
         Row: {
           amount: number | null
@@ -4595,6 +4898,57 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          account: string | null
+          api_version: string | null
+          error: string | null
+          id: string
+          livemode: boolean | null
+          payload_json: Json | null
+          processed_at: string | null
+          processing_time_ms: number | null
+          project_id: string | null
+          received_at: string
+          request_id: string | null
+          status: string | null
+          stripe_event_id: string
+          type: string
+        }
+        Insert: {
+          account?: string | null
+          api_version?: string | null
+          error?: string | null
+          id?: string
+          livemode?: boolean | null
+          payload_json?: Json | null
+          processed_at?: string | null
+          processing_time_ms?: number | null
+          project_id?: string | null
+          received_at?: string
+          request_id?: string | null
+          status?: string | null
+          stripe_event_id: string
+          type: string
+        }
+        Update: {
+          account?: string | null
+          api_version?: string | null
+          error?: string | null
+          id?: string
+          livemode?: boolean | null
+          payload_json?: Json | null
+          processed_at?: string | null
+          processing_time_ms?: number | null
+          project_id?: string | null
+          received_at?: string
+          request_id?: string | null
+          status?: string | null
+          stripe_event_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       stripe_metrics_daily: {
         Row: {
           active_subscriptions: number | null
@@ -4902,6 +5256,39 @@ export type Database = {
           severity?: string | null
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      system_health: {
+        Row: {
+          component: string
+          created_at: string
+          id: string
+          last_checked_at: string
+          message: string | null
+          meta_json: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          component: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string
+          message?: string | null
+          meta_json?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          component?: string
+          created_at?: string
+          id?: string
+          last_checked_at?: string
+          message?: string | null
+          meta_json?: Json | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }

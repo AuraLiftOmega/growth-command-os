@@ -23,6 +23,9 @@ import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
 import LiveChat from "./pages/LiveChat";
 import SecurityAudit from "./pages/SecurityAudit";
 import PaymentsSpine from "./pages/PaymentsSpine";
+import BillingAdmin from "./pages/BillingAdmin";
+import BillingSuccess from "./pages/BillingSuccess";
+import BillingCancel from "./pages/BillingCancel";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 const queryClient = new QueryClient();
@@ -206,6 +209,20 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Billing Admin Dashboard (protected) */}
+      <Route 
+        path="/admin/billing" 
+        element={
+          <ProtectedRoute>
+            <BillingAdmin />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Billing Success/Cancel pages */}
+      <Route path="/billing/success" element={<BillingSuccess />} />
+      <Route path="/billing/cancel" element={<BillingCancel />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
