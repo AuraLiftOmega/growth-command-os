@@ -164,3 +164,6 @@ verify_jwt = false
 
 [functions.grok-query]
 verify_jwt = false
+
+[functions.stripe-analytics]
+verify_jwt = false

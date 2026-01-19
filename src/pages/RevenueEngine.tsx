@@ -135,7 +135,7 @@ export default function RevenueEngine() {
         </TabsContent>
 
         <TabsContent value="live" className="mt-6">
-          <LiveRevenueMonitor initialRevenue={3190} targetRevenue={10000} />
+          <LiveRevenueMonitor targetRevenue={10000} />
         </TabsContent>
 
         <TabsContent value="payouts" className="mt-6">
