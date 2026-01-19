@@ -48,43 +48,25 @@ const REVENUE_ACCOUNTS = [
   { email: "gizmogadgetdenver@gmail.com", label: "Tertiary", isDefault: false },
 ];
 
-// Top Aura Lift Essentials products for autonomous marketing (17+ products)
-const TOP_PRODUCTS = [
-  { name: "Radiance Vitamin C Serum", price: 38.00, handle: "radiance-vitamin-c-serum", image: "https://www.auraliftessentials.com/products/radiance-vitamin-c-serum" },
-  { name: "Hydra Glow Moisturizer", price: 42.00, handle: "hydra-glow-moisturizer", image: "https://www.auraliftessentials.com/products/hydra-glow-moisturizer" },
-  { name: "Retinol Night Cream", price: 55.00, handle: "retinol-night-cream", image: "https://www.auraliftessentials.com/products/retinol-night-cream" },
-  { name: "Collagen Boost Eye Cream", price: 35.00, handle: "collagen-boost-eye-cream", image: "https://www.auraliftessentials.com/products/collagen-boost-eye-cream" },
-  { name: "Niacinamide Pore Serum", price: 32.00, handle: "niacinamide-pore-serum", image: "https://www.auraliftessentials.com/products/niacinamide-pore-serum" },
-  { name: "Hyaluronic Acid Serum", price: 36.00, handle: "hyaluronic-acid-serum", image: "https://www.auraliftessentials.com/products/hyaluronic-acid-serum" },
-  { name: "Brightening Face Mask", price: 28.00, handle: "brightening-face-mask", image: "https://www.auraliftessentials.com/products/brightening-face-mask" },
-  { name: "Anti-Aging Night Serum", price: 58.00, handle: "anti-aging-night-serum", image: "https://www.auraliftessentials.com/products/anti-aging-night-serum" },
-  { name: "Gentle Exfoliating Scrub", price: 24.00, handle: "gentle-exfoliating-scrub", image: "https://www.auraliftessentials.com/products/gentle-exfoliating-scrub" },
-  { name: "SPF 50 Daily Moisturizer", price: 32.00, handle: "spf-50-daily-moisturizer", image: "https://www.auraliftessentials.com/products/spf-50-daily-moisturizer" },
-  { name: "Rose Hip Facial Oil", price: 45.00, handle: "rose-hip-facial-oil", image: "https://www.auraliftessentials.com/products/rose-hip-facial-oil" },
-  { name: "Vitamin E Night Cream", price: 38.00, handle: "vitamin-e-night-cream", image: "https://www.auraliftessentials.com/products/vitamin-e-night-cream" },
-  { name: "Charcoal Clay Mask", price: 26.00, handle: "charcoal-clay-mask", image: "https://www.auraliftessentials.com/products/charcoal-clay-mask" },
-  { name: "Complete Skincare Set", price: 149.00, handle: "complete-skincare-set", image: "https://www.auraliftessentials.com/products/complete-skincare-set" },
-  { name: "Hydrating Toner", price: 22.00, handle: "hydrating-toner", image: "https://www.auraliftessentials.com/products/hydrating-toner" },
-  { name: "Peptide Eye Cream", price: 42.00, handle: "peptide-eye-cream", image: "https://www.auraliftessentials.com/products/peptide-eye-cream" },
-  { name: "Glow Booster Drops", price: 48.00, handle: "glow-booster-drops", image: "https://www.auraliftessentials.com/products/glow-booster-drops" },
-];
+// Products are loaded dynamically from Shopify API - no hardcoded products
+const TOP_PRODUCTS: Array<{ name: string; price: number; handle: string; image: string }> = [];
 
-// Store configuration
+// Store configuration - uses actual connected store
 const STORE_CONFIG = {
-  domain: "aura-lift-essentials.myshopify.com",
-  publicUrl: "https://www.auraliftessentials.com",
-  name: "Aura Lift Essentials",
-  productsCount: 17,
-  todayRevenue: 3190.00,
+  domain: "lovable-project-7fb70.myshopify.com",
+  publicUrl: "https://lovable-project-7fb70.myshopify.com",
+  name: "AuraOmega Store",
+  productsCount: 0, // Dynamically loaded from API
+  todayRevenue: 0, // Dynamically loaded from Stripe
 };
 
 // Social channels for autonomous posting
 const SOCIAL_CHANNELS = [
-  { platform: "TikTok", handle: "@ryan.auralift" },
-  { platform: "Instagram", handle: "@auraliftessentials" },
-  { platform: "Pinterest", handle: "AuraLift Beauty" },
-  { platform: "YouTube", handle: "Aura Lift Essentials" },
-  { platform: "Facebook", handle: "Aura Lift Essentials" },
+  { platform: "TikTok", handle: "@auraomega" },
+  { platform: "Instagram", handle: "@auraomega" },
+  { platform: "Pinterest", handle: "AuraOmega" },
+  { platform: "YouTube", handle: "AuraOmega" },
+  { platform: "Facebook", handle: "AuraOmega" },
 ];
 
 // Revenue mode steps
