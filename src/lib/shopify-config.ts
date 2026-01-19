@@ -20,11 +20,28 @@ export const VIDEO_ENGINE = {
 
 // Fallback images for products when image is missing
 export const PRODUCT_IMAGE_FALLBACKS: Record<string, string> = {
-  'vitamin-c-serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
-  'retinol-cream': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
-  'hyaluronic-serum': 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
-  'collagen-moisturizer': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
+  // Original products
+  'vitamin-c': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
+  'retinol': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
+  'hyaluronic': 'https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=800',
+  'collagen': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
   'face-roller': 'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?w=800',
+  // New winning products
+  'peptide': 'https://images.unsplash.com/photo-1617897903246-719242758050?w=800',
+  'niacinamide': 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800',
+  'bakuchiol': 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800',
+  'ceramide': 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?w=800',
+  'aha': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800',
+  'bha': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800',
+  'squalane': 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800',
+  'rosehip': 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800',
+  'eye-cream': 'https://images.unsplash.com/photo-1617897903246-719242758050?w=800',
+  'mask': 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800',
+  'toner': 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800',
+  'serum': 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800',
+  'moisturizer': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800',
+  'oil': 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800',
+  'cream': 'https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?w=800',
 };
 
 const DEFAULT_FALLBACK = 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800';
