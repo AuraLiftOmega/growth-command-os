@@ -1,73 +1,47 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.14.0?target=deno";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
-};
-
-// Plan feature mappings
-const PLAN_FEATURES = {
-  starter: {
-    stores_limit: 3,
-    monthly_video_credits: 50,
-    monthly_ai_credits: 500,
-  },
-  growth: {
-    stores_limit: 10,
-    monthly_video_credits: 200,
-    monthly_ai_credits: 2000,
-  },
-  enterprise: {
-    stores_limit: -1,
-    monthly_video_credits: -1,
-    monthly_ai_credits: -1,
-  },
-};
+import { 
+  createStripeClient,
+  validateCanonicalAccount, 
+  PLAN_FEATURES,
+  corsHeaders, 
+  handleCorsPreflightRequest,
+} from "../_shared/stripe-config.ts";
 
 serve(async (req) => {
   console.log("🚀 [stripe-webhook] Function invoked at", new Date().toISOString());
   
   if (req.method === "OPTIONS") {
     console.log("📋 [stripe-webhook] CORS preflight request handled");
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
-    // FORCE LIVE KEYS: Prioritize sk_live_ keys
-    const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-    const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+    // Use canonical Stripe configuration
+    const stripeClient = createStripeClient();
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    const platformAccountId = Deno.env.get("STRIPE_PLATFORM_ACCOUNT_ID");
     
-    console.log("🔐 [stripe-webhook] Key check:", {
-      hasLiveKey: !!liveKey,
-      liveKeyPrefix: liveKey ? liveKey.substring(0, 8) + "..." : "none",
-      hasFallbackKey: !!fallbackKey,
-      fallbackKeyPrefix: fallbackKey ? fallbackKey.substring(0, 8) + "..." : "none",
+    console.log("🔐 [stripe-webhook] Config:", {
+      hasStripeClient: !!stripeClient,
+      isLive: stripeClient?.config.isLive,
+      platformAccount: platformAccountId || "not set",
+      hasWebhookSecret: !!webhookSecret,
     });
     
-    // Use live key first, fallback only if it's a live key
-    let stripeSecretKey = liveKey;
-    if (!stripeSecretKey && fallbackKey?.startsWith("sk_live_")) {
-      stripeSecretKey = fallbackKey;
-    } else if (!stripeSecretKey) {
-      stripeSecretKey = fallbackKey;
-    }
-    
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    console.log("🔐 [stripe-webhook] Webhook secret configured:", !!webhookSecret);
-    
-    if (!stripeSecretKey) {
+    if (!stripeClient) {
       console.error("❌ [stripe-webhook] No Stripe secret key configured!");
       throw new Error("Stripe secret key not configured");
     }
 
-    const isLiveKey = stripeSecretKey.startsWith("sk_live_");
+    const { stripe, config } = stripeClient;
+    const isLiveKey = config.isLive;
+    
     console.log(`🔄 [stripe-webhook] Processing — ${isLiveKey ? "💰 LIVE MODE" : "⚠️ TEST MODE"}`);
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
-    });
+    if (config.platformAccountId) {
+      console.log(`🏢 [stripe-webhook] Platform: ${config.platformAccountId}`);
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -90,6 +64,7 @@ serve(async (req) => {
     const response = { 
       success: true,
       isLive: isLiveKey,
+      platformAccountId: config.platformAccountId || null,
       hasWebhookSecret: !!webhookSecret,
       message: "Webhook endpoint is active and responding",
       timestamp: new Date().toISOString(),

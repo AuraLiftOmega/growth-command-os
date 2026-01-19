@@ -1,31 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.14.0?target=deno";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { 
+  createStripeClient, 
+  corsHeaders, 
+  handleCorsPreflightRequest,
+  createSuccessResponse,
+} from "../_shared/stripe-config.ts";
 
 serve(async (req) => {
   console.log("📊 [stripe-analytics] Function invoked at", new Date().toISOString());
 
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest();
   }
 
   try {
-    // Get Stripe key - prioritize live key
-    const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-    const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+    // Use canonical Stripe configuration
+    const stripeClient = createStripeClient();
     
-    let stripeSecretKey = liveKey;
-    if (!stripeSecretKey && fallbackKey?.startsWith("sk_live_")) {
-      stripeSecretKey = fallbackKey;
-    } else if (!stripeSecretKey) {
-      stripeSecretKey = fallbackKey;
-    }
-
-    if (!stripeSecretKey) {
+    if (!stripeClient) {
       console.error("❌ No Stripe secret key configured");
       return new Response(JSON.stringify({ 
         success: false, 
@@ -37,12 +30,13 @@ serve(async (req) => {
       });
     }
 
-    const isLive = stripeSecretKey.startsWith("sk_live_");
+    const { stripe, config } = stripeClient;
+    const isLive = config.isLive;
+    
     console.log(`🔐 [stripe-analytics] Running in ${isLive ? "💰 LIVE" : "⚠️ TEST"} mode`);
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
-    });
+    if (config.platformAccountId) {
+      console.log(`🏢 [stripe-analytics] Platform: ${config.platformAccountId}`);
+    }
 
     const body = await req.json().catch(() => ({}));
     const { period = "today" } = body;
