@@ -227,7 +227,7 @@ serve(async (req) => {
       // Secure token encryption (use proper encryption in production)
       const encryptedToken = btoa(accessToken);
 
-      // Upsert connection
+      // Upsert connection to user_shopify_connections (Admin API tokens)
       const { data: connection, error: insertError } = await supabase
         .from("user_shopify_connections")
         .upsert({
@@ -246,6 +246,74 @@ serve(async (req) => {
 
       if (insertError) {
         throw new Error(`Failed to save connection: ${insertError.message}`);
+      }
+
+      // Also sync to user_store_connections for the active store system
+      // First, get storefront access token if available from the app
+      let storefrontToken = '';
+      try {
+        const storefrontResponse = await fetch(
+          `https://${shop}/admin/api/2024-01/storefront_access_tokens.json`,
+          {
+            method: 'POST',
+            headers: { 
+              "X-Shopify-Access-Token": accessToken,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              storefront_access_token: {
+                title: "Lovable Commerce Access"
+              }
+            })
+          }
+        );
+        if (storefrontResponse.ok) {
+          const storefrontData = await storefrontResponse.json();
+          storefrontToken = storefrontData.storefront_access_token?.access_token || '';
+        }
+      } catch (e) {
+        console.log('[shopify-user-oauth] Could not create storefront token, using empty');
+      }
+
+      // Check if store already exists in user_store_connections
+      const { data: existingStore } = await supabase
+        .from("user_store_connections")
+        .select("id")
+        .eq("user_id", stateData.user_id)
+        .eq("store_domain", shop)
+        .maybeSingle();
+
+      // Check if this is the first store (should be primary)
+      const { count: storeCount } = await supabase
+        .from("user_store_connections")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", stateData.user_id);
+
+      const isPrimary = (storeCount || 0) === 0 || !existingStore;
+
+      // Upsert to user_store_connections
+      const { data: storeConnection, error: storeError } = await supabase
+        .from("user_store_connections")
+        .upsert({
+          id: existingStore?.id || undefined,
+          user_id: stateData.user_id,
+          store_name: shopName,
+          store_domain: shop,
+          storefront_access_token: storefrontToken || 'pending',
+          admin_access_token: encryptedToken,
+          is_active: true,
+          is_primary: existingStore ? undefined : isPrimary, // Only set primary for new stores
+          connected_at: existingStore ? undefined : new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: "id",
+          ignoreDuplicates: false,
+        })
+        .select()
+        .single();
+
+      if (storeError) {
+        console.error('[shopify-user-oauth] Failed to sync to user_store_connections:', storeError);
       }
 
       // Sync products
@@ -279,12 +347,23 @@ serve(async (req) => {
           });
         }
 
+        // Update products count
         await supabase.from("user_shopify_connections")
           .update({ 
             products_count: products.length,
             last_sync_at: new Date().toISOString()
           })
           .eq("id", connection.id);
+
+        // Also update user_store_connections
+        if (storeConnection) {
+          await supabase.from("user_store_connections")
+            .update({ 
+              products_count: products.length,
+              last_synced_at: new Date().toISOString()
+            })
+            .eq("id", storeConnection.id);
+        }
       }
 
       console.log(`[shopify-user-oauth] Shopify connected successfully (OAuth 2.1 compliant)`);

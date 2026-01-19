@@ -18,12 +18,15 @@ import {
   ExternalLink,
   Key,
   Globe,
-  Copy,
-  Check
+  Zap,
+  ChevronDown,
+  ShieldCheck
 } from "lucide-react";
 import { validateShopifyCredentials } from "@/lib/multi-tenant-shopify";
 import { useUserStore } from "@/hooks/useUserStore";
+import { useUserShopifyConnections } from "@/hooks/useUserShopifyConnections";
 import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface ConnectShopifyModalProps {
   open: boolean;
@@ -32,21 +35,21 @@ interface ConnectShopifyModalProps {
 
 export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalProps) {
   const { addStore, stores } = useUserStore();
-  const [step, setStep] = useState<"form" | "validating" | "success">("form");
+  const { initiateOAuth } = useUserShopifyConnections();
+  const [connectionMethod, setConnectionMethod] = useState<"oauth" | "manual">("oauth");
+  const [step, setStep] = useState<"choose" | "oauth-input" | "manual-form" | "validating" | "success">("choose");
   const [storeDomain, setStoreDomain] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [detectedStoreName, setDetectedStoreName] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Auto-format store domain as user types
   const formatStoreDomain = (input: string): string => {
     let cleaned = input.trim().toLowerCase();
-    // Remove protocol
     cleaned = cleaned.replace(/^https?:\/\//, "");
-    // Remove trailing slash
     cleaned = cleaned.replace(/\/$/, "");
-    // Remove /admin or other paths
     cleaned = cleaned.split("/")[0];
     return cleaned;
   };
@@ -56,7 +59,6 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
     setStoreDomain(formatted);
   };
 
-  // Detect if user pasted a full URL and auto-format
   useEffect(() => {
     if (storeDomain.includes("http") || storeDomain.includes("/")) {
       setStoreDomain(formatStoreDomain(storeDomain));
@@ -64,11 +66,14 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
   }, [storeDomain]);
 
   const resetForm = () => {
-    setStep("form");
+    setStep("choose");
+    setConnectionMethod("oauth");
     setStoreDomain("");
     setAccessToken("");
     setValidationError(null);
     setDetectedStoreName(null);
+    setIsConnecting(false);
+    setShowAdvanced(false);
   };
 
   const handleClose = () => {
@@ -76,21 +81,39 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
     onOpenChange(false);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // One-click OAuth connection
+  const handleOAuthConnect = async () => {
+    if (!storeDomain) {
+      setValidationError("Please enter your store domain");
+      return;
+    }
+
+    if (!storeDomain.includes(".myshopify.com")) {
+      setValidationError("Please use your .myshopify.com domain");
+      return;
+    }
+
+    setIsConnecting(true);
+    setValidationError(null);
+
+    try {
+      await initiateOAuth(storeDomain);
+      // The page will redirect to Shopify for OAuth
+    } catch (error) {
+      setValidationError(error instanceof Error ? error.message : "Failed to start connection");
+      setIsConnecting(false);
+    }
   };
 
-  const handleConnect = async () => {
+  // Manual storefront token connection
+  const handleManualConnect = async () => {
     if (!storeDomain || !accessToken) {
       setValidationError("Please fill in all fields");
       return;
     }
 
-    // Validate domain format
     if (!storeDomain.includes(".myshopify.com")) {
-      setValidationError("Please use your .myshopify.com domain (e.g., mystore.myshopify.com)");
+      setValidationError("Please use your .myshopify.com domain");
       return;
     }
 
@@ -101,7 +124,7 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
 
     if (!result.valid) {
       setValidationError(result.error || "Invalid credentials");
-      setStep("form");
+      setStep("manual-form");
       return;
     }
 
@@ -117,16 +140,8 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
       toast.success("Store connected successfully!");
     } catch (error) {
       setValidationError(error instanceof Error ? error.message : "Failed to save store");
-      setStep("form");
+      setStep("manual-form");
     }
-  };
-
-  const getAdminUrl = () => {
-    if (storeDomain) {
-      const storeName = storeDomain.replace(".myshopify.com", "");
-      return `https://admin.shopify.com/store/${storeName}/settings/apps/development`;
-    }
-    return "https://admin.shopify.com";
   };
 
   return (
@@ -141,8 +156,8 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
               <DialogTitle className="text-xl">Connect Shopify Store</DialogTitle>
               <DialogDescription>
                 {stores.length === 0 
-                  ? "Connect your store in 2 simple steps"
-                  : "Add another Shopify store"
+                  ? "Connect your first store to get started"
+                  : `Add another store (${stores.length} connected)`
                 }
               </DialogDescription>
             </div>
@@ -150,79 +165,52 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
         </DialogHeader>
 
         <AnimatePresence mode="wait">
-          {step === "form" && (
+          {/* Step 1: Choose Connection Method */}
+          {step === "choose" && (
             <motion.div
-              key="form"
+              key="choose"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="space-y-5 py-4"
+              className="space-y-4 py-4"
             >
-              {/* Step 1: Store Domain */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
-                  <Label className="font-medium">Enter your Shopify store URL</Label>
+              {/* Store Domain Input - Always shown first */}
+              <div className="space-y-2">
+                <Label className="font-medium">Your Shopify Store URL</Label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="yourstore.myshopify.com"
+                    value={storeDomain}
+                    onChange={(e) => handleDomainChange(e.target.value)}
+                    className="pl-10 bg-secondary/50"
+                    autoFocus
+                  />
                 </div>
-                <div className="ml-8 space-y-2">
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="yourstore.myshopify.com"
-                      value={storeDomain}
-                      onChange={(e) => handleDomainChange(e.target.value)}
-                      className="pl-10 bg-secondary/50"
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Use your <strong>.myshopify.com</strong> URL, not your custom domain
-                  </p>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use your <strong>.myshopify.com</strong> URL, not a custom domain
+                </p>
               </div>
 
-              {/* Step 2: Access Token with better instructions */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
-                  <Label className="font-medium">Get your Storefront Access Token</Label>
-                </div>
-                <div className="ml-8 space-y-3">
-                  {/* Quick guide */}
-                  <div className="p-3 rounded-lg bg-secondary/50 border border-border/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Quick Setup:</span>
-                      {storeDomain.includes(".myshopify.com") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => window.open(getAdminUrl(), "_blank")}
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Open Shopify Admin
-                        </Button>
-                      )}
-                    </div>
-                    <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
-                      <li>Go to <strong>Settings → Apps and sales channels → Develop apps</strong></li>
-                      <li>Click <strong>"Create an app"</strong> (name it anything)</li>
-                      <li>Click <strong>"Configure Storefront API scopes"</strong></li>
-                      <li>Check all boxes, then click <strong>Save</strong></li>
-                      <li>Click <strong>"Install app"</strong>, then copy the <strong>Storefront access token</strong></li>
-                    </ol>
-                  </div>
+              {/* One-Click OAuth Button - Primary */}
+              <Button
+                onClick={handleOAuthConnect}
+                disabled={!storeDomain.includes(".myshopify.com") || isConnecting}
+                className="w-full h-14 text-base gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+              >
+                {isConnecting ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Connect with One-Click
+                  </>
+                )}
+              </Button>
 
-                  <div className="relative">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="password"
-                      placeholder="Paste your Storefront access token"
-                      value={accessToken}
-                      onChange={(e) => setAccessToken(e.target.value.trim())}
-                      className="pl-10 bg-secondary/50 font-mono text-sm"
-                    />
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Secure OAuth 2.0 connection • Full API access</span>
               </div>
 
               {validationError && (
@@ -232,41 +220,56 @@ export function ConnectShopifyModal({ open, onOpenChange }: ConnectShopifyModalP
                   className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-start gap-2"
                 >
                   <AlertCircle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="text-sm text-destructive block">{validationError}</span>
-                    {validationError.includes("Invalid") && (
-                      <span className="text-xs text-muted-foreground mt-1 block">
-                        Make sure you're using a Storefront token, not an Admin token
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-sm text-destructive">{validationError}</span>
                 </motion.div>
               )}
+
+              {/* Advanced: Manual Token */}
+              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                    <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                    Advanced: Use Storefront Token
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-4">
+                  <div className="p-3 rounded-lg bg-secondary/50 border border-border/50">
+                    <p className="text-xs text-muted-foreground mb-3">
+                      If you can't use OAuth, you can manually enter a Storefront Access Token.
+                      This provides limited API access (read-only products, checkout creation).
+                    </p>
+                    <div className="space-y-2">
+                      <Label className="text-xs">Storefront Access Token</Label>
+                      <div className="relative">
+                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          type="password"
+                          placeholder="Paste token here"
+                          value={accessToken}
+                          onChange={(e) => setAccessToken(e.target.value.trim())}
+                          className="pl-10 bg-background font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3"
+                      onClick={handleManualConnect}
+                      disabled={!storeDomain || !accessToken}
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      Connect with Token
+                    </Button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
 
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" onClick={handleClose} className="flex-1">
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleConnect} 
-                  className="flex-1"
-                  disabled={!storeDomain || !accessToken}
-                >
-                  Connect Store
-                </Button>
               </div>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Need help?{" "}
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-xs"
-                  onClick={() => window.open("https://help.shopify.com/en/manual/apps/app-types/custom-apps", "_blank")}
-                >
-                  View Shopify's guide
-                </Button>
-              </p>
             </motion.div>
           )}
 
