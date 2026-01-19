@@ -109,13 +109,7 @@ export function VideoAdStudio() {
     autoLoad: true 
   });
 
-  // Auto-select first product from connected store
-  useEffect(() => {
-    if (products.length > 0 && !selectedProduct) {
-      // Select the first available product
-      setSelectedProduct(products[0]);
-    }
-  }, [products, selectedProduct]);
+  // REMOVED: Auto-select was causing glitchy behavior - let user pick manually
 
   // Quick generate 2 variants per product
   const quickGenerate2Variants = useCallback(async () => {
