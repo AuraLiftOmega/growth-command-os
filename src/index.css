@@ -528,3 +528,21 @@
 .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
 .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+/* Shopify Product Image Loading Fix */
+img.product-media,
+img[src*="cdn.shopify.com"] {
+  loading: eager !important;
+  opacity: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* Ensure product images don't get hidden by lazy loading issues */
+.product-image,
+.product-card img,
+[data-product-image] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: opacity 0.3s ease;
+}
