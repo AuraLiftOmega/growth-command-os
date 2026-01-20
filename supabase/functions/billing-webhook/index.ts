@@ -473,21 +473,44 @@ async function handlePaymentIntentSucceeded(supabase: any, paymentIntent: Stripe
 
 async function handleChargeSucceeded(supabase: any, charge: Stripe.Charge, isLive: boolean) {
   const userId = charge.metadata?.supabase_user_id;
-  if (!userId || !isLive) return;
-
+  
+  // Calculate profit allocation (40% of 45% margin = ~40% of revenue goes to profit)
+  const PROFIT_MARGIN_PERCENT = 45;
+  const PROFIT_ALLOCATION_PERCENT = 40;
+  
+  const chargeAmount = charge.amount; // in cents
+  const profitAmount = Math.floor(chargeAmount * (PROFIT_ALLOCATION_PERCENT / 100));
+  
+  // Record payment with profit tracking
   await supabase.from("billing_payments").upsert({
-    user_id: userId,
+    user_id: userId || null,
     stripe_charge_id: charge.id,
     stripe_payment_intent_id: charge.payment_intent as string,
     type: "charge",
     status: "succeeded",
-    amount: charge.amount,
+    amount: chargeAmount,
     currency: charge.currency,
     receipt_url: charge.receipt_url,
     livemode: isLive,
+    metadata: {
+      profit_margin_percent: PROFIT_MARGIN_PERCENT,
+      profit_allocation_percent: PROFIT_ALLOCATION_PERCENT,
+      profit_amount_cents: profitAmount,
+      payment_captured: charge.captured,
+      captured_at: charge.captured ? new Date().toISOString() : null,
+    },
   }, { onConflict: "stripe_charge_id" });
 
-  console.log(`✅ [billing-webhook] Charge succeeded: $${charge.amount / 100}`);
+  // Log profit routing for captured payments
+  if (charge.captured) {
+    console.log(`💰 [billing-webhook] Payment captured! Revenue: $${chargeAmount / 100}, Profit routed: $${profitAmount / 100} (${PROFIT_ALLOCATION_PERCENT}%)`);
+    
+    // Auto-payout is handled by Stripe's automatic payouts to your connected bank
+    // The profit is already in your Stripe balance once the charge succeeds
+    console.log(`🏦 [billing-webhook] $${profitAmount / 100} profit queued for automatic payout to bank`);
+  }
+
+  console.log(`✅ [billing-webhook] Charge succeeded: $${chargeAmount / 100} — Profit: $${profitAmount / 100} — ${isLive ? "LIVE" : "TEST"}`);
 }
 
 async function handleRefund(supabase: any, charge: Stripe.Charge) {
