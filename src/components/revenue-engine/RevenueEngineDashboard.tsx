@@ -548,13 +548,17 @@ export function RevenueEngineDashboard() {
                 Full autonomous mode • 50 Bots • Viral ads • Google Ads • Grok CEO optimization
               </p>
               <div className="flex items-center gap-2 mt-2">
-                {TOP_PRODUCTS.slice(0, 3).map((p) => (
+                {(TOP_PRODUCTS.length > 0 ? TOP_PRODUCTS.slice(0, 3) : [
+                  { name: "Vitamin C Serum", handle: "vitamin-c" },
+                  { name: "Hydra Glow", handle: "hydra-glow" },
+                  { name: "Retinol Cream", handle: "retinol" }
+                ]).map((p) => (
                   <Badge key={p.handle} variant="secondary" className="text-xs">
                     <ShoppingBag className="w-3 h-3 mr-1" />
                     {p.name.split(" ")[0]}
                   </Badge>
                 ))}
-                <Badge variant="outline" className="text-xs">+{TOP_PRODUCTS.length - 3} more</Badge>
+                <Badge variant="outline" className="text-xs">+{Math.max(0, TOP_PRODUCTS.length - 3)} more</Badge>
               </div>
             </div>
           </div>
@@ -832,7 +836,7 @@ export function RevenueEngineDashboard() {
               </div>
               <div>
                 <p className="font-medium">Generate D-ID Ad</p>
-                <p className="text-xs text-muted-foreground">{TOP_PRODUCTS[0].name}</p>
+                <p className="text-xs text-muted-foreground">{TOP_PRODUCTS[0]?.name || "Top Product"}</p>
               </div>
             </div>
           </CardContent>
