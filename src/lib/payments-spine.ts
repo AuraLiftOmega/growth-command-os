@@ -108,33 +108,51 @@ export interface DailyMetric {
 
 // API client for Payments Spine
 class PaymentsSpineClient {
-  private async invoke<T>(path: string, options?: { method?: string; body?: Record<string, unknown> }): Promise<T> {
-    const { data, error } = await supabase.functions.invoke(SPINE_FUNCTION_NAME, {
-      body: {
-        _path: path,
-        _method: options?.method || 'GET',
-        ...(options?.body || {}),
+  private baseUrl: string;
+  
+  constructor() {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    this.baseUrl = `${supabaseUrl}/functions/v1/${SPINE_FUNCTION_NAME}`;
+  }
+
+  // POST request to a specific path
+  private async post<T>(path: string, body?: Record<string, unknown>): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify(body || {}),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      console.error('Spine API error:', errorData);
+      throw new Error(errorData.error || `Request failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  // GET request to a specific path (with optional query params)
+  private async fetch<T>(path: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
     });
 
-    if (error) {
-      console.error('Spine API error:', error);
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      console.error('Spine API error:', errorData);
+      throw new Error(errorData.error || `Request failed: ${response.status}`);
     }
 
-    return data as T;
-  }
-
-  // Direct fetch for GET requests with query params
-  private async fetch<T>(path: string): Promise<T> {
-    const { data, error } = await supabase.functions.invoke(SPINE_FUNCTION_NAME + path);
-
-    if (error) {
-      console.error('Spine API error:', error);
-      throw error;
-    }
-
-    return data as T;
+    return response.json();
   }
 
   // Health endpoints
@@ -155,21 +173,11 @@ class PaymentsSpineClient {
     version?: string;
     stripe_platform_account_id?: string;
   }): Promise<{ success: boolean; project: SpineProject; binding_status: string }> {
-    const { data: result, error } = await supabase.functions.invoke(SPINE_FUNCTION_NAME, {
-      body: data,
-    });
-    
-    if (error) throw error;
-    return result;
+    return this.post('/projects/register', data);
   }
 
   async revalidateProject(projectId: string): Promise<{ success: boolean; binding_status: string; stripe_valid: boolean }> {
-    const { data, error } = await supabase.functions.invoke(SPINE_FUNCTION_NAME, {
-      body: { project_id: projectId, _action: 'revalidate' },
-    });
-    
-    if (error) throw error;
-    return data;
+    return this.post('/projects/revalidate', { project_id: projectId });
   }
 
   async getProjects(filters?: { env?: string; status?: string }): Promise<{ projects: SpineProject[] }> {
@@ -335,12 +343,7 @@ class PaymentsSpineClient {
   }
 
   async testAlert(severity: 'info' | 'warn' | 'critical' = 'info', projectId?: string): Promise<{ success: boolean; alert: SpineAlert }> {
-    const { data, error } = await supabase.functions.invoke(SPINE_FUNCTION_NAME, {
-      body: { _action: 'test_alert', severity, project_id: projectId },
-    });
-    
-    if (error) throw error;
-    return data;
+    return this.post('/alerts/test', { severity, project_id: projectId });
   }
 
   // Canonical Stripe config
