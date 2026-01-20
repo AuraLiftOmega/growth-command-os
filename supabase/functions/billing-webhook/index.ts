@@ -38,6 +38,17 @@ serve(async (req) => {
     }
 
     const { stripe, config } = stripeClient;
+    
+    // Boot-time validation - ensure payments go to canonical account
+    if (config.platformAccountId) {
+      const account = await stripe.accounts.retrieve();
+      if (account.id !== config.platformAccountId) {
+        console.error(`🚨 [billing-webhook] CRITICAL: Account mismatch! Expected ${config.platformAccountId}, got ${account.id}`);
+        throw new Error("Stripe account mismatch - refusing to process webhook");
+      }
+      console.log(`✅ [billing-webhook] Canonical account verified: ${account.id}`);
+    }
+    
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

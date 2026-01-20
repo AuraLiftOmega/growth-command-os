@@ -3,7 +3,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.14.0?target=deno";
 import {
   createStripeClient,
-  validateCanonicalAccount,
   STRIPE_PLANS,
   corsHeaders,
   handleCorsPreflightRequest,
@@ -37,11 +36,14 @@ serve(async (req) => {
 
     const { stripe, config } = stripeClient;
 
-    // Validate canonical account
-    const isValid = await validateCanonicalAccount(stripe, config);
-    if (!isValid && config.platformAccountId) {
-      console.error("🚨 [billing-checkout] Canonical account mismatch!");
-      return createErrorResponse("Stripe account configuration error", 500);
+    // Boot-time validation with strict enforcement for payment operations
+    if (config.platformAccountId) {
+      const account = await stripe.accounts.retrieve();
+      if (account.id !== config.platformAccountId) {
+        console.error(`🚨 [billing-checkout] CRITICAL: Account mismatch! Expected ${config.platformAccountId}, got ${account.id}`);
+        return createErrorResponse("Stripe account mismatch - payment blocked for security", 500);
+      }
+      console.log(`✅ [billing-checkout] Canonical account verified: ${account.id} (${config.isLive ? 'LIVE' : 'TEST'})`);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
