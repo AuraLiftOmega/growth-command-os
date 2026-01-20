@@ -1,27 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-project-id, x-project-signature',
-};
+import {
+  createStripeClient,
+  validateStripeOnBoot,
+  corsHeaders,
+  handleCorsPreflightRequest,
+  createErrorResponse,
+  createSuccessResponse,
+} from "../_shared/stripe-config.ts";
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Stripe configuration
-const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY') || Deno.env.get('STRIPE_LIVE_SECRET_KEY');
+// Get platform account ID from env
 const STRIPE_PLATFORM_ACCOUNT_ID = Deno.env.get('STRIPE_PLATFORM_ACCOUNT_ID');
 const PAYMENTS_SPINE_SHARED_SECRET = Deno.env.get('PAYMENTS_SPINE_SHARED_SECRET') || 'default-spine-secret';
 
-// Initialize Stripe
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-  httpClient: Stripe.createFetchHttpClient(),
-}) : null;
+// Use shared Stripe client
+const stripeClient = createStripeClient();
+const stripe = stripeClient?.stripe || null;
+const stripeConfig = stripeClient?.config || null;
 
 // HMAC signature verification
 async function verifySignature(projectId: string, signature: string, timestamp: string): Promise<boolean> {
