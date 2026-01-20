@@ -139,8 +139,15 @@ export function RevenueEngineDashboard() {
     setCurrentStep(0);
     setGeneratedVideos([]);
     
-    // Top 5 products for tonight's push
-    const top5Products = TOP_PRODUCTS.slice(0, 5);
+    // Top 5 products for tonight's push - provide fallback demo products if none loaded
+    const fallbackProducts = [
+      { name: "Radiance Vitamin C Serum", price: 49.99, handle: "vitamin-c-serum", image: "" },
+      { name: "Hydra Glow Moisturizer", price: 39.99, handle: "hydra-glow", image: "" },
+      { name: "Retinol Night Cream", price: 54.99, handle: "retinol-cream", image: "" },
+      { name: "Hyaluronic Acid Serum", price: 44.99, handle: "hyaluronic-serum", image: "" },
+      { name: "Collagen Boost Cream", price: 59.99, handle: "collagen-cream", image: "" },
+    ];
+    const top5Products = TOP_PRODUCTS.length > 0 ? TOP_PRODUCTS.slice(0, 5) : fallbackProducts;
     
     toast.success("🚀 REVENUE MODE ACTIVATED", {
       description: `Generating 5 viral D-ID videos • $100 Google Ads • 50 Bots • $10k+ tonight!`,
