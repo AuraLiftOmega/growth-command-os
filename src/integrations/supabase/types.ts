@@ -4283,6 +4283,69 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_orders: {
+        Row: {
+          billing_address: Json | null
+          created_at: string | null
+          currency: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discord_pinged_at: string | null
+          financial_status: string | null
+          fulfillment_status: string | null
+          id: string
+          line_items: Json | null
+          order_number: string | null
+          raw_payload: Json | null
+          shipping_address: Json | null
+          shopify_order_id: string
+          sms_sent_at: string | null
+          total_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          billing_address?: Json | null
+          created_at?: string | null
+          currency?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discord_pinged_at?: string | null
+          financial_status?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          line_items?: Json | null
+          order_number?: string | null
+          raw_payload?: Json | null
+          shipping_address?: Json | null
+          shopify_order_id: string
+          sms_sent_at?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          billing_address?: Json | null
+          created_at?: string | null
+          currency?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discord_pinged_at?: string | null
+          financial_status?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          line_items?: Json | null
+          order_number?: string | null
+          raw_payload?: Json | null
+          shipping_address?: Json | null
+          shopify_order_id?: string
+          sms_sent_at?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       shopify_products: {
         Row: {
           compare_at_price: number | null
