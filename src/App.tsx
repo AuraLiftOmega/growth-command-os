@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import Store from "./pages/Store";
+import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
@@ -71,8 +72,8 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Root redirects to dashboard (which will redirect to auth if not logged in) */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Public homepage with products */}
+      <Route path="/" element={<Home />} />
       
       <Route 
         path="/auth" 

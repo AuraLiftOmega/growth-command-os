@@ -11,6 +11,10 @@ import {
 } from "@/lib/shopify-config";
 import { useActiveStore } from "@/hooks/useActiveStore";
 
+// Fallback store credentials for public pages
+const FALLBACK_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
+const FALLBACK_STOREFRONT_TOKEN = "d9830af538b34d418e1167726cf1f67a";
+
 interface StoreProductGridProps {
   category?: string;
   limit?: number;
@@ -22,20 +26,18 @@ export function StoreProductGrid({
   limit = 20,
   showQuickView = true 
 }: StoreProductGridProps) {
-  const { activeStore, hasConnectedStores } = useActiveStore();
+  const { activeStore } = useActiveStore();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<ShopifyProduct | null>(null);
 
+  // Use active store or fallback to direct credentials
+  const storeDomain = activeStore?.storeDomain || FALLBACK_STORE_DOMAIN;
+  const storefrontToken = activeStore?.storefrontToken || FALLBACK_STOREFRONT_TOKEN;
+
   useEffect(() => {
     async function loadProducts() {
-      if (!activeStore) {
-        setIsLoading(false);
-        setProducts([]);
-        return;
-      }
-
       setIsLoading(true);
       setError(null);
       
@@ -48,8 +50,8 @@ export function StoreProductGrid({
         
         console.log('Loading products with query:', query);
         const data = await storefrontApiRequest(
-          activeStore.storeDomain,
-          activeStore.storefrontToken,
+          storeDomain,
+          storefrontToken,
           PRODUCTS_QUERY, 
           { first: limit, query }
         );
@@ -72,7 +74,7 @@ export function StoreProductGrid({
     }
 
     loadProducts();
-  }, [category, limit, activeStore]);
+  }, [category, limit, storeDomain, storefrontToken]);
 
   if (isLoading) {
     return (
@@ -82,20 +84,7 @@ export function StoreProductGrid({
     );
   }
 
-  if (!hasConnectedStores) {
-    return (
-      <div className="text-center py-20">
-        <Store className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Store Connected</h3>
-        <p className="text-muted-foreground mb-4">
-          Connect your Shopify store to display products
-        </p>
-        <Button asChild>
-          <Link to="/dashboard/social-channels">Connect Shopify Store</Link>
-        </Button>
-      </div>
-    );
-  }
+  // Removed "No Store Connected" check - we always have fallback credentials
 
   if (error) {
     return (
