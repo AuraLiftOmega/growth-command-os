@@ -10,6 +10,10 @@ import { useActiveStore } from "@/hooks/useActiveStore";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
 
+// Fallback store credentials for public pages
+const FALLBACK_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
+const FALLBACK_STOREFRONT_TOKEN = "d9830af538b34d418e1167726cf1f67a";
+
 interface StoreProductCardProps {
   product: ShopifyProduct;
   index?: number;
@@ -21,6 +25,10 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
   const { activeStore } = useActiveStore();
   const addItem = useCartStore((s) => s.addItem);
 
+  // Use active store or fallback credentials
+  const storeDomain = activeStore?.storeDomain || FALLBACK_STORE_DOMAIN;
+  const storefrontToken = activeStore?.storefrontToken || FALLBACK_STOREFRONT_TOKEN;
+
   const node = product.node;
   const firstVariant = node.variants.edges[0]?.node;
   const shopifyImageUrl = node.images.edges[0]?.node?.url;
@@ -30,7 +38,7 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
   const productImageUrl = getProductImage(node.handle, shopifyImageUrl);
 
   const handleAddToCart = async () => {
-    if (!firstVariant || !activeStore) {
+    if (!firstVariant) {
       toast.error("Product unavailable");
       return;
     }
@@ -44,8 +52,8 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
       price: firstVariant.price,
       quantity: 1,
       selectedOptions: firstVariant.selectedOptions,
-      storeDomain: activeStore.storeDomain,
-      storefrontToken: activeStore.storefrontToken,
+      storeDomain,
+      storefrontToken,
     });
 
     toast.success("Added to cart", {
@@ -145,7 +153,7 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
             <Button
               size="sm"
               onClick={handleAddToCart}
-              disabled={isAdding || !firstVariant?.availableForSale || !activeStore}
+              disabled={isAdding || !firstVariant?.availableForSale}
               className={isAdding ? "bg-success hover:bg-success" : "btn-power"}
             >
               {isAdding ? (
