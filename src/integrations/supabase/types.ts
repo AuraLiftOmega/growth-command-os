@@ -4283,6 +4283,147 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          performed_by: string | null
+          shop_domain: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          performed_by?: string | null
+          shop_domain?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          performed_by?: string | null
+          shop_domain?: string | null
+        }
+        Relationships: []
+      }
+      shopify_config: {
+        Row: {
+          archived_credentials: Json | null
+          confusion_state_detected: boolean | null
+          created_at: string | null
+          id: string
+          last_reset_at: string | null
+          last_reset_by: string | null
+          multi_shop_mode: boolean | null
+          primary_shop_domain: string
+          primary_shop_id: string | null
+          project_slug: string
+          safe_mode_enabled: boolean | null
+          safe_mode_reason: string | null
+          safe_mode_started_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived_credentials?: Json | null
+          confusion_state_detected?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_reset_at?: string | null
+          last_reset_by?: string | null
+          multi_shop_mode?: boolean | null
+          primary_shop_domain: string
+          primary_shop_id?: string | null
+          project_slug?: string
+          safe_mode_enabled?: boolean | null
+          safe_mode_reason?: string | null
+          safe_mode_started_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived_credentials?: Json | null
+          confusion_state_detected?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_reset_at?: string | null
+          last_reset_by?: string | null
+          multi_shop_mode?: boolean | null
+          primary_shop_domain?: string
+          primary_shop_id?: string | null
+          project_slug?: string
+          safe_mode_enabled?: boolean | null
+          safe_mode_reason?: string | null
+          safe_mode_started_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      shopify_connections: {
+        Row: {
+          access_token_encrypted: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          is_verified: boolean | null
+          last_verified_at: string | null
+          project_slug: string
+          role: string
+          scopes: string[] | null
+          shop_domain: string
+          shop_id: string | null
+          storefront_token: string | null
+          updated_at: string | null
+          webhook_id: string | null
+          webhook_secret: string | null
+          webhook_verified: boolean | null
+        }
+        Insert: {
+          access_token_encrypted?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          is_verified?: boolean | null
+          last_verified_at?: string | null
+          project_slug?: string
+          role?: string
+          scopes?: string[] | null
+          shop_domain: string
+          shop_id?: string | null
+          storefront_token?: string | null
+          updated_at?: string | null
+          webhook_id?: string | null
+          webhook_secret?: string | null
+          webhook_verified?: boolean | null
+        }
+        Update: {
+          access_token_encrypted?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          is_verified?: boolean | null
+          last_verified_at?: string | null
+          project_slug?: string
+          role?: string
+          scopes?: string[] | null
+          shop_domain?: string
+          shop_id?: string | null
+          storefront_token?: string | null
+          updated_at?: string | null
+          webhook_id?: string | null
+          webhook_secret?: string | null
+          webhook_verified?: boolean | null
+        }
+        Relationships: []
+      }
       shopify_orders: {
         Row: {
           billing_address: Json | null
