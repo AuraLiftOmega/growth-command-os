@@ -114,6 +114,9 @@ function extractAttribution(order: ShopifyOrder): {
   return { platform, creative_id, source };
 }
 
+// CANONICAL PRIMARY STORE - Hard locked
+const PRIMARY_SHOP_DOMAIN = 'lovable-project-7fb70.myshopify.com';
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -127,6 +130,15 @@ serve(async (req: Request) => {
     const shopDomain = req.headers.get('x-shopify-shop-domain') || '';
 
     console.log('Received Shopify webhook:', { topic, shopDomain });
+
+    // HARD SAFETY CHECK: Reject webhooks from non-primary stores
+    if (shopDomain && shopDomain.toLowerCase() !== PRIMARY_SHOP_DOMAIN) {
+      console.error(`[SECURITY] Rejected webhook from unauthorized store: ${shopDomain}`);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized store', rejected: true }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify webhook signature
     const webhookSecret = Deno.env.get('SHOPIFY_WEBHOOK_SECRET');

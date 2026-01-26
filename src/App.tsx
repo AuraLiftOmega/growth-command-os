@@ -27,8 +27,8 @@ import PaymentsSpine from "./pages/PaymentsSpine";
 import BillingAdmin from "./pages/BillingAdmin";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
+import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
-
 const queryClient = new QueryClient();
 
 // Auth-protected route component - simplified, no onboarding requirement
@@ -224,6 +224,16 @@ const AppRoutes = () => {
       {/* Billing Success/Cancel pages */}
       <Route path="/billing/success" element={<BillingSuccess />} />
       <Route path="/billing/cancel" element={<BillingCancel />} />
+      
+      {/* Shopify Control Center (Admin) */}
+      <Route 
+        path="/admin/shopify-control-center" 
+        element={
+          <ProtectedRoute>
+            <ShopifyControlCenter />
+          </ProtectedRoute>
+        } 
+      />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
