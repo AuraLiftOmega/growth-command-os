@@ -1,4 +1,4 @@
-name: Deploy to Vercel (profitreaper.com + omegaalpha.io)
+name: Deploy to Vercel (Auto-Force Configuration)
 
 on:
   push:
@@ -9,17 +9,55 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
+    inputs:
+      force_production:
+        description: 'Force production deployment'
+        required: false
+        default: 'false'
+        type: boolean
 
-# Dual-domain deployment:
+# Domain Configuration:
 # Primary: profitreaper.com
 # Alias: omegaalpha.io
+# Storefront: auraliftessentials.com
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
+  validate-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      secrets_valid: ${{ steps.check.outputs.valid }}
+    steps:
+      - name: Validate Required Secrets
+        id: check
+        run: |
+          missing=""
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            missing="${missing}VERCEL_TOKEN "
+          fi
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            missing="${missing}VERCEL_ORG_ID "
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            missing="${missing}VERCEL_PROJECT_ID "
+          fi
+          
+          if [ -n "$missing" ]; then
+            echo "❌ Missing secrets: $missing"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ All required secrets are configured"
+            echo "valid=true" >> $GITHUB_OUTPUT
+          fi
+
   deploy:
+    needs: validate-secrets
+    if: needs.validate-secrets.outputs.secrets_valid == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,21 +72,35 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=${{ github.event_name == 'pull_request' && 'preview' || 'production' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "environment=preview" >> $GITHUB_OUTPUT
+            echo "prod_flag=" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.force_production }}" == "true" ]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "prod_flag=--prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "prod_flag=--prod" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Build Project Artifacts
-        run: vercel build ${{ github.event_name == 'pull_request' && '' || '--prod' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=${{ steps.env.outputs.environment }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project
+        run: vercel build ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Deploy to Vercel
         id: deploy
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          else
-            url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          fi
+          url=$(vercel deploy --prebuilt ${{ steps.env.outputs.prod_flag }} --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> $GITHUB_OUTPUT
+          echo "🚀 Deployed to: $url"
 
       - name: Comment Preview URL on PR
         if: github.event_name == 'pull_request'
@@ -59,8 +111,13 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🚀 **Preview deployed to Vercel!**\n\n' + '${{ steps.deploy.outputs.url }}'
+              body: '🚀 **Preview deployed to Vercel!**\n\n📍 URL: ${{ steps.deploy.outputs.url }}\n\n---\n_Deployed from commit ${{ github.sha }}_'
             })
 
-      - name: Output Deployment URL
-        run: echo "Deployed to ${{ steps.deploy.outputs.url }}"
+      - name: Deployment Summary
+        run: |
+          echo "## 🎉 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.deploy.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
