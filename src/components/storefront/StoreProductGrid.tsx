@@ -1,19 +1,11 @@
 import { useState, useEffect } from "react";
-import { Loader2, Store } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { StoreProductCard } from "./StoreProductCard";
 import { ProductQuickView } from "./ProductQuickView";
-import { 
-  ShopifyProduct, 
-  storefrontApiRequest, 
-  PRODUCTS_QUERY 
-} from "@/lib/shopify-config";
-import { useActiveStore } from "@/hooks/useActiveStore";
-
-// Fallback store credentials for public pages
-const FALLBACK_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
-const FALLBACK_STOREFRONT_TOKEN = "d9830af538b34d418e1167726cf1f67a";
+import { ShopifyProduct } from "@/lib/shopify-config";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StoreProductGridProps {
   category?: string;
@@ -26,15 +18,10 @@ export function StoreProductGrid({
   limit = 20,
   showQuickView = true 
 }: StoreProductGridProps) {
-  const { activeStore } = useActiveStore();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<ShopifyProduct | null>(null);
-
-  // Use active store or fallback to direct credentials
-  const storeDomain = activeStore?.storeDomain || FALLBACK_STORE_DOMAIN;
-  const storefrontToken = activeStore?.storefrontToken || FALLBACK_STOREFRONT_TOKEN;
 
   useEffect(() => {
     async function loadProducts() {
@@ -45,21 +32,25 @@ export function StoreProductGrid({
         // Build query - filter by product_type if category specified
         let query: string | undefined = undefined;
         if (category && category.toLowerCase() !== 'all') {
-          // Case-insensitive matching for product_type
           query = `product_type:${category}`;
         }
         
-        console.log('Loading products with query:', query);
-        const data = await storefrontApiRequest(
-          storeDomain,
-          storefrontToken,
-          PRODUCTS_QUERY, 
-          { first: limit, query }
-        );
+        console.log('Loading products via edge function with query:', query);
         
-        if (data?.data?.products?.edges) {
-          console.log('Products loaded:', data.data.products.edges.length);
-          setProducts(data.data.products.edges);
+        // Use edge function to fetch products via Admin API
+        const { data, error: fnError } = await supabase.functions.invoke('fetch-shopify-products', {
+          body: { limit, query }
+        });
+        
+        if (fnError) {
+          console.error('Edge function error:', fnError);
+          setError('Failed to load products');
+          return;
+        }
+        
+        if (data?.products) {
+          console.log('Products loaded:', data.products.length);
+          setProducts(data.products);
         } else if (data?.error) {
           console.warn('Shopify API returned error:', data.error);
           setProducts([]);
@@ -75,7 +66,7 @@ export function StoreProductGrid({
     }
 
     loadProducts();
-  }, [category, limit, storeDomain, storefrontToken]);
+  }, [category, limit]);
 
   if (isLoading) {
     return (
