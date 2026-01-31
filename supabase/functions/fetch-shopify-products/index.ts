@@ -5,8 +5,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Primary store configuration
 const SHOPIFY_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
-const SHOPIFY_API_VERSION = "2025-01";
+const SHOPIFY_API_VERSION = "2025-07";
+
+// Profit engine configuration - 60% margin from CJ costs
+const PROFIT_CONFIG = {
+  targetMargin: 0.60,
+  defaultShipping: 5.99,
+};
+
+function calculateSellingPrice(cjCost: number, shippingCost: number = PROFIT_CONFIG.defaultShipping): number {
+  const totalCost = cjCost + shippingCost;
+  return Math.ceil((totalCost / (1 - PROFIT_CONFIG.targetMargin)) * 100) / 100;
+}
 
 serve(async (req) => {
   // Handle CORS preflight

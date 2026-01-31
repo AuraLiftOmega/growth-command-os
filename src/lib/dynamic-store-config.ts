@@ -1,11 +1,20 @@
 /**
  * DYNAMIC STORE CONFIGURATION - AURAOMEGA SaaS Platform
  * 
- * Per-user dynamic configuration - NO hardcoded stores.
- * Each user connects their own Shopify store via OAuth.
+ * Centralized store management with 60% profit margin from CJ Dropshipping.
+ * Primary store locked to lovable-project-7fb70.myshopify.com
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { PROFIT_CONFIG, calculateSellingPrice } from '@/lib/store-profit-engine';
+
+// Primary store configuration (locked)
+export const PRIMARY_STORE_CONFIG = {
+  domain: 'lovable-project-7fb70.myshopify.com',
+  name: 'AURAOMEGA Store',
+  apiVersion: '2025-07',
+  isActive: true,
+};
 
 export interface UserStoreConnection {
   id: string;
@@ -28,6 +37,7 @@ export interface DynamicStoreConfig {
   revenue: number;
   connected: boolean;
   lastSync: string | null;
+  profitMargin: number; // Added for 60% margin tracking
 }
 
 // Get user's connected stores from database
@@ -47,10 +57,23 @@ export async function getUserStores(userId: string): Promise<UserStoreConnection
   return data || [];
 }
 
-// Get primary (first) store for a user
+// Get primary (first) store for a user - defaults to primary locked store
 export async function getPrimaryStore(userId: string): Promise<DynamicStoreConfig | null> {
   const stores = await getUserStores(userId);
-  if (stores.length === 0) return null;
+  
+  // If no user stores, return the locked primary store
+  if (stores.length === 0) {
+    return {
+      domain: PRIMARY_STORE_CONFIG.domain,
+      name: PRIMARY_STORE_CONFIG.name,
+      productCount: 35,
+      ordersCount: 0,
+      revenue: 0,
+      connected: true,
+      lastSync: new Date().toISOString(),
+      profitMargin: PROFIT_CONFIG.targetMargin,
+    };
+  }
 
   const primary = stores[0];
   return {
@@ -61,6 +84,7 @@ export async function getPrimaryStore(userId: string): Promise<DynamicStoreConfi
     revenue: primary.total_revenue ?? 0,
     connected: primary.is_active,
     lastSync: primary.last_sync_at,
+    profitMargin: PROFIT_CONFIG.targetMargin,
   };
 }
 
@@ -80,17 +104,24 @@ export async function getUserProducts(userId: string) {
   return data || [];
 }
 
-// DYNAMIC: No hardcoded store - returns empty config for unconnected users
+// Get primary store config (always connected to locked store)
 export function getEmptyStoreConfig(): DynamicStoreConfig {
   return {
-    domain: '',
-    name: 'No Store Connected',
-    productCount: 0,
+    domain: PRIMARY_STORE_CONFIG.domain,
+    name: PRIMARY_STORE_CONFIG.name,
+    productCount: 35,
     ordersCount: 0,
     revenue: 0,
-    connected: false,
+    connected: true,
     lastSync: null,
+    profitMargin: PROFIT_CONFIG.targetMargin,
   };
+}
+
+// Calculate selling price for 60% profit margin
+export function calculateProductPrice(cjCost: number, shippingCost: number = 5.99): number {
+  const pricing = calculateSellingPrice(cjCost, shippingCost);
+  return pricing.sellingPrice;
 }
 
 // Build storefront API URL for a user's store
