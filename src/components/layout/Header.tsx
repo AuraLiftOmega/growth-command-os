@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { Bell, ExternalLink, Globe, ShoppingBag, Layers } from "lucide-react";
+import { Bell, ExternalLink, Globe, ShoppingBag, Layers, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { DominionLogo } from "@/components/DominionLogo";
 import { Badge } from "@/components/ui/badge";
 import { DOMAINS } from "@/lib/domains.config";
+import { NavLink } from "@/components/NavLink";
 
 // Banner configuration
 const SHOW_DOMAIN_BANNER = true;
@@ -79,6 +80,12 @@ export const Header = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          <NavLink to="/dashboard/revenue-engine">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+              <TrendingUp className="w-4 h-4" />
+              <span className="hidden sm:inline">Profit</span>
+            </Button>
+          </NavLink>
           <Button variant="ghost" size="icon" className="h-9 w-9">
             <Bell className="w-4 h-4" />
           </Button>
