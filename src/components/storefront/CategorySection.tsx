@@ -4,7 +4,7 @@ import { Droplets, Gem, Sparkles, ArrowRight } from "lucide-react";
 
 const categories = [
   {
-    id: "skincare",
+    id: "Skincare",
     name: "Skincare",
     description: "Serums, moisturizers & treatments",
     icon: Droplets,
@@ -12,7 +12,7 @@ const categories = [
     borderColor: "border-primary/30",
   },
   {
-    id: "beauty tools",
+    id: "Beauty Tools",
     name: "Beauty Tools",
     description: "Face rollers & gua sha",
     icon: Gem,
@@ -20,13 +20,12 @@ const categories = [
     borderColor: "border-accent/30",
   },
   {
-    id: "all",
-    name: "All Products",
-    description: "Browse our complete collection",
+    id: "Beauty Tech",
+    name: "Beauty Tech",
+    description: "LED masks & electric devices",
     icon: Sparkles,
     color: "from-success/20 to-success/5",
     borderColor: "border-success/30",
-    href: "/store",
   },
 ];
 
@@ -50,7 +49,7 @@ export function CategorySection() {
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
               <Link
-                to={category.href || `/store?category=${category.id}`}
+                to={`/store?category=${category.id}`}
                 className={`block group p-6 rounded-xl border ${category.borderColor} bg-gradient-to-br ${category.color} hover:scale-[1.02] transition-all duration-300`}
               >
                 <div className="flex items-start justify-between mb-4">

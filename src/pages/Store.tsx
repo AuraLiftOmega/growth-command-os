@@ -15,7 +15,7 @@ export default function Store() {
   // Set page title for SEO
   useEffect(() => {
     document.title = category 
-      ? `${category.charAt(0).toUpperCase() + category.slice(1)} Collection | ${STORE_CONFIG.name}`
+      ? `${category} Collection | ${STORE_CONFIG.name}`
       : `${STORE_CONFIG.name} | ${STORE_CONFIG.tagline}`;
   }, [category]);
 
@@ -37,11 +37,11 @@ export default function Store() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Collection` : "All Products"}
+              {category ? `${category} Collection` : "All Products"}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               {category 
-                ? `Explore our premium ${category} selection`
+                ? `Explore our premium ${category.toLowerCase()} selection`
                 : "Premium products engineered for peak performance"
               }
             </p>

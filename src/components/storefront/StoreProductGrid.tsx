@@ -42,10 +42,11 @@ export function StoreProductGrid({
       setError(null);
       
       try {
-        // Build query - filter by category if specified
-        let query = undefined;
-        if (category && category !== 'all') {
-          query = `product_type:"${category}"`;
+        // Build query - filter by product_type if category specified
+        let query: string | undefined = undefined;
+        if (category && category.toLowerCase() !== 'all') {
+          // Case-insensitive matching for product_type
+          query = `product_type:${category}`;
         }
         
         console.log('Loading products with query:', query);
