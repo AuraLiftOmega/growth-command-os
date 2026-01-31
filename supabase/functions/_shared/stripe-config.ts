@@ -36,35 +36,23 @@ export interface StripeValidationResult {
  * Fails loudly if configuration is invalid.
  */
 export function getStripeConfig(): StripeConfig | null {
-  const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-  const fallbackKey = Deno.env.get("STRIPE_SECRET_KEY");
+  // CANONICAL KEY - Single source of truth for all Stripe operations
+  const canonicalKey = Deno.env.get("STRIPE_CANONICAL_SECRET_KEY");
   const platformAccountId = Deno.env.get("STRIPE_PLATFORM_ACCOUNT_ID");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
-  // Prioritize live key
-  let secretKey: string | undefined;
-  let isLive = false;
-
-  if (liveKey?.startsWith("sk_live_")) {
-    secretKey = liveKey;
-    isLive = true;
-  } else if (fallbackKey?.startsWith("sk_live_")) {
-    secretKey = fallbackKey;
-    isLive = true;
-  } else if (fallbackKey?.startsWith("sk_test_")) {
-    secretKey = fallbackKey;
-    isLive = false;
-  } else if (liveKey) {
-    secretKey = liveKey;
-    isLive = liveKey.startsWith("sk_live_");
-  }
-
-  if (!secretKey) {
+  // Only use the canonical key - no fallbacks
+  if (!canonicalKey) {
+    console.error("❌ [stripe-config] STRIPE_CANONICAL_SECRET_KEY not configured");
     return null;
   }
 
+  const isLive = canonicalKey.startsWith("sk_live_");
+
+  console.log(`🔐 [stripe-config] Using CANONICAL Stripe key — ${isLive ? "💰 LIVE" : "⚠️ TEST"}`);
+
   return {
-    secretKey,
+    secretKey: canonicalKey,
     isLive,
     platformAccountId: platformAccountId || null,
     webhookSecret: webhookSecret || null,
@@ -353,14 +341,13 @@ export function validateEnvironment(): EnvironmentValidation {
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  const liveKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
-  const testKey = Deno.env.get("STRIPE_SECRET_KEY");
+  const canonicalKey = Deno.env.get("STRIPE_CANONICAL_SECRET_KEY");
   const platformAccountId = Deno.env.get("STRIPE_PLATFORM_ACCOUNT_ID");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
-  // Check for keys
-  if (!liveKey && !testKey) {
-    errors.push("No Stripe secret key configured (STRIPE_SECRET_KEY or STRIPE_LIVE_SECRET_KEY)");
+  // Check for canonical key
+  if (!canonicalKey) {
+    errors.push("STRIPE_CANONICAL_SECRET_KEY not configured — all payments blocked");
   }
 
   // Check for platform account ID
@@ -370,20 +357,13 @@ export function validateEnvironment(): EnvironmentValidation {
 
   // Check for webhook secret
   if (!webhookSecret) {
-    warnings.push("STRIPE_WEBHOOK_SECRET not set — webhooks will not be verified in production");
+    warnings.push("STRIPE_WEBHOOK_SECRET not set — webhooks will not be verified");
   }
 
-  // Check for test/live mode mismatch
-  if (liveKey && testKey) {
-    if (liveKey.startsWith("sk_test_") || testKey.startsWith("sk_live_")) {
-      warnings.push("Key naming may be inconsistent — verify STRIPE_LIVE_SECRET_KEY contains live key");
-    }
-  }
-
-  const hasLiveKey = liveKey?.startsWith("sk_live_") || testKey?.startsWith("sk_live_");
+  const isLive = canonicalKey?.startsWith("sk_live_") || false;
   const mode: 'live' | 'test' | 'unconfigured' = 
-    !liveKey && !testKey ? 'unconfigured' :
-    hasLiveKey ? 'live' : 'test';
+    !canonicalKey ? 'unconfigured' :
+    isLive ? 'live' : 'test';
 
   return {
     isValid: errors.length === 0,
