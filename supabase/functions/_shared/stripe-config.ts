@@ -36,23 +36,32 @@ export interface StripeValidationResult {
  * Fails loudly if configuration is invalid.
  */
 export function getStripeConfig(): StripeConfig | null {
-  // CANONICAL KEY - Single source of truth for all Stripe operations
+  // Try keys in order of preference:
+  // 1. STRIPE_LIVE_SECRET_KEY (full live secret key)
+  // 2. STRIPE_SECRET_KEY (general secret key)
+  // 3. STRIPE_CANONICAL_SECRET_KEY (may be restricted)
+  const liveSecretKey = Deno.env.get("STRIPE_LIVE_SECRET_KEY");
+  const secretKey = Deno.env.get("STRIPE_SECRET_KEY");
   const canonicalKey = Deno.env.get("STRIPE_CANONICAL_SECRET_KEY");
+  
   const platformAccountId = Deno.env.get("STRIPE_PLATFORM_ACCOUNT_ID");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
-  // Only use the canonical key - no fallbacks
-  if (!canonicalKey) {
-    console.error("❌ [stripe-config] STRIPE_CANONICAL_SECRET_KEY not configured");
+  // Use the first available key (prioritize live secret key for checkouts)
+  const activeKey = liveSecretKey || secretKey || canonicalKey;
+  
+  if (!activeKey) {
+    console.error("❌ [stripe-config] No Stripe secret key configured");
     return null;
   }
 
-  const isLive = canonicalKey.startsWith("sk_live_");
+  const isLive = activeKey.startsWith("sk_live_") || activeKey.startsWith("rk_live_");
+  const keyType = liveSecretKey ? "LIVE_SECRET" : (secretKey ? "SECRET" : "CANONICAL");
 
-  console.log(`🔐 [stripe-config] Using CANONICAL Stripe key — ${isLive ? "💰 LIVE" : "⚠️ TEST"}`);
+  console.log(`🔐 [stripe-config] Using ${keyType} Stripe key — ${isLive ? "💰 LIVE" : "⚠️ TEST"}`);
 
   return {
-    secretKey: canonicalKey,
+    secretKey: activeKey,
     isLive,
     platformAccountId: platformAccountId || null,
     webhookSecret: webhookSecret || null,
