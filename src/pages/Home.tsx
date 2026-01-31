@@ -9,37 +9,31 @@ import { TrustBadges } from "@/components/storefront/TrustBadges";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
-import { 
-  ShopifyProduct, 
-  storefrontApiRequest, 
-  PRODUCTS_QUERY,
-  SHOPIFY_API_VERSION
-} from "@/lib/shopify-config";
+import { ShopifyProduct } from "@/lib/shopify-config";
+import { supabase } from "@/integrations/supabase/client";
 import heroBanner from "@/assets/skincare-hero.jpg";
-
-// Direct Shopify store credentials
-const STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
-const STOREFRONT_TOKEN = "d9830af538b34d418e1167726cf1f67a";
 
 export default function Home() {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<ShopifyProduct | null>(null);
 
-  // Fetch products directly from Shopify
+  // Fetch products via edge function (Admin API)
   useEffect(() => {
     async function loadProducts() {
       setIsLoading(true);
       try {
-        const data = await storefrontApiRequest(
-          STORE_DOMAIN,
-          STOREFRONT_TOKEN,
-          PRODUCTS_QUERY,
-          { first: 12 }
-        );
+        const { data, error } = await supabase.functions.invoke('fetch-shopify-products', {
+          body: { limit: 12 }
+        });
         
-        if (data?.data?.products?.edges) {
-          setProducts(data.data.products.edges);
+        if (error) {
+          console.error("Edge function error:", error);
+          return;
+        }
+        
+        if (data?.products) {
+          setProducts(data.products);
         }
       } catch (err) {
         console.error("Error loading products:", err);
