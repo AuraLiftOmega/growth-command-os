@@ -9,23 +9,24 @@
  */
 
 export const DOMAINS = {
-  // Primary control plane domain - ALL admin/operator functions
+  // Primary storefront domain - ALL customer-facing commerce
   primary: {
     domain: 'omegaalpha.io',
     url: 'https://omegaalpha.io',
-    label: 'Omega Alpha Control Plane',
-    type: 'control' as const,
-    purpose: 'Payments Spine, Dashboards, Growth Engine, Ads, Analytics, Alerts',
+    label: 'Omega Alpha',
+    type: 'storefront' as const,
+    purpose: 'Primary storefront, Shopify products, Stripe checkout, Customer experience',
+    shopifyInternal: 'lovable-project-7fb70.myshopify.com', // Never expose publicly
   },
   
-  // Primary commerce/storefront domain - ALL customer-facing
+  // Legacy storefront - redirect to primary
   storefront: {
     domain: 'auraliftessentials.com',
     url: 'https://auraliftessentials.com',
     label: 'AuraLift Essentials',
-    type: 'storefront' as const,
-    purpose: 'Shopify storefront, Stripe checkout, Customer experience',
-    shopifyInternal: 'aura-lift-essentials.myshopify.com', // Never expose publicly
+    type: 'redirect' as const,
+    purpose: 'Legacy brand - 301 redirect to omegaalpha.io',
+    redirectTo: 'omegaalpha.io',
   },
   
   // Secondary domain - future product or redirect
