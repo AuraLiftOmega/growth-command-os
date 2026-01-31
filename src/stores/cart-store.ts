@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { ShopifyProduct, createShopifyClient, SHOPIFY_API_VERSION } from '@/lib/multi-tenant-shopify';
+import { ShopifyProduct } from '@/lib/multi-tenant-shopify';
 import { toast } from 'sonner';
+import { createStripeProductCheckout } from '@/lib/stripe-checkout';
 
 export interface CartItem {
   product: ShopifyProduct;
@@ -42,41 +43,14 @@ interface CartStore {
   getTotalPrice: () => number;
 }
 
-// Create checkout using the store credentials from the cart items
-async function createMultiTenantCheckout(items: CartItem[]): Promise<string> {
+// Create Stripe checkout session for cart items
+async function createStripeCheckout(items: CartItem[]): Promise<string> {
   if (items.length === 0) {
     throw new Error('Cart is empty');
   }
 
-  // Get store credentials from first item (all items should be from same store)
-  const { storeDomain, storefrontToken } = items[0];
-
-  // Create a pseudo store connection for the client
-  const storeConnection = {
-    id: 'cart-checkout',
-    user_id: '',
-    store_name: 'Checkout',
-    store_domain: storeDomain,
-    storefront_access_token: storefrontToken,
-    admin_access_token: null,
-    is_active: true,
-    is_primary: false,
-    last_synced_at: null,
-    products_count: 0,
-    orders_count: 0,
-    total_revenue: 0,
-    connected_at: '',
-    updated_at: '',
-  };
-
-  const client = createShopifyClient(storeConnection);
-  
-  const cartItems = items.map(item => ({
-    variantId: item.variantId,
-    quantity: item.quantity,
-  }));
-
-  return await client.createCheckout(cartItems);
+  const result = await createStripeProductCheckout(items);
+  return result.url;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -149,7 +123,7 @@ export const useCartStore = create<CartStore>()(
 
         setLoading(true);
         try {
-          const checkoutUrl = await createMultiTenantCheckout(items);
+          const checkoutUrl = await createStripeCheckout(items);
           setCheckoutUrl(checkoutUrl);
           return checkoutUrl;
         } catch (error) {

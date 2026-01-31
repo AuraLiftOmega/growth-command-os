@@ -27,6 +27,8 @@ import PaymentsSpine from "./pages/PaymentsSpine";
 import BillingAdmin from "./pages/BillingAdmin";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
+import CheckoutSuccess from "./pages/checkout/Success";
+import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 const queryClient = new QueryClient();
@@ -224,6 +226,10 @@ const AppRoutes = () => {
       {/* Billing Success/Cancel pages */}
       <Route path="/billing/success" element={<BillingSuccess />} />
       <Route path="/billing/cancel" element={<BillingCancel />} />
+      
+      {/* Checkout Success/Cancel pages (Stripe product checkout) */}
+      <Route path="/checkout/success" element={<CheckoutSuccess />} />
+      <Route path="/checkout/cancel" element={<CheckoutCancel />} />
       
       {/* Shopify Control Center (Admin) */}
       <Route 
