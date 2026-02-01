@@ -4247,6 +4247,81 @@ export type Database = {
           },
         ]
       }
+      security_headers_config: {
+        Row: {
+          content_type_nosniff: boolean | null
+          created_at: string | null
+          csp_enabled: boolean | null
+          frame_ancestors: string | null
+          id: string
+          referrer_policy: string | null
+          updated_at: string | null
+          user_id: string
+          xss_protection: boolean | null
+        }
+        Insert: {
+          content_type_nosniff?: boolean | null
+          created_at?: string | null
+          csp_enabled?: boolean | null
+          frame_ancestors?: string | null
+          id?: string
+          referrer_policy?: string | null
+          updated_at?: string | null
+          user_id: string
+          xss_protection?: boolean | null
+        }
+        Update: {
+          content_type_nosniff?: boolean | null
+          created_at?: string | null
+          csp_enabled?: boolean | null
+          frame_ancestors?: string | null
+          id?: string
+          referrer_policy?: string | null
+          updated_at?: string | null
+          user_id?: string
+          xss_protection?: boolean | null
+        }
+        Relationships: []
+      }
+      security_sessions: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string | null
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          is_suspicious: boolean | null
+          last_active_at: string | null
+          session_token_hash: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          last_active_at?: string | null
+          session_token_hash: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_suspicious?: boolean | null
+          last_active_at?: string | null
+          session_token_hash?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       self_heal_logs: {
         Row: {
           created_at: string | null
@@ -6394,6 +6469,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_view_rate_limit: { Args: { fingerprint: string }; Returns: boolean }
       decrypt_store_token: {
         Args: { encrypted_token: string; key_id: string }
         Returns: string
