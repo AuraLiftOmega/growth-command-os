@@ -5657,7 +5657,9 @@ export type Database = {
       user_store_connections: {
         Row: {
           admin_access_token: string | null
+          admin_token_encrypted: string | null
           connected_at: string
+          encryption_key_id: string | null
           id: string
           is_active: boolean
           is_primary: boolean
@@ -5667,13 +5669,16 @@ export type Database = {
           store_domain: string
           store_name: string
           storefront_access_token: string
+          storefront_token_encrypted: string | null
           total_revenue: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           admin_access_token?: string | null
+          admin_token_encrypted?: string | null
           connected_at?: string
+          encryption_key_id?: string | null
           id?: string
           is_active?: boolean
           is_primary?: boolean
@@ -5683,13 +5688,16 @@ export type Database = {
           store_domain: string
           store_name: string
           storefront_access_token: string
+          storefront_token_encrypted?: string | null
           total_revenue?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           admin_access_token?: string | null
+          admin_token_encrypted?: string | null
           connected_at?: string
+          encryption_key_id?: string | null
           id?: string
           is_active?: boolean
           is_primary?: boolean
@@ -5699,6 +5707,7 @@ export type Database = {
           store_domain?: string
           store_name?: string
           storefront_access_token?: string
+          storefront_token_encrypted?: string | null
           total_revenue?: number | null
           updated_at?: string
           user_id?: string
@@ -6385,6 +6394,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrypt_store_token: {
+        Args: { encrypted_token: string; key_id: string }
+        Returns: string
+      }
+      encrypt_store_token: {
+        Args: { key_id: string; token: string }
+        Returns: string
+      }
       get_default_workspace: {
         Args: { check_user_id: string }
         Returns: string
