@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -72,6 +73,9 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
+  // Lazy load Product page
+  const Product = React.lazy(() => import("./pages/Product"));
+
   return (
     <Routes>
       {/* Public homepage with products */}
@@ -155,6 +159,20 @@ const AppRoutes = () => {
       {/* Public routes for store and pricing */}
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
+      
+      {/* Product detail page - public */}
+      <Route 
+        path="/product/:handle" 
+        element={
+          <React.Suspense fallback={
+            <div className="min-h-screen bg-background flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+          }>
+            <Product />
+          </React.Suspense>
+        } 
+      />
       
       {/* OAuth callback routes */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
