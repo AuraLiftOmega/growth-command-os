@@ -17,8 +17,9 @@ export function StoreHeader() {
 
   const navLinks = [
     { href: "/store", label: "Shop All" },
-    { href: "/store?category=skincare", label: "Skincare" },
-    { href: "/store?category=beauty tools", label: "Beauty Tools" },
+    { href: "/store?category=Skincare", label: "Skincare" },
+    { href: "/store?category=Beauty Tools", label: "Beauty Tools" },
+    { href: "/store?category=Beauty Tech", label: "Beauty Tech" },
   ];
 
   return (
@@ -26,7 +27,7 @@ export function StoreHeader() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link to="/store" className="flex items-center space-x-2 flex-shrink-0">
+          <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
             <span className="text-2xl font-bold gradient-text">{STORE_CONFIG.name}</span>
           </Link>
 

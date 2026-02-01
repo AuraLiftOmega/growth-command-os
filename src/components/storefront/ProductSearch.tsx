@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, Loader2, Store } from "lucide-react";
+import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { storefrontApiRequest, PRODUCTS_QUERY, ShopifyProduct } from "@/lib/shopify-config";
-import { useActiveStore } from "@/hooks/useActiveStore";
+import { PLATFORM_STORE, PLATFORM_STOREFRONT_URL } from "@/lib/platform-store";
+import { PRODUCTS_QUERY, ShopifyProduct } from "@/lib/shopify-config";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductSearchProps {
@@ -13,7 +13,6 @@ interface ProductSearchProps {
 }
 
 export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps) {
-  const { activeStore, hasConnectedStores } = useActiveStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ShopifyProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,9 +21,9 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Debounced search
+  // Debounced search using platform store
   useEffect(() => {
-    if (query.length < 2 || !activeStore) {
+    if (query.length < 2) {
       setResults([]);
       return;
     }
@@ -32,12 +31,23 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const data = await storefrontApiRequest(
-          activeStore.storeDomain,
-          activeStore.storefrontToken,
-          PRODUCTS_QUERY,
-          { first: 6, query: query }
-        );
+        const response = await fetch(PLATFORM_STOREFRONT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Shopify-Storefront-Access-Token': PLATFORM_STORE.storefrontToken,
+          },
+          body: JSON.stringify({
+            query: PRODUCTS_QUERY,
+            variables: { first: 6, query: query }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const data = await response.json();
         setResults(data?.data?.products?.edges || []);
       } catch (error) {
         console.error("Search error:", error);
@@ -48,7 +58,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, activeStore]);
+  }, [query]);
 
   // Close on click outside
   useEffect(() => {
@@ -61,14 +71,14 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleProductClick = (handle: string) => {
+  const handleProductClick = useCallback((handle: string) => {
     navigate(`/product/${handle}`);
     setQuery("");
     setIsOpen(false);
     onClose?.();
-  };
+  }, [navigate, onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       navigate(`/store?search=${encodeURIComponent(query)}`);
@@ -76,18 +86,13 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
       setIsOpen(false);
       onClose?.();
     }
-  };
+  }, [query, navigate, onClose]);
 
-  if (!hasConnectedStores) {
-    return (
-      <div className={`relative ${isMobile ? 'w-full' : ''}`}>
-        <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
-          <Store className="h-4 w-4" />
-          <span>Connect store to search</span>
-        </div>
-      </div>
-    );
-  }
+  const handleClear = useCallback(() => {
+    setQuery("");
+    setResults([]);
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <div ref={containerRef} className={`relative ${isMobile ? 'w-full' : ''}`}>
@@ -111,11 +116,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
             variant="ghost"
             size="icon"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
-            onClick={() => {
-              setQuery("");
-              setResults([]);
-              inputRef.current?.focus();
-            }}
+            onClick={handleClear}
           >
             <X className="h-3 w-3" />
           </Button>
@@ -161,7 +162,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
                   </button>
                 ))}
                 <button
-                  onClick={handleSubmit}
+                  onClick={handleSubmit as () => void}
                   className="w-full p-3 text-center text-sm text-primary hover:bg-secondary/50 transition-colors border-t border-border"
                 >
                   View all results for "{query}"

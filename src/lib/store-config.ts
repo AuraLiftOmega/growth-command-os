@@ -7,22 +7,22 @@
  * Provides default branding for unconnected users (the SaaS platform itself)
  */
 
-// Platform Branding (default when no store connected)
+// Platform Branding (store connected: Aura Luxe)
 export const PLATFORM_CONFIG = {
-  name: "AURAOMEGA",
-  shortName: "AURAOMEGA",
-  domain: "auradominion.io",
-  fullUrl: "https://auradominion.io",
-  tagline: "AI-Powered Commerce Command Center",
-  email: "hello@auradominion.io",
+  name: "Aura Luxe",
+  shortName: "Aura",
+  domain: "growth-command-os.lovable.app",
+  fullUrl: "https://growth-command-os.lovable.app",
+  tagline: "Premium Beauty & Skincare",
+  email: "hello@auraluxe.com",
   phone: "",
-  description: "AI-powered video ad generation, social posting, and e-commerce automation for Shopify stores.",
-  instagram: "@auraomega",
-  tiktok: "@auraomega",
-  pinterest: "auraomega",
+  description: "Discover our curated collection of premium skincare and beauty essentials.",
+  instagram: "@auraluxebeauty",
+  tiktok: "@auraluxebeauty",
+  pinterest: "auraluxebeauty",
   
   // Helper functions for platform (not user store)
-  getShareUrl: (path: string = "") => `https://auradominion.io${path}`,
+  getShareUrl: (path: string = "") => `https://growth-command-os.lovable.app${path}`,
   getProductUrl: (handle: string) => `/product/${handle}`,
   getStoreUrl: () => "/store",
 } as const;
