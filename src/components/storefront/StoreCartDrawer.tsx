@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -18,9 +19,11 @@ export function StoreCartDrawer({ open, onOpenChange }: StoreCartDrawerProps) {
   const { 
     items, 
     isLoading, 
+    isSyncing,
     updateQuantity, 
     removeItem, 
-    createCheckout,
+    getCheckoutUrl,
+    syncCart,
     getTotalItems,
     getTotalPrice
   } = useCartStore();
@@ -28,8 +31,11 @@ export function StoreCartDrawer({ open, onOpenChange }: StoreCartDrawerProps) {
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
 
-  const handleCheckout = async () => {
-    const checkoutUrl = await createCheckout();
+  // Sync cart when drawer opens
+  React.useEffect(() => { if (open) syncCart(); }, [open, syncCart]);
+
+  const handleCheckout = () => {
+    const checkoutUrl = getCheckoutUrl();
     if (checkoutUrl) {
       window.open(checkoutUrl, '_blank');
       onOpenChange(false);

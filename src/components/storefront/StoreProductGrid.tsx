@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { StoreProductCard } from "./StoreProductCard";
 import { ProductQuickView } from "./ProductQuickView";
-import { ShopifyProduct } from "@/lib/shopify-config";
-import { supabase } from "@/integrations/supabase/client";
+import { ShopifyProduct, fetchProducts } from "@/lib/storefront-api";
 
 interface StoreProductGridProps {
   category?: string;
@@ -29,34 +26,13 @@ export function StoreProductGrid({
       setError(null);
       
       try {
-        // Build query - filter by product_type if category specified
         let query: string | undefined = undefined;
         if (category && category.toLowerCase() !== 'all') {
           query = `product_type:${category}`;
         }
         
-        console.log('Loading products via edge function with query:', query);
-        
-        // Use edge function to fetch products via Admin API
-        const { data, error: fnError } = await supabase.functions.invoke('fetch-shopify-products', {
-          body: { limit, query }
-        });
-        
-        if (fnError) {
-          console.error('Edge function error:', fnError);
-          setError('Failed to load products');
-          return;
-        }
-        
-        if (data?.products) {
-          console.log('Products loaded:', data.products.length);
-          setProducts(data.products);
-        } else if (data?.error) {
-          console.warn('Shopify API returned error:', data.error);
-          setProducts([]);
-        } else {
-          setProducts([]);
-        }
+        const result = await fetchProducts({ first: limit, query });
+        setProducts(result);
       } catch (err) {
         console.error('Error loading products:', err);
         setError('Failed to load products. Please try again.');
@@ -75,8 +51,6 @@ export function StoreProductGrid({
       </div>
     );
   }
-
-  // Removed "No Store Connected" check - we always have fallback credentials
 
   if (error) {
     return (
@@ -107,7 +81,6 @@ export function StoreProductGrid({
         ))}
       </div>
 
-      {/* Quick View Modal */}
       {quickViewProduct && (
         <ProductQuickView
           product={quickViewProduct}

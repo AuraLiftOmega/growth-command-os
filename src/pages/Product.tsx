@@ -8,7 +8,7 @@ import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { useCartStore } from "@/stores/cart-store";
 import { PLATFORM_STORE, PLATFORM_STOREFRONT_URL } from "@/lib/platform-store";
-import { PRODUCT_BY_HANDLE_QUERY } from "@/lib/shopify-config";
+import { PRODUCT_BY_HANDLE_QUERY } from "@/lib/storefront-api";
 import { toast } from "sonner";
 
 interface ProductNode {
@@ -131,20 +131,18 @@ export default function Product() {
   const selectedVariant = product.variants.edges[selectedVariantIndex]?.node;
   const images = product.images.edges;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedVariant) return;
 
     setIsAdding(true);
 
-    addItem({
+    await addItem({
       product: { node: product },
       variantId: selectedVariant.id,
       variantTitle: selectedVariant.title,
       price: selectedVariant.price,
       quantity,
       selectedOptions: selectedVariant.selectedOptions,
-      storeDomain: PLATFORM_STORE.domain,
-      storefrontToken: PLATFORM_STORE.storefrontToken,
     });
 
     toast.success("Added to cart", {

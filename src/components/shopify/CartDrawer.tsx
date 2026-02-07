@@ -15,11 +15,13 @@ export const CartDrawer = () => {
   const { 
     items, 
     isLoading,
+    isSyncing,
     isOpen,
     setOpen,
     updateQuantity, 
     removeItem, 
-    createCheckout,
+    getCheckoutUrl,
+    syncCart,
     getTotalItems,
     getTotalPrice
   } = useCartStore();
@@ -27,15 +29,11 @@ export const CartDrawer = () => {
   const totalItems = getTotalItems();
   const totalPrice = getTotalPrice();
 
-  const handleCheckout = async () => {
-    try {
-      const checkoutUrl = await createCheckout();
-      if (checkoutUrl) {
-        window.open(checkoutUrl, '_blank');
-        setOpen(false);
-      }
-    } catch (error) {
-      console.error('Checkout failed:', error);
+  const handleCheckout = () => {
+    const checkoutUrl = getCheckoutUrl();
+    if (checkoutUrl) {
+      window.open(checkoutUrl, '_blank');
+      setOpen(false);
     }
   };
 

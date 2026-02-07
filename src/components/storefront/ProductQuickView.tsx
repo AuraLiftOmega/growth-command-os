@@ -33,20 +33,18 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
     ? shopifyImages 
     : [{ node: { url: fallbackImageUrl, altText: node.title } }];
 
-  const handleAddToCart = () => {
-    if (!selectedVariant || !activeStore) return;
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
 
     setIsAdding(true);
 
-    addItem({
+    await addItem({
       product,
       variantId: selectedVariant.id,
       variantTitle: selectedVariant.title,
       price: selectedVariant.price,
       quantity,
       selectedOptions: selectedVariant.selectedOptions,
-      storeDomain: activeStore.storeDomain,
-      storefrontToken: activeStore.storefrontToken,
     });
 
     toast.success("Added to cart", {

@@ -20,7 +20,7 @@ export const ProductCard = ({ product, index = 0, store }: ProductCardProps) => 
   const firstImage = node.images.edges[0]?.node;
   const price = node.priceRange.minVariantPrice;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!firstVariant) {
@@ -33,15 +33,13 @@ export const ProductCard = ({ product, index = 0, store }: ProductCardProps) => 
       return;
     }
 
-    addItem({
+    await addItem({
       product,
       variantId: firstVariant.id,
       variantTitle: firstVariant.title,
       price: firstVariant.price,
       quantity: 1,
       selectedOptions: firstVariant.selectedOptions || [],
-      storeDomain: store.store_domain,
-      storefrontToken: store.storefront_access_token,
     });
 
     toast.success("Added to cart", {
