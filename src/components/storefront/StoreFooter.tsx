@@ -1,18 +1,9 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Globe, Store } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { PLATFORM_CONFIG } from "@/lib/store-config";
-import { DominionFooterLogo } from "@/components/DominionLogo";
-import { useActiveStore } from "@/hooks/useActiveStore";
 
 export function StoreFooter() {
-  const { activeStore } = useActiveStore();
-  
-  // Use connected store info or platform defaults
-  const storeName = activeStore?.storeName || PLATFORM_CONFIG.name;
-  const storeDomain = activeStore?.storeDomain || PLATFORM_CONFIG.domain;
-  const storeUrl = activeStore?.storeDomain 
-    ? `https://${activeStore.storeDomain}` 
-    : PLATFORM_CONFIG.fullUrl;
+  const storeName = PLATFORM_CONFIG.name;
   const storeDescription = PLATFORM_CONFIG.description;
   const storeEmail = PLATFORM_CONFIG.email;
 
@@ -22,20 +13,12 @@ export function StoreFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <Link to="/store" className="inline-block">
+            <Link to="/" className="inline-block">
               <span className="text-2xl font-bold gradient-text">{storeName}</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               {storeDescription}
             </p>
-            {activeStore && (
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <Store className="w-4 h-4" />
-                <span className="text-muted-foreground">
-                  Connected to Shopify
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Shop Links */}
@@ -45,11 +28,17 @@ export function StoreFooter() {
               <Link to="/store" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 All Products
               </Link>
-              <Link to="/store?category=skincare" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/store?category=Skincare" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Skincare
               </Link>
-              <Link to="/store?category=beauty tools" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/store?category=Beauty Tools" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Beauty Tools
+              </Link>
+              <Link to="/store?category=Beauty Tech" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Beauty Tech
+              </Link>
+              <Link to="/store?category=Bundle" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Bundles & Sets
               </Link>
             </nav>
           </div>
@@ -89,9 +78,8 @@ export function StoreFooter() {
           </div>
         </div>
 
-        <div className="border-t border-border/40 mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <div className="border-t border-border/40 mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
-          <DominionFooterLogo />
         </div>
       </div>
     </footer>

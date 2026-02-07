@@ -6,11 +6,16 @@ import { Button } from "@/components/ui/button";
 import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { TrustBadges } from "@/components/storefront/TrustBadges";
+import { CategorySection } from "@/components/storefront/CategorySection";
+import { FeaturedBundles } from "@/components/storefront/FeaturedBundles";
+import { LifestyleBanner } from "@/components/storefront/LifestyleBanner";
+import { SocialProof } from "@/components/storefront/SocialProof";
+import { UpsellStrip } from "@/components/storefront/UpsellStrip";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { ShopifyProduct, fetchProducts } from "@/lib/storefront-api";
-import heroBanner from "@/assets/skincare-hero.jpg";
+import heroImg from "@/assets/hero-luxury.jpg";
 
 export default function Home() {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
@@ -21,7 +26,7 @@ export default function Home() {
     async function loadProducts() {
       setIsLoading(true);
       try {
-        const result = await fetchProducts({ first: 12 });
+        const result = await fetchProducts({ first: 8 });
         setProducts(result);
       } catch (err) {
         console.error("Error loading products:", err);
@@ -38,15 +43,19 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <StoreHeader />
 
+      {/* Upsell Strip */}
+      <UpsellStrip />
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 md:py-32">
+      <section className="relative overflow-hidden py-24 md:py-36">
         <div className="absolute inset-0 -z-10">
           <img 
-            src={heroBanner} 
-            alt="Luxury skincare products"
-            className="w-full h-full object-cover opacity-40"
+            src={heroImg} 
+            alt="Luxury skincare collection"
+            className="w-full h-full object-cover opacity-30"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-background/80" />
         </div>
 
         <div className="container mx-auto px-4">
@@ -54,47 +63,48 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8 backdrop-blur-sm">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Premium Beauty Collection</span>
+                <span className="text-sm font-medium text-primary">New: Anti-Aging Collection Now Live</span>
               </div>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[0.95]"
             >
               Radiance
-              <span className="gradient-text"> Redefined</span>
+              <br />
+              <span className="gradient-text">Redefined</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
             >
-              Discover our curated collection of premium skincare and beauty essentials. 
-              Science-backed formulas for visible results.
+              Science-backed skincare meets luxury beauty tech.
+              Clinical-grade formulas. Visible results in 14 days.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <Button asChild size="lg" className="btn-power">
+              <Button asChild size="lg" className="btn-power text-base px-8 py-6">
                 <a href="#featured-products">
-                  Shop Collection
+                  Shop Bestsellers
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="text-base px-8 py-6">
                 <Link to="/store">
                   <ShoppingBag className="w-5 h-5 mr-2" />
                   View All Products
@@ -108,7 +118,10 @@ export default function Home() {
       {/* Trust Badges */}
       <TrustBadges />
 
-      {/* Featured Products Section */}
+      {/* Categories */}
+      <CategorySection />
+
+      {/* Featured Products */}
       <section id="featured-products" className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -116,13 +129,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
             >
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Featured Products
+                Bestsellers
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Our best-selling skincare and beauty essentials, handpicked for maximum results
+                Our most-loved products — trusted by thousands for real results
               </p>
             </motion.div>
           </div>
@@ -134,13 +146,11 @@ export default function Home() {
           ) : products.length === 0 ? (
             <div className="text-center py-20">
               <StoreIcon className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
-              <p className="text-muted-foreground mb-4">
-                Products will appear here once synced from Shopify
-              </p>
+              <h3 className="text-lg font-semibold mb-2">Products Loading...</h3>
+              <p className="text-muted-foreground">Check back in a moment</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.map((product, index) => (
                 <StoreProductCard
                   key={product.node.id}
@@ -164,6 +174,15 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Lifestyle Banner */}
+      <LifestyleBanner />
+
+      {/* Bundles & Upsells */}
+      <FeaturedBundles />
+
+      {/* Social Proof */}
+      <SocialProof />
 
       {/* Quick View Modal */}
       {quickViewProduct && (
