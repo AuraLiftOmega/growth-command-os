@@ -1,21 +1,20 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Globe } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import heroBanner from "@/assets/skincare-hero.jpg";
+import heroImg from "@/assets/hero-luxury.jpg";
 import { STORE_CONFIG } from "@/lib/store-config";
 
 export function StoreHero() {
   return (
     <section className="relative overflow-hidden py-20 md:py-32">
-      {/* Background Image */}
       <div className="absolute inset-0 -z-10">
         <img 
-          src={heroBanner} 
-          alt="Luxury skincare products"
-          className="w-full h-full object-cover opacity-40"
+          src={heroImg} 
+          alt="Luxury skincare collection"
+          className="w-full h-full object-cover opacity-30"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
       </div>
 
       <div className="container mx-auto px-4">
@@ -45,21 +44,10 @@ export function StoreHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-muted-foreground mb-4 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
           >
             {STORE_CONFIG.description}
           </motion.p>
-
-          {/* Domain Display */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground mb-8"
-          >
-            <Globe className="w-4 h-4" />
-            <span className="font-medium">{STORE_CONFIG.domain}</span>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -74,7 +62,7 @@ export function StoreHero() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/store?category=skincare">
+              <Link to="/store?category=Skincare">
                 Explore Serums
               </Link>
             </Button>

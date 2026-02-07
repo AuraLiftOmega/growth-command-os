@@ -5,6 +5,8 @@ import { StoreHero } from "@/components/storefront/StoreHero";
 import { CategorySection } from "@/components/storefront/CategorySection";
 import { StoreProductGrid } from "@/components/storefront/StoreProductGrid";
 import { TrustBadges } from "@/components/storefront/TrustBadges";
+import { UpsellStrip } from "@/components/storefront/UpsellStrip";
+import { SocialProof } from "@/components/storefront/SocialProof";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { STORE_CONFIG } from "@/lib/store-config";
 
@@ -12,7 +14,6 @@ export default function Store() {
   const [searchParams] = useSearchParams();
   const category = searchParams.get("category") || undefined;
 
-  // Set page title for SEO
   useEffect(() => {
     document.title = category 
       ? `${category} Collection | ${STORE_CONFIG.name}`
@@ -22,17 +23,13 @@ export default function Store() {
   return (
     <div className="min-h-screen bg-background">
       <StoreHeader />
+      <UpsellStrip />
       
-      {/* Show hero only on main store page */}
       {!category && <StoreHero />}
-      
-      {/* Categories */}
       {!category && <CategorySection />}
 
-      {/* Trust Badges */}
       <TrustBadges />
 
-      {/* Products Section */}
       <section id="products" className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -47,9 +44,11 @@ export default function Store() {
             </p>
           </div>
 
-          <StoreProductGrid category={category} limit={20} />
+          <StoreProductGrid category={category} limit={50} />
         </div>
       </section>
+
+      {!category && <SocialProof />}
 
       <StoreFooter />
     </div>

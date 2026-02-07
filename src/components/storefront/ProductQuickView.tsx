@@ -4,8 +4,7 @@ import { ShoppingCart, Plus, Minus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, getProductImage } from "@/lib/shopify-config";
-import { useActiveStore } from "@/hooks/useActiveStore";
+import { ShopifyProduct } from "@/lib/storefront-api";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -17,7 +16,6 @@ interface ProductQuickViewProps {
 
 export function ProductQuickView({ product, open, onClose }: ProductQuickViewProps) {
   const node = product.node;
-  const { activeStore } = useActiveStore();
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -25,13 +23,7 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
 
   const addItem = useCartStore((s) => s.addItem);
   const selectedVariant = node.variants.edges[selectedVariantIndex]?.node;
-  const shopifyImages = node.images.edges;
-  
-  // Get product image with fallback
-  const fallbackImageUrl = getProductImage(node.handle, shopifyImages[0]?.node?.url);
-  const images = shopifyImages.length > 0 
-    ? shopifyImages 
-    : [{ node: { url: fallbackImageUrl, altText: node.title } }];
+  const images = node.images.edges;
 
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
@@ -71,13 +63,12 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                src={images[selectedImage]?.node.url}
+                src={images[selectedImage]?.node.url || ""}
                 alt={images[selectedImage]?.node.altText || node.title}
                 className="w-full aspect-square object-cover"
               />
             </AnimatePresence>
 
-            {/* Thumbnail strip */}
             {images.length > 1 && (
               <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
                 {images.slice(0, 5).map((img, index) => (
@@ -88,11 +79,7 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
                       selectedImage === index ? "border-primary" : "border-transparent"
                     }`}
                   >
-                    <img
-                      src={img.node.url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={img.node.url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -103,22 +90,18 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
           <div className="p-6 space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2">{node.title}</h2>
-              <p className="text-muted-foreground line-clamp-3">
-                {node.description}
-              </p>
+              <p className="text-muted-foreground line-clamp-3">{node.description}</p>
             </div>
 
-            {/* Price */}
             <div className="text-3xl font-bold text-primary">
               {selectedVariant?.price.currencyCode} {parseFloat(selectedVariant?.price.amount || "0").toFixed(2)}
             </div>
 
-            {/* Variants */}
-            {node.options.map((option, optionIndex) => (
+            {node.options.map((option) => (
               <div key={option.name} className="space-y-2">
                 <label className="text-sm font-medium">{option.name}</label>
                 <div className="flex flex-wrap gap-2">
-                  {option.values.map((value, valueIndex) => {
+                  {option.values.map((value) => {
                     const isSelected = selectedVariant?.selectedOptions.some(
                       (opt) => opt.name === option.name && opt.value === value
                     );
@@ -128,15 +111,12 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
                         variant={isSelected ? "default" : "outline"}
                         size="sm"
                         onClick={() => {
-                          // Find variant matching this option
                           const variantIndex = node.variants.edges.findIndex((v) =>
                             v.node.selectedOptions.some(
                               (opt) => opt.name === option.name && opt.value === value
                             )
                           );
-                          if (variantIndex >= 0) {
-                            setSelectedVariantIndex(variantIndex);
-                          }
+                          if (variantIndex >= 0) setSelectedVariantIndex(variantIndex);
                         }}
                         className={isSelected ? "btn-power" : ""}
                       >
@@ -148,48 +128,32 @@ export function ProductQuickView({ product, open, onClose }: ProductQuickViewPro
               </div>
             ))}
 
-            {/* Quantity */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Quantity</label>
               <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
+                <Button variant="outline" size="icon" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
                   <Minus className="h-4 w-4" />
                 </Button>
                 <span className="w-12 text-center font-medium">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
+                <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col gap-3 pt-4">
               <Button
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={isAdding || !selectedVariant?.availableForSale || !activeStore}
+                disabled={isAdding || !selectedVariant?.availableForSale}
                 className={isAdding ? "bg-success hover:bg-success" : "btn-power"}
               >
                 {isAdding ? (
-                  <>
-                    <Check className="w-5 h-5 mr-2" />
-                    Added!
-                  </>
+                  <><Check className="w-5 h-5 mr-2" />Added!</>
                 ) : !selectedVariant?.availableForSale ? (
                   "Out of Stock"
                 ) : (
-                  <>
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart
-                  </>
+                  <><ShoppingCart className="w-5 h-5 mr-2" />Add to Cart</>
                 )}
               </Button>
               <Button asChild variant="outline" size="lg">
