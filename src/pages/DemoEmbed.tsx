@@ -287,7 +287,7 @@ export default function DemoEmbed() {
   // Get variant-specific styling
   const getVariantStyles = () => {
     switch (demo?.variant) {
-      case 'intimidation':
+      case 'aries':
         return { 
           accent: 'hsl(0 84% 60%)', 
           bg: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a0a 100%)',

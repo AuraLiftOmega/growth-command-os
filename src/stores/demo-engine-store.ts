@@ -7,7 +7,7 @@ import { persist } from 'zustand/middleware';
  * Manages demo video generation, variants, and analytics
  */
 
-export type DemoVariant = 'standard' | 'intimidation' | 'enterprise' | 'silent';
+export type DemoVariant = 'standard' | 'aries' | 'enterprise' | 'silent';
 export type DemoLength = 'short' | 'long';
 export type SalesStage = 'cold' | 'warm' | 'close';
 export type DealSize = 'smb' | 'mid_market' | 'enterprise';

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface IntimidationState {
+interface AriesState {
   isActive: boolean;
   activatedAt: Date | null;
   demoPhase: 'idle' | 'authority' | 'replacement' | 'intelligence' | 'scale' | 'close';
@@ -10,24 +10,24 @@ interface IntimidationState {
   isHighTicketActive: boolean;
   highTicketActivatedAt: Date | null;
   closePhase: 'idle' | 'collapse' | 'cost' | 'certainty' | 'activation';
-  opportunityCostAccumulated: number; // Dollars "lost" since evaluation began
+  opportunityCostAccumulated: number;
   
   // Actions
   activate: () => void;
   deactivate: () => void;
   toggle: () => void;
-  setDemoPhase: (phase: IntimidationState['demoPhase']) => void;
-  setResidualCue: (cue: IntimidationState['residualCue']) => void;
+  setDemoPhase: (phase: AriesState['demoPhase']) => void;
+  setResidualCue: (cue: AriesState['residualCue']) => void;
   
   // High-Ticket Actions
   activateHighTicket: () => void;
   deactivateHighTicket: () => void;
   toggleHighTicket: () => void;
-  setClosePhase: (phase: IntimidationState['closePhase']) => void;
+  setClosePhase: (phase: AriesState['closePhase']) => void;
   incrementOpportunityCost: (amount: number) => void;
 }
 
-export const useIntimidationStore = create<IntimidationState>((set, get) => ({
+export const useAriesStore = create<AriesState>((set, get) => ({
   isActive: false,
   activatedAt: null,
   demoPhase: 'idle',
@@ -47,7 +47,7 @@ export const useIntimidationStore = create<IntimidationState>((set, get) => ({
   }),
   
   deactivate: () => {
-    const cues: IntimidationState['residualCue'][] = ['pending_automation', 'paused_execution', 'muted_delta'];
+    const cues: AriesState['residualCue'][] = ['pending_automation', 'paused_execution', 'muted_delta'];
     const randomCue = cues[Math.floor(Math.random() * cues.length)];
     set({ 
       isActive: false, 
@@ -79,7 +79,6 @@ export const useIntimidationStore = create<IntimidationState>((set, get) => ({
   deactivateHighTicket: () => set({
     isHighTicketActive: false,
     closePhase: 'idle',
-    // Keep opportunity cost visible as psychological residue
   }),
   
   toggleHighTicket: () => {
@@ -97,8 +96,8 @@ export const useIntimidationStore = create<IntimidationState>((set, get) => ({
   })),
 }));
 
-// Language transformation utilities for Intimidation Mode
-export const intimidationLanguage = {
+// Language transformation utilities for Aries Mode
+export const ariesLanguage = {
   transform: (text: string): string => {
     const replacements: [RegExp, string][] = [
       [/you can choose to/gi, 'the system executes'],
@@ -143,7 +142,6 @@ export const intimidationLanguage = {
 
 // HIGH-TICKET CLOSE language and objection neutralization
 export const highTicketLanguage = {
-  // Objection pre-neutralization
   objectionNeutralizers: [
     { 
       objection: "We need to think about it",
@@ -172,7 +170,6 @@ export const highTicketLanguage = {
     },
   ],
   
-  // Authority transfer phrases
   authorityTransfer: [
     "Activation grants control of an already-working system",
     "This is not a purchase. This is access.",
@@ -180,7 +177,6 @@ export const highTicketLanguage = {
     "Execution begins immediately upon authorization",
   ],
   
-  // Final close phrases
   closePhrases: [
     "Ready for activation",
     "First autonomous action: pending your authorization",

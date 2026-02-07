@@ -91,7 +91,7 @@ interface ABTestingPanelProps {
 const DEMO_AB_TESTS: ABTest[] = [
   {
     id: 'test-1',
-    name: 'Enterprise vs Intimidation Variant',
+    name: 'Enterprise vs Aries Variant',
     status: 'running',
     industry: 'ecommerce',
     startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -116,9 +116,9 @@ const DEMO_AB_TESTS: ABTest[] = [
       },
       {
         id: 'var-1b',
-        name: 'Intimidation (Challenger)',
+        name: 'Aries (Challenger)',
         type: 'variant',
-        variant: 'intimidation',
+        variant: 'aries',
         views: 823,
         completions: 741,
         conversions: 127,
@@ -274,7 +274,7 @@ export const ABTestingPanel = ({
           id: `var-${Date.now()}-b`,
           name: 'Challenger',
           type: 'variant',
-          variant: 'intimidation',
+          variant: 'aries',
           views: 0,
           completions: 0,
           conversions: 0,

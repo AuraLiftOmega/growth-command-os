@@ -62,14 +62,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const variantIcons: Record<DemoVariant, any> = {
   standard: Video,
-  intimidation: Crown,
+  aries: Crown,
   enterprise: Building2,
   silent: VolumeX,
 };
 
 const variantColors: Record<DemoVariant, string> = {
   standard: 'text-primary',
-  intimidation: 'text-warning',
+  aries: 'text-warning',
   enterprise: 'text-accent',
   silent: 'text-muted-foreground',
 };

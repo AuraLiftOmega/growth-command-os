@@ -1,5 +1,5 @@
-export { IntimidationToggle, DemoPhaseController } from './IntimidationToggle';
-export { IntimidationOverlay, PreemptiveProofPanel, ResidualCue } from './IntimidationOverlay';
+export { AriesToggle, DemoPhaseController } from './AriesToggle';
+export { AriesOverlay, PreemptiveProofPanel, ResidualCue } from './AriesOverlay';
 export { DemoView } from './DemoView';
 export { 
   HighTicketToggle, 

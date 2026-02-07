@@ -99,11 +99,11 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
   {
     id: 'notif-1',
     testId: 'test-1',
-    testName: 'Enterprise vs Intimidation Variant',
+    testName: 'Enterprise vs Aries Variant',
     type: 'significance_reached',
     title: '🎯 Statistical Significance Reached!',
-    message: 'Your A/B test has reached 94.2% confidence. The Intimidation variant is outperforming by 42.7%.',
-    winnerName: 'Intimidation (Challenger)',
+    message: 'Your A/B test has reached 94.2% confidence. The Aries variant is outperforming by 42.7%.',
+    winnerName: 'Aries (Challenger)',
     improvement: 42.7,
     confidence: 94.2,
     totalViews: 1670,
@@ -135,7 +135,7 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
   {
     id: 'notif-3',
     testId: 'test-1',
-    testName: 'Enterprise vs Intimidation Variant',
+    testName: 'Enterprise vs Aries Variant',
     type: 'sample_milestone',
     title: '📊 Sample Milestone Reached',
     message: 'Your test has reached 1,000 total views. Statistical reliability is improving.',
@@ -151,7 +151,7 @@ const DEMO_NOTIFICATIONS: ABTestNotification[] = [
 const DEMO_TESTS = [
   {
     id: 'test-1',
-    name: 'Enterprise vs Intimidation Variant',
+    name: 'Enterprise vs Aries Variant',
     status: 'running' as const,
     confidence: 94.2,
     improvement: 42.7,
@@ -531,7 +531,7 @@ export const ABTestNotifications = ({ onViewTest }: ABTestNotificationsProps) =>
         const newNotif: ABTestNotification = {
           id: 'notif-realtime',
           testId: 'test-1',
-          testName: 'Enterprise vs Intimidation Variant',
+          testName: 'Enterprise vs Aries Variant',
           type: 'significance_reached',
           title: '📈 Confidence Increasing',
           message: 'Test confidence has increased to 94.5%. Getting closer to the 95% threshold!',

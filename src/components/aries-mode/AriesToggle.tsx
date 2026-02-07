@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Zap } from 'lucide-react';
-import { useIntimidationStore } from '@/stores/intimidation-store';
+import { useAriesStore } from '@/stores/aries-store';
 import { cn } from '@/lib/utils';
 
 /**
@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
  * This component is invisible to observers.
  * Shows only to the founder in a subtle, deniable position.
  */
-export const IntimidationToggle = () => {
-  const { isActive, toggle, demoPhase } = useIntimidationStore();
+export const AriesToggle = () => {
+  const { isActive, toggle, demoPhase } = useAriesStore();
 
   return (
     <motion.button
@@ -23,7 +23,7 @@ export const IntimidationToggle = () => {
       )}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      title={isActive ? "Deactivate Intimidation Mode" : "Activate Intimidation Mode"}
+      title={isActive ? "Deactivate Aries Mode" : "Activate Aries Mode"}
     >
       <AnimatePresence mode="wait">
         {isActive ? (
@@ -59,7 +59,7 @@ export const IntimidationToggle = () => {
  * Allows founder to advance through demo phases
  */
 export const DemoPhaseController = () => {
-  const { isActive, demoPhase, setDemoPhase } = useIntimidationStore();
+  const { isActive, demoPhase, setDemoPhase } = useAriesStore();
 
   if (!isActive) return null;
 

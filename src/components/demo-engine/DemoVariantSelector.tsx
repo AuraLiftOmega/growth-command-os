@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  * DEMO VARIANT SELECTOR
  * 
  * Variants:
- * A - Founder Intimidation Demo Mode
+ * A - Founder Aries Demo Mode
  * B - $100K+ Enterprise Demo Version
  * C - Silent Closing Demo (No Narration)
  */
@@ -54,8 +54,8 @@ const VARIANTS: VariantConfig[] = [
     tone: 'Professional & Confident',
   },
   {
-    id: 'intimidation',
-    name: 'Founder Intimidation',
+    id: 'aries',
+    name: 'Founder Aries',
     subtitle: 'Maximum authority & inevitability',
     icon: Crown,
     color: 'text-warning',
@@ -210,7 +210,7 @@ export const DemoVariantSelector = () => {
       </div>
 
       {/* Variant-Specific Instructions */}
-      {currentVariant === 'intimidation' && (
+      {currentVariant === 'aries' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -219,7 +219,7 @@ export const DemoVariantSelector = () => {
           <div className="flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-warning mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-warning mb-1">Intimidation Mode Active</p>
+              <p className="text-sm font-medium text-warning mb-1">Aries Mode Active</p>
               <p className="text-sm text-muted-foreground">
                 This mode is designed for founder-level calls and strategic deals. 
                 The demo will minimize selling language and maximize system authority. 
