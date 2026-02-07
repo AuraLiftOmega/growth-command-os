@@ -9,8 +9,7 @@ import { TrustBadges } from "@/components/storefront/TrustBadges";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
-import { ShopifyProduct } from "@/lib/shopify-config";
-import { supabase } from "@/integrations/supabase/client";
+import { ShopifyProduct, fetchProducts } from "@/lib/storefront-api";
 import heroBanner from "@/assets/skincare-hero.jpg";
 
 export default function Home() {
@@ -18,23 +17,12 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<ShopifyProduct | null>(null);
 
-  // Fetch products via edge function (Admin API)
   useEffect(() => {
     async function loadProducts() {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('fetch-shopify-products', {
-          body: { limit: 12 }
-        });
-        
-        if (error) {
-          console.error("Edge function error:", error);
-          return;
-        }
-        
-        if (data?.products) {
-          setProducts(data.products);
-        }
+        const result = await fetchProducts({ first: 12 });
+        setProducts(result);
       } catch (err) {
         console.error("Error loading products:", err);
       } finally {

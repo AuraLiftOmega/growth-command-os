@@ -5,14 +5,9 @@ import { ShoppingCart, Eye, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
-import { ShopifyProduct, getProductImage } from "@/lib/shopify-config";
-import { useActiveStore } from "@/hooks/useActiveStore";
+import { ShopifyProduct } from "@/lib/storefront-api";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
-
-// Fallback store credentials for public pages
-const FALLBACK_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
-const FALLBACK_STOREFRONT_TOKEN = "d9830af538b34d418e1167726cf1f67a";
 
 interface StoreProductCardProps {
   product: ShopifyProduct;
@@ -22,20 +17,12 @@ interface StoreProductCardProps {
 
 export function StoreProductCard({ product, index = 0, onQuickView }: StoreProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const { activeStore } = useActiveStore();
   const addItem = useCartStore((s) => s.addItem);
-
-  // Use active store or fallback credentials
-  const storeDomain = activeStore?.storeDomain || FALLBACK_STORE_DOMAIN;
-  const storefrontToken = activeStore?.storefrontToken || FALLBACK_STOREFRONT_TOKEN;
 
   const node = product.node;
   const firstVariant = node.variants.edges[0]?.node;
-  const shopifyImageUrl = node.images.edges[0]?.node?.url;
+  const productImageUrl = node.images.edges[0]?.node?.url || '';
   const price = node.priceRange.minVariantPrice;
-  
-  // Get image with local fallback for products
-  const productImageUrl = getProductImage(node.handle, shopifyImageUrl);
 
   const handleAddToCart = async () => {
     if (!firstVariant) {
@@ -45,15 +32,13 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
 
     setIsAdding(true);
     
-    addItem({
+    await addItem({
       product,
       variantId: firstVariant.id,
       variantTitle: firstVariant.title,
       price: firstVariant.price,
       quantity: 1,
       selectedOptions: firstVariant.selectedOptions,
-      storeDomain,
-      storefrontToken,
     });
 
     toast.success("Added to cart", {

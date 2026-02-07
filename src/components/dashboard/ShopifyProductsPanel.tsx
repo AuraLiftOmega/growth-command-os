@@ -15,7 +15,7 @@ export const ShopifyProductsPanel = () => {
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const { addItem } = useCartStore();
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = async (product: any) => {
     if (!primaryConnection) {
       toast.error('No store connected');
       return;
@@ -41,15 +41,13 @@ export const ShopifyProductsPanel = () => {
       return;
     }
     
-    addItem({
+    await addItem({
       product: formattedProduct,
       variantId: variant.id,
       variantTitle: variant.title,
       price: { amount: String(variant.price || product.price), currencyCode: product.currency || 'USD' },
       quantity: 1,
       selectedOptions: [],
-      storeDomain: primaryConnection.shop_domain,
-      storefrontToken: '', // Would need to store this
     });
     toast.success(`${product.title} added to cart`);
   };
