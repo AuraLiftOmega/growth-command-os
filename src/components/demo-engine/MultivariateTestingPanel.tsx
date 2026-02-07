@@ -2,7 +2,7 @@
  * MULTIVARIATE TESTING PANEL
  * 
  * Test multiple variables simultaneously:
- * - Variant type (enterprise, intimidation, etc.)
+ * - Variant type (enterprise, aries, etc.)
  * - Demo length (short, long)
  * - Industry targeting
  * - CTA variations
@@ -89,8 +89,8 @@ const AVAILABLE_VARIABLES: TestVariable[] = [
     id: 'variant',
     name: 'Demo Variant',
     type: 'variant',
-    values: ['enterprise', 'intimidation', 'founder', 'silent'],
-    selectedValues: ['enterprise', 'intimidation'],
+    values: ['enterprise', 'aries', 'founder', 'silent'],
+    selectedValues: ['enterprise', 'aries'],
   },
   {
     id: 'length',
@@ -172,7 +172,7 @@ const DEMO_MULTIVARIATE_TESTS: MultivariateTest[] = [
       },
       {
         id: 'combo-5',
-        variables: { variant: 'intimidation', length: '60s', industry: 'ecommerce' },
+        variables: { variant: 'aries', length: '60s', industry: 'ecommerce' },
         views: 256,
         conversions: 41,
         revenue: 134200,
@@ -182,7 +182,7 @@ const DEMO_MULTIVARIATE_TESTS: MultivariateTest[] = [
       },
       {
         id: 'combo-6',
-        variables: { variant: 'intimidation', length: '60s', industry: 'saas' },
+        variables: { variant: 'aries', length: '60s', industry: 'saas' },
         views: 223,
         conversions: 38,
         revenue: 156800,
@@ -192,7 +192,7 @@ const DEMO_MULTIVARIATE_TESTS: MultivariateTest[] = [
       },
       {
         id: 'combo-7',
-        variables: { variant: 'intimidation', length: '90s', industry: 'ecommerce' },
+        variables: { variant: 'aries', length: '90s', industry: 'ecommerce' },
         views: 201,
         conversions: 32,
         revenue: 98500,
@@ -202,7 +202,7 @@ const DEMO_MULTIVARIATE_TESTS: MultivariateTest[] = [
       },
       {
         id: 'combo-8',
-        variables: { variant: 'intimidation', length: '90s', industry: 'saas' },
+        variables: { variant: 'aries', length: '90s', industry: 'saas' },
         views: 187,
         conversions: 35,
         revenue: 142100,

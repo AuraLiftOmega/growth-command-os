@@ -36,7 +36,7 @@ interface ShareLinkData {
 
 const variantIcons: Record<string, any> = {
   standard: Video,
-  intimidation: Crown,
+  aries: Crown,
   enterprise: Building2,
   silent: MuteIcon,
 };

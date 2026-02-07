@@ -1,14 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useIntimidationStore, intimidationLanguage } from '@/stores/intimidation-store';
+import { useAriesStore, ariesLanguage } from '@/stores/aries-store';
 import { cn } from '@/lib/utils';
 
 /**
- * INTIMIDATION OVERLAY
+ * ARIES OVERLAY
  * Applies visual escalation when mode is active.
  * Darkens background, increases contrast, adds psychological weight.
  */
-export const IntimidationOverlay = () => {
-  const { isActive } = useIntimidationStore();
+export const AriesOverlay = () => {
+  const { isActive } = useAriesStore();
 
   return (
     <AnimatePresence>
@@ -58,20 +58,18 @@ export const IntimidationOverlay = () => {
 /**
  * PREEMPTIVE PROOF DISPLAY
  * Shows proof before objections arise.
- * "That was my question — and they already answered it."
  */
 export const PreemptiveProofPanel = () => {
-  const { isActive, demoPhase } = useIntimidationStore();
+  const { isActive, demoPhase } = useAriesStore();
 
   if (!isActive) return null;
 
-  // Select relevant proofs based on demo phase
-  const phaseProofs: Record<string, typeof intimidationLanguage.preemptiveProof> = {
-    authority: intimidationLanguage.preemptiveProof.slice(0, 2),
-    replacement: [intimidationLanguage.preemptiveProof[0], intimidationLanguage.preemptiveProof[1]],
-    intelligence: [intimidationLanguage.preemptiveProof[4], intimidationLanguage.preemptiveProof[2]],
-    scale: [intimidationLanguage.preemptiveProof[3], intimidationLanguage.preemptiveProof[4]],
-    close: intimidationLanguage.preemptiveProof.slice(0, 3),
+  const phaseProofs: Record<string, typeof ariesLanguage.preemptiveProof> = {
+    authority: ariesLanguage.preemptiveProof.slice(0, 2),
+    replacement: [ariesLanguage.preemptiveProof[0], ariesLanguage.preemptiveProof[1]],
+    intelligence: [ariesLanguage.preemptiveProof[4], ariesLanguage.preemptiveProof[2]],
+    scale: [ariesLanguage.preemptiveProof[3], ariesLanguage.preemptiveProof[4]],
+    close: ariesLanguage.preemptiveProof.slice(0, 3),
   };
 
   const currentProofs = phaseProofs[demoPhase] || [];
@@ -106,10 +104,9 @@ export const PreemptiveProofPanel = () => {
 /**
  * RESIDUAL CUE
  * Shows when mode is deactivated to create psychological residue.
- * "Something big is running — and I'm not part of it yet."
  */
 export const ResidualCue = () => {
-  const { residualCue, isActive } = useIntimidationStore();
+  const { residualCue, isActive } = useAriesStore();
 
   if (isActive || !residualCue) return null;
 

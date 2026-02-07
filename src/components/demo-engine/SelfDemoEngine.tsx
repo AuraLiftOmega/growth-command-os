@@ -43,7 +43,7 @@ export const SelfDemoEngine = () => {
 
   const variantLabels = {
     standard: { label: 'Standard', icon: Video, color: 'text-primary' },
-    intimidation: { label: 'Intimidation', icon: Crown, color: 'text-warning' },
+    aries: { label: 'Aries', icon: Crown, color: 'text-warning' },
     enterprise: { label: 'Enterprise', icon: Building2, color: 'text-accent' },
     silent: { label: 'Silent Close', icon: VolumeX, color: 'text-muted-foreground' },
   };

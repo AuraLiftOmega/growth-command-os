@@ -13,12 +13,12 @@ import {
   Clock,
   Shield
 } from 'lucide-react';
-import { useIntimidationStore, intimidationLanguage } from '@/stores/intimidation-store';
-import { PreemptiveProofPanel } from './IntimidationOverlay';
+import { useAriesStore, ariesLanguage } from '@/stores/aries-store';
+import { PreemptiveProofPanel } from './AriesOverlay';
 import { cn } from '@/lib/utils';
 
 /**
- * DEMO VIEW - FOUNDER INTIMIDATION MODE™
+ * DEMO VIEW - FOUNDER ARIES MODE™
  * 
  * Designed to:
  * - Establish authority instantly
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
  * - Make alternatives feel obsolete
  */
 export const DemoView = () => {
-  const { isActive, demoPhase } = useIntimidationStore();
+  const { isActive, demoPhase } = useAriesStore();
 
   if (!isActive) return null;
 
@@ -39,7 +39,7 @@ export const DemoView = () => {
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="fixed inset-0 z-50 bg-background overflow-hidden"
     >
-      {/* Grid background - subtle authority pattern */}
+      {/* Grid background */}
       <div 
         className="absolute inset-0 opacity-[0.015]"
         style={{
@@ -50,7 +50,6 @@ export const DemoView = () => {
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col p-8">
-        {/* Header - Phase indicator (internal only feel) */}
         <header className="flex items-center justify-between mb-8">
           <div>
             <motion.p 
@@ -59,7 +58,7 @@ export const DemoView = () => {
               animate={{ opacity: 1, y: 0 }}
               className="text-xs font-mono text-primary uppercase tracking-[0.2em] mb-1"
             >
-              {intimidationLanguage.phaseHeadlines[demoPhase]}
+              {ariesLanguage.phaseHeadlines[demoPhase]}
             </motion.p>
             <h1 className="text-3xl font-bold tracking-tight">
               DOMINION
@@ -74,16 +73,13 @@ export const DemoView = () => {
           </div>
         </header>
 
-        {/* Main content grid */}
         <div className="flex-1 grid grid-cols-12 gap-6">
-          {/* Left column - Primary metrics (decisive, minimal) */}
           <div className="col-span-8 space-y-6">
             <AnimatePresence mode="wait">
               <PhaseContent phase={demoPhase} />
             </AnimatePresence>
           </div>
 
-          {/* Right column - Preemptive proof */}
           <div className="col-span-4">
             <div className="sticky top-8">
               <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider mb-4">
@@ -94,25 +90,12 @@ export const DemoView = () => {
           </div>
         </div>
 
-        {/* Footer - Social dominance signals */}
         <footer className="mt-8 pt-6 border-t border-border/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <SocialProofBadge 
-                label="Agencies Replaced" 
-                value="147" 
-                delta="+12 this week"
-              />
-              <SocialProofBadge 
-                label="Median Execution Speed" 
-                value="47x" 
-                delta="vs manual teams"
-              />
-              <SocialProofBadge 
-                label="Market Inefficiencies Captured" 
-                value="$2.4M" 
-                delta="last 30 days"
-              />
+              <SocialProofBadge label="Agencies Replaced" value="147" delta="+12 this week" />
+              <SocialProofBadge label="Median Execution Speed" value="47x" delta="vs manual teams" />
+              <SocialProofBadge label="Market Inefficiencies Captured" value="$2.4M" delta="last 30 days" />
             </div>
             <p className="text-xs text-muted-foreground/50 font-mono">
               Typical agency replacement window: 14 days
@@ -124,10 +107,6 @@ export const DemoView = () => {
   );
 };
 
-/**
- * PHASE-SPECIFIC CONTENT
- * Each phase shows different dominant information
- */
 const PhaseContent = ({ phase }: { phase: string }) => {
   const content: Record<string, React.ReactNode> = {
     authority: <AuthorityPhase />,
@@ -153,29 +132,10 @@ const PhaseContent = ({ phase }: { phase: string }) => {
 const AuthorityPhase = () => (
   <div className="space-y-6">
     <div className="grid grid-cols-3 gap-4">
-      <MetricCard
-        icon={DollarSign}
-        label="Revenue Today"
-        value="$127,439"
-        delta="+23.4%"
-        deltaType="success"
-      />
-      <MetricCard
-        icon={Activity}
-        label="Active Automations"
-        value="847"
-        delta="executing now"
-        deltaType="neutral"
-      />
-      <MetricCard
-        icon={Cpu}
-        label="Decisions Eliminated"
-        value="12,847"
-        delta="this week"
-        deltaType="neutral"
-      />
+      <MetricCard icon={DollarSign} label="Revenue Today" value="$127,439" delta="+23.4%" deltaType="success" />
+      <MetricCard icon={Activity} label="Active Automations" value="847" delta="executing now" deltaType="neutral" />
+      <MetricCard icon={Cpu} label="Decisions Eliminated" value="12,847" delta="this week" deltaType="neutral" />
     </div>
-    
     <div className="glass-card p-6">
       <p className="text-sm text-muted-foreground mb-4">The system is executing:</p>
       <div className="space-y-3">
@@ -198,7 +158,6 @@ const ReplacementPhase = () => (
         <ReplacementItem role="Agencies" status="Eliminated" savings="$25,000/mo" />
       </div>
     </div>
-    
     <div className="flex items-center gap-4 p-4 rounded-lg bg-success/10 border border-success/20">
       <DollarSign className="w-8 h-8 text-success" />
       <div>
@@ -216,7 +175,6 @@ const IntelligencePhase = () => (
         <Brain className="w-6 h-6 text-accent" />
         <h3 className="text-xl font-bold">Compounding Intelligence</h3>
       </div>
-      
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="text-center p-4 rounded-lg bg-accent/10">
           <p className="text-3xl font-mono font-bold text-accent">94.2%</p>
@@ -231,7 +189,6 @@ const IntelligencePhase = () => (
           <p className="text-xs text-muted-foreground mt-1">Learning Capacity</p>
         </div>
       </div>
-
       <p className="text-sm text-muted-foreground">
         The system learns from every ad, DM, objection, close, and loss. 
         Intelligence compounds. Labor does not.
@@ -247,7 +204,6 @@ const ScalePhase = () => (
         <Scale className="w-6 h-6 text-primary" />
         <h3 className="text-xl font-bold">Infinite Scale Protocol</h3>
       </div>
-      
       <div className="grid grid-cols-2 gap-6">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Current Capacity</p>
@@ -261,7 +217,6 @@ const ScalePhase = () => (
         </div>
       </div>
     </div>
-    
     <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
       <p className="text-sm font-medium">
         If growth requires hiring, the system has failed. 
@@ -278,7 +233,6 @@ const ClosePhase = () => (
         <Target className="w-6 h-6 text-primary" />
         <h3 className="text-xl font-bold">Execution Awaiting Authorization</h3>
       </div>
-      
       <div className="space-y-4">
         <div className="flex items-center justify-between p-4 rounded-lg bg-secondary/50">
           <span className="text-sm">Replace agency operations</span>
@@ -294,7 +248,6 @@ const ClosePhase = () => (
         </div>
       </div>
     </div>
-    
     <p className="text-center text-muted-foreground text-sm">
       The system does not wait. It executes.
     </p>
@@ -302,60 +255,22 @@ const ClosePhase = () => (
 );
 
 // Supporting components
-const MetricCard = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  delta, 
-  deltaType 
-}: { 
-  icon: any; 
-  label: string; 
-  value: string; 
-  delta: string; 
-  deltaType: 'success' | 'warning' | 'neutral';
-}) => (
-  <motion.div 
-    className="glass-card p-5"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-  >
+const MetricCard = ({ icon: Icon, label, value, delta, deltaType }: { icon: any; label: string; value: string; delta: string; deltaType: 'success' | 'warning' | 'neutral'; }) => (
+  <motion.div className="glass-card p-5" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
     <div className="flex items-center gap-2 mb-3">
       <Icon className="w-4 h-4 text-muted-foreground" />
       <span className="text-xs text-muted-foreground uppercase tracking-wider">{label}</span>
     </div>
-    <motion.p 
-      className="text-3xl font-mono font-bold"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2, duration: 0.5 }}
-    >
-      {value}
-    </motion.p>
-    <p className={cn(
-      "text-xs mt-1",
-      deltaType === 'success' && "text-success",
-      deltaType === 'warning' && "text-warning",
-      deltaType === 'neutral' && "text-muted-foreground"
-    )}>
-      {delta}
-    </p>
+    <motion.p className="text-3xl font-mono font-bold" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.5 }}>{value}</motion.p>
+    <p className={cn("text-xs mt-1", deltaType === 'success' && "text-success", deltaType === 'warning' && "text-warning", deltaType === 'neutral' && "text-muted-foreground")}>{delta}</p>
   </motion.div>
 );
 
 const ExecutionLine = ({ text, status }: { text: string; status: 'active' | 'complete' | 'pending' }) => (
   <div className="flex items-center gap-3">
-    <div className={cn(
-      "w-2 h-2 rounded-full",
-      status === 'active' && "bg-accent animate-pulse",
-      status === 'complete' && "bg-success",
-      status === 'pending' && "bg-muted"
-    )} />
+    <div className={cn("w-2 h-2 rounded-full", status === 'active' && "bg-accent animate-pulse", status === 'complete' && "bg-success", status === 'pending' && "bg-muted")} />
     <span className="text-sm text-foreground">{text}</span>
-    {status === 'complete' && (
-      <span className="text-xs text-success font-mono ml-auto">COMPLETE</span>
-    )}
+    {status === 'complete' && <span className="text-xs text-success font-mono ml-auto">COMPLETE</span>}
   </div>
 );
 
