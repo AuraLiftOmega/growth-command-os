@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { PLATFORM_STORE, PLATFORM_STOREFRONT_URL } from "@/lib/platform-store";
-import { PRODUCTS_QUERY, ShopifyProduct } from "@/lib/shopify-config";
+import { fetchProducts, ShopifyProduct } from "@/lib/storefront-api";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductSearchProps {
@@ -21,7 +20,7 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Debounced search using platform store
+  // Debounced search using edge function
   useEffect(() => {
     if (query.length < 2) {
       setResults([]);
@@ -31,24 +30,8 @@ export function ProductSearch({ onClose, isMobile = false }: ProductSearchProps)
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(PLATFORM_STOREFRONT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Storefront-Access-Token': PLATFORM_STORE.storefrontToken,
-          },
-          body: JSON.stringify({
-            query: PRODUCTS_QUERY,
-            variables: { first: 6, query: query }
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setResults(data?.data?.products?.edges || []);
+        const products = await fetchProducts({ first: 6, query });
+        setResults(products);
       } catch (error) {
         console.error("Search error:", error);
         setResults([]);

@@ -7,8 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { useCartStore } from "@/stores/cart-store";
-import { PLATFORM_STORE, PLATFORM_STOREFRONT_URL } from "@/lib/platform-store";
-import { PRODUCT_BY_HANDLE_QUERY } from "@/lib/storefront-api";
+import { fetchProductByHandle } from "@/lib/storefront-api";
 import { toast } from "sonner";
 
 interface ProductNode {
@@ -74,24 +73,8 @@ export default function Product() {
       
       setIsLoading(true);
       try {
-        const response = await fetch(PLATFORM_STOREFRONT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Shopify-Storefront-Access-Token': PLATFORM_STORE.storefrontToken,
-          },
-          body: JSON.stringify({
-            query: PRODUCT_BY_HANDLE_QUERY,
-            variables: { handle }
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setProduct(data?.data?.productByHandle || null);
+        const data = await fetchProductByHandle(handle);
+        setProduct(data);
       } catch (error) {
         console.error('Error loading product:', error);
       } finally {
