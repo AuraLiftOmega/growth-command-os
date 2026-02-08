@@ -63,7 +63,7 @@ export function SettingsPage() {
       { name: 'Shopify', status: 'connected', lastSync: new Date().toISOString() },
       { name: 'HeyGen', status: 'connected' },
       { name: 'ElevenLabs', status: 'connected' },
-      { name: 'ClickUp', status: 'connected' },
+      
       { name: 'n8n', status: 'connected' },
       { name: 'TikTok', status: 'pending' },
       { name: 'Pinterest', status: 'pending' },

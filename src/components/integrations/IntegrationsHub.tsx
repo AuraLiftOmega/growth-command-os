@@ -9,7 +9,7 @@ import { Search, Zap, Check, AlertCircle, Loader2, Brain, Sparkles, ArrowRight, 
 import { IntegrationCard, Integration } from "./IntegrationCard";
 import { ALL_INTEGRATIONS, INTEGRATION_CATEGORIES, getIntegrationsByCategory, INTEGRATION_SECRET_MAP } from "./integrations-data";
 import { N8nConnectionCard } from "./N8nConnectionCard";
-import { ClickUpConnectionCard } from "./ClickUpConnectionCard";
+
 import { TikTokConnectionCard } from "./TikTokConnectionCard";
 import { WhatsAppConnectionCard } from "./WhatsAppConnectionCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,7 @@ const EXISTING_SECRETS = [
   // AI Services
   "XAI_API_KEY", "XAI_GROK_API_KEY", "PERPLEXITY_API_KEY", "VERCEL_AI_API_KEY", "LOVABLE_API_KEY",
   // Automation & Productivity
-  "CLICKUP_API_TOKEN", "GEEKBOT_API_KEY", "REPLICATE_API_TOKEN",
+  "GEEKBOT_API_KEY", "REPLICATE_API_TOKEN",
   // Webhooks
   "CRM_WEBHOOK_SECRET"
 ];
@@ -44,7 +44,7 @@ const EXISTING_SECRETS = [
 const ALWAYS_CONNECTED = [
   "n8n",       // n8n Omega Alpha automation
   "shopify",   // Shopify native integration
-  "clickup",   // ClickUp API token configured
+  
   "stripe",    // Stripe keys configured
   "grok",      // xAI Grok API key
   "did",       // D-ID API key
@@ -333,10 +333,9 @@ export function IntegrationsHub() {
         </Button>
       </div>
 
-      {/* Connected Services - n8n, ClickUp, TikTok & WhatsApp Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Connected Services - n8n, TikTok & WhatsApp Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <N8nConnectionCard />
-        <ClickUpConnectionCard />
         <TikTokConnectionCard />
         <WhatsAppConnectionCard />
       </div>

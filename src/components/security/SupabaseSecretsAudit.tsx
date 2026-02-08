@@ -53,7 +53,7 @@ export const SupabaseSecretsAudit = () => {
     { name: 'PINTEREST_APP_ID', service: 'Pinterest', status: 'recognized' },
     { name: 'PINTEREST_APP_SECRET', service: 'Pinterest', status: 'recognized' },
     { name: 'X_API_KEY', service: 'X (Twitter)', status: 'recognized' },
-    { name: 'CLICKUP_API_TOKEN', service: 'ClickUp', status: 'recognized' },
+    
     { name: 'GEEKBOT_API_KEY', service: 'Geekbot', status: 'recognized' },
     { name: 'CRM_WEBHOOK_SECRET', service: 'CRM', status: 'recognized' },
     { name: 'VERCEL_AI_API_KEY', service: 'Vercel AI', status: 'recognized' },

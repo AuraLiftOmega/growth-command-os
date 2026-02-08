@@ -13,7 +13,7 @@ import { PricingPanel } from "@/components/settings/PricingPanel";
 import { ShopifyConnectionsPanel } from "@/components/settings/ShopifyConnectionsPanel";
 import { BillingPanel } from "@/components/settings/BillingPanel";
 import { GitHubIntegrationPanel } from "@/components/settings/GitHubIntegrationPanel";
-import { ClickUpConnectionCard } from "@/components/integrations/ClickUpConnectionCard";
+
 
 const Settings = () => {
   const { user, signOut } = useAuth();
@@ -107,20 +107,6 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {/* ClickUp Status */}
-                    <div className="p-3 rounded-lg bg-success/10 border border-success/20 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-md bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm">
-                        ✨
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">ClickUp</p>
-                        <Badge variant="outline" className="text-xs bg-success/20 text-success border-success/30">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Connected
-                        </Badge>
-                      </div>
-                    </div>
-
                     {/* n8n Status */}
                     <div className="p-3 rounded-lg bg-success/10 border border-success/20 flex items-center gap-2">
                       <div className="w-8 h-8 rounded-md bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
@@ -166,9 +152,6 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              {/* ClickUp Full Card */}
-              <ClickUpConnectionCard />
-
               {/* Quick Links */}
               <Card>
                 <CardHeader>
@@ -176,15 +159,6 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.open('https://app.clickup.com', '_blank')}
-                      className="gap-2"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Open ClickUp
-                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"

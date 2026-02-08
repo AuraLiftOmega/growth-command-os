@@ -15,7 +15,7 @@ export const INTEGRATION_SECRET_MAP: Record<string, string[]> = {
   mailchimp: ["MAILCHIMP_API_KEY"],
   activecampaign: ["ACTIVECAMPAIGN_API_KEY"],
   asana: ["ASANA_API_KEY"],
-  clickup: ["CLICKUP_API_TOKEN"],
+  
   monday: ["MONDAY_API_KEY"],
   trello: ["TRELLO_API_KEY"],
   jira: ["JIRA_API_KEY"],
@@ -106,16 +106,6 @@ export const ALL_INTEGRATIONS: Integration[] = [
     connectionType: "api_key",
     isConnected: false,
     docsUrl: "https://developers.asana.com/docs/personal-access-token",
-  },
-  {
-    id: "clickup",
-    name: "ClickUp",
-    description: "All-in-one productivity platform",
-    icon: "✨",
-    category: "project_management",
-    connectionType: "api_key",
-    isConnected: false,
-    docsUrl: "https://clickup.com/api",
   },
   {
     id: "monday",
