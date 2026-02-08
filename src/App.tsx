@@ -42,6 +42,7 @@ const ExperiencesPage = React.lazy(() => import("./pages/master/ExperiencesPage"
 const BrainPage = React.lazy(() => import("./pages/master/BrainPage"));
 const SettingsAccountPage = React.lazy(() => import("./pages/master/SettingsAccountPage"));
 const SettingsIntegrationsPage = React.lazy(() => import("./pages/master/SettingsIntegrationsPage"));
+const RevenueCommandPage = React.lazy(() => import("./pages/master/RevenueCommandPage"));
 
 const queryClient = new QueryClient();
 
@@ -301,6 +302,7 @@ const AppRoutes = () => {
       <Route path="/admin/logs" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
       <Route path="/products/:productId" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/revenue-command" element={<ProtectedRoute><LazyWrap><RevenueCommandPage /></LazyWrap></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

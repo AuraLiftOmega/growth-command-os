@@ -173,3 +173,12 @@ verify_jwt = false
 
 [functions.billing-webhook]
 verify_jwt = false
+
+[functions.email-campaign-engine]
+verify_jwt = false
+
+[functions.bot-executor]
+verify_jwt = false
+
+[functions.supplier-manager]
+verify_jwt = false
