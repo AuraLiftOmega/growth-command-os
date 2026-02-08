@@ -3709,6 +3709,524 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_creative_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_seconds: number | null
+          emotional_trigger: string | null
+          error_message: string | null
+          hook_score: number | null
+          id: string
+          job_type: string
+          organization_id: string
+          product_id: string | null
+          prompt: string | null
+          quality_score: number | null
+          result: Json | null
+          script_model: string | null
+          script_text: string | null
+          started_at: string | null
+          status: string | null
+          style: string | null
+          target_platform: string | null
+          thumbnail_url: string | null
+          total_cost_cents: number | null
+          updated_at: string
+          video_model: string | null
+          video_url: string | null
+          voiceover_model: string | null
+          voiceover_url: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          emotional_trigger?: string | null
+          error_message?: string | null
+          hook_score?: number | null
+          id?: string
+          job_type: string
+          organization_id: string
+          product_id?: string | null
+          prompt?: string | null
+          quality_score?: number | null
+          result?: Json | null
+          script_model?: string | null
+          script_text?: string | null
+          started_at?: string | null
+          status?: string | null
+          style?: string | null
+          target_platform?: string | null
+          thumbnail_url?: string | null
+          total_cost_cents?: number | null
+          updated_at?: string
+          video_model?: string | null
+          video_url?: string | null
+          voiceover_model?: string | null
+          voiceover_url?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          emotional_trigger?: string | null
+          error_message?: string | null
+          hook_score?: number | null
+          id?: string
+          job_type?: string
+          organization_id?: string
+          product_id?: string | null
+          prompt?: string | null
+          quality_score?: number | null
+          result?: Json | null
+          script_model?: string | null
+          script_text?: string | null
+          started_at?: string | null
+          status?: string | null
+          style?: string | null
+          target_platform?: string | null
+          thumbnail_url?: string | null
+          total_cost_cents?: number | null
+          updated_at?: string
+          video_model?: string | null
+          video_url?: string | null
+          voiceover_model?: string | null
+          voiceover_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_creative_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_creative_jobs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "internal_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_order_items: {
+        Row: {
+          cost_price: number | null
+          created_at: string
+          fulfillment_status: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          order_id: string
+          product_id: string | null
+          quantity: number
+          sku: string | null
+          title: string
+          total_price: number
+          unit_price: number
+          variant_id: string | null
+          variant_title: string | null
+        }
+        Insert: {
+          cost_price?: number | null
+          created_at?: string
+          fulfillment_status?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          order_id: string
+          product_id?: string | null
+          quantity?: number
+          sku?: string | null
+          title: string
+          total_price: number
+          unit_price: number
+          variant_id?: string | null
+          variant_title?: string | null
+        }
+        Update: {
+          cost_price?: number | null
+          created_at?: string
+          fulfillment_status?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          order_id?: string
+          product_id?: string | null
+          quantity?: number
+          sku?: string | null
+          title?: string
+          total_price?: number
+          unit_price?: number
+          variant_id?: string | null
+          variant_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "internal_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "internal_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "internal_product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_orders: {
+        Row: {
+          billing_address: Json | null
+          carrier: string | null
+          cj_order_id: string | null
+          created_at: string
+          currency: string | null
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivered_at: string | null
+          discount_amount: number | null
+          fulfilled_at: string | null
+          fulfillment_status: string | null
+          fulfillment_type: string | null
+          id: string
+          internal_notes: string | null
+          metadata: Json | null
+          notes: string | null
+          order_number: number
+          organization_id: string
+          payment_intent_id: string | null
+          payment_method: string | null
+          payment_status: string | null
+          processor_id: string | null
+          processor_type: string | null
+          shipped_at: string | null
+          shipping_address: Json | null
+          shipping_cost: number | null
+          shopify_order_id: string | null
+          status: string | null
+          subtotal: number | null
+          tags: string[] | null
+          tax_amount: number | null
+          total: number | null
+          tracking_number: string | null
+          tracking_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_address?: Json | null
+          carrier?: string | null
+          cj_order_id?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivered_at?: string | null
+          discount_amount?: number | null
+          fulfilled_at?: string | null
+          fulfillment_status?: string | null
+          fulfillment_type?: string | null
+          id?: string
+          internal_notes?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          order_number?: number
+          organization_id: string
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          processor_id?: string | null
+          processor_type?: string | null
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          shopify_order_id?: string | null
+          status?: string | null
+          subtotal?: number | null
+          tags?: string[] | null
+          tax_amount?: number | null
+          total?: number | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_address?: Json | null
+          carrier?: string | null
+          cj_order_id?: string | null
+          created_at?: string
+          currency?: string | null
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivered_at?: string | null
+          discount_amount?: number | null
+          fulfilled_at?: string | null
+          fulfillment_status?: string | null
+          fulfillment_type?: string | null
+          id?: string
+          internal_notes?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          order_number?: number
+          organization_id?: string
+          payment_intent_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          processor_id?: string | null
+          processor_type?: string | null
+          shipped_at?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          shopify_order_id?: string | null
+          status?: string | null
+          subtotal?: number | null
+          tags?: string[] | null
+          tax_amount?: number | null
+          total?: number | null
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_orders_processor_id_fkey"
+            columns: ["processor_id"]
+            isOneToOne: false
+            referencedRelation: "payment_processors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_product_variants: {
+        Row: {
+          available_for_sale: boolean | null
+          compare_at_price: number | null
+          cost_price: number | null
+          created_at: string
+          id: string
+          image_url: string | null
+          inventory_quantity: number | null
+          option1_name: string | null
+          option1_value: string | null
+          option2_name: string | null
+          option2_value: string | null
+          option3_name: string | null
+          option3_value: string | null
+          position: number | null
+          price: number
+          product_id: string
+          sku: string | null
+          title: string
+          updated_at: string
+          weight_grams: number | null
+        }
+        Insert: {
+          available_for_sale?: boolean | null
+          compare_at_price?: number | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_quantity?: number | null
+          option1_name?: string | null
+          option1_value?: string | null
+          option2_name?: string | null
+          option2_value?: string | null
+          option3_name?: string | null
+          option3_value?: string | null
+          position?: number | null
+          price?: number
+          product_id: string
+          sku?: string | null
+          title?: string
+          updated_at?: string
+          weight_grams?: number | null
+        }
+        Update: {
+          available_for_sale?: boolean | null
+          compare_at_price?: number | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          inventory_quantity?: number | null
+          option1_name?: string | null
+          option1_value?: string | null
+          option2_name?: string | null
+          option2_value?: string | null
+          option3_name?: string | null
+          option3_value?: string | null
+          position?: number | null
+          price?: number
+          product_id?: string
+          sku?: string | null
+          title?: string
+          updated_at?: string
+          weight_grams?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "internal_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_products: {
+        Row: {
+          allow_backorder: boolean | null
+          barcode: string | null
+          base_price: number
+          cj_product_id: string | null
+          compare_at_price: number | null
+          conversion_rate: number | null
+          cost_price: number | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          description_html: string | null
+          external_source: string | null
+          fulfillment_type: string | null
+          id: string
+          images: Json | null
+          inventory_quantity: number | null
+          margin_percentage: number | null
+          metadata: Json | null
+          organization_id: string
+          product_type: string | null
+          seo_description: string | null
+          seo_title: string | null
+          shipping_required: boolean | null
+          shopify_product_id: string | null
+          sku: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          total_revenue: number | null
+          total_sold: number | null
+          track_inventory: boolean | null
+          updated_at: string
+          vendor: string | null
+          view_count: number | null
+          weight_grams: number | null
+        }
+        Insert: {
+          allow_backorder?: boolean | null
+          barcode?: string | null
+          base_price?: number
+          cj_product_id?: string | null
+          compare_at_price?: number | null
+          conversion_rate?: number | null
+          cost_price?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_html?: string | null
+          external_source?: string | null
+          fulfillment_type?: string | null
+          id?: string
+          images?: Json | null
+          inventory_quantity?: number | null
+          margin_percentage?: number | null
+          metadata?: Json | null
+          organization_id: string
+          product_type?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shipping_required?: boolean | null
+          shopify_product_id?: string | null
+          sku?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          total_revenue?: number | null
+          total_sold?: number | null
+          track_inventory?: boolean | null
+          updated_at?: string
+          vendor?: string | null
+          view_count?: number | null
+          weight_grams?: number | null
+        }
+        Update: {
+          allow_backorder?: boolean | null
+          barcode?: string | null
+          base_price?: number
+          cj_product_id?: string | null
+          compare_at_price?: number | null
+          conversion_rate?: number | null
+          cost_price?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_html?: string | null
+          external_source?: string | null
+          fulfillment_type?: string | null
+          id?: string
+          images?: Json | null
+          inventory_quantity?: number | null
+          margin_percentage?: number | null
+          metadata?: Json | null
+          organization_id?: string
+          product_type?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shipping_required?: boolean | null
+          shopify_product_id?: string | null
+          sku?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          total_revenue?: number | null
+          total_sold?: number | null
+          track_inventory?: boolean | null
+          updated_at?: string
+          vendor?: string | null
+          view_count?: number | null
+          weight_grams?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_products_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       language_violations: {
         Row: {
           content: string
@@ -4569,6 +5087,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      payment_processors: {
+        Row: {
+          config: Json | null
+          created_at: string
+          display_name: string
+          fee_fixed_cents: number | null
+          fee_percentage: number | null
+          id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          metadata: Json | null
+          organization_id: string
+          processor_type: string
+          supported_currencies: string[] | null
+          supported_methods: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          display_name: string
+          fee_fixed_cents?: number | null
+          fee_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          metadata?: Json | null
+          organization_id: string
+          processor_type: string
+          supported_currencies?: string[] | null
+          supported_methods?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          display_name?: string
+          fee_fixed_cents?: number | null
+          fee_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          metadata?: Json | null
+          organization_id?: string
+          processor_type?: string
+          supported_currencies?: string[] | null
+          supported_methods?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_processors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       performance_snapshots: {
         Row: {
