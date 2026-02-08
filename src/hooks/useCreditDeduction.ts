@@ -2,8 +2,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
-
-const ADMIN_EMAIL = "ryanauralift@gmail.com";
+import { isSuperAdmin } from "@/config/admin";
 
 export type CreditAction = 
   | "video_generation"
@@ -25,7 +24,7 @@ export function useCreditDeduction() {
   const { user } = useAuth();
   const [isDeducting, setIsDeducting] = useState(false);
 
-  const isGodMode = user?.email === ADMIN_EMAIL;
+  const isGodMode = isSuperAdmin(user?.email);
 
   const deductCredits = useCallback(async (
     action: CreditAction,

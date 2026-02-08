@@ -38,13 +38,13 @@ interface DiagnosticResult {
 
 export default function SystemDiagnostics() {
   const { user } = useAuth();
-  const { isAdmin, entitlements, ADMIN_EMAIL } = useAdminEntitlements();
+  const { isAdmin, entitlements, isSuperAdmin: checkSuperAdmin } = useAdminEntitlements();
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
 
   // Redirect non-admin users
-  if (user && user.email !== ADMIN_EMAIL) {
+  if (user && !checkSuperAdmin(user.email)) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -82,7 +82,7 @@ export default function SystemDiagnostics() {
       const { data: adminData } = await supabase
         .from('admin_entitlements')
         .select('*')
-        .eq('user_email', ADMIN_EMAIL)
+        .in('user_email', ['ryanauralift@gmail.com', 'ryanpuddy@profitreaper.com'])
         .single();
 
       if (adminData && adminData.bypass_all_credit_checks) {
@@ -121,7 +121,7 @@ export default function SystemDiagnostics() {
       const isUnlimited = subscription?.monthly_ai_credits === -1 && 
                          subscription?.monthly_video_credits === -1;
       
-      if (isUnlimited || user?.email === ADMIN_EMAIL) {
+      if (isUnlimited || checkSuperAdmin(user?.email)) {
         updateDiagnostic('credit_bypass', { 
           status: 'pass', 
           message: 'Unlimited credits active',
@@ -129,7 +129,7 @@ export default function SystemDiagnostics() {
             plan: subscription?.plan,
             ai_credits: subscription?.monthly_ai_credits === -1 ? 'Unlimited' : subscription?.monthly_ai_credits,
             video_credits: subscription?.monthly_video_credits === -1 ? 'Unlimited' : subscription?.monthly_video_credits,
-            admin_override: user?.email === ADMIN_EMAIL
+            admin_override: checkSuperAdmin(user?.email)
           }
         });
       } else {
@@ -388,7 +388,7 @@ export default function SystemDiagnostics() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Admin override active for: {ADMIN_EMAIL}
+                  Admin override active for: {user?.email}
                 </p>
               </CardContent>
             </Card>
