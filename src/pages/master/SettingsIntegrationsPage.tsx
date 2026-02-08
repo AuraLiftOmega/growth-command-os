@@ -5,7 +5,7 @@ import { Layers, Zap, Code, Mail, CreditCard, MessageSquare } from 'lucide-react
 
 const integrations = [
   { name: 'Stripe', icon: CreditCard, status: 'connected', desc: 'Payment processing & subscriptions' },
-  { name: 'n8n', icon: Zap, status: 'configure', desc: 'Workflow automation engine — set base URL in env' },
+  { name: 'n8n', icon: Zap, status: 'connected', desc: 'Workflow automation engine' },
   { name: 'Python Worker', icon: Code, status: 'configure', desc: 'Custom processing jobs — set base URL in env' },
   { name: 'Email (Resend)', icon: Mail, status: 'connected', desc: 'Transactional emails' },
   { name: 'Slack', icon: MessageSquare, status: 'configured', desc: 'Team notifications' },
