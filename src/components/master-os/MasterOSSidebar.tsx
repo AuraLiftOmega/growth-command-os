@@ -72,7 +72,8 @@ const sections = [
   {
     label: 'Commerce',
     items: [
-      { title: 'Products', icon: Package, path: '/products' },
+      { title: 'Internal Products', icon: Package, path: '/products' },
+      { title: 'Orders', icon: ShoppingBag, path: '/products?tab=orders' },
       { title: 'Store', icon: ShoppingBag, path: '/store' },
       { title: 'Revenue Command', icon: DollarSign, path: '/revenue-command' },
     ],
