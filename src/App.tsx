@@ -33,7 +33,25 @@ import CheckoutSuccess from "./pages/checkout/Success";
 import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
+
+// MASTER_OS Pages
+const MasterDashboard = React.lazy(() => import("./pages/master/MasterDashboard"));
+const ProjectsPage = React.lazy(() => import("./pages/master/ProjectsPage"));
+const AutomationsPage = React.lazy(() => import("./pages/master/AutomationsPage"));
+const ExperiencesPage = React.lazy(() => import("./pages/master/ExperiencesPage"));
+const BrainPage = React.lazy(() => import("./pages/master/BrainPage"));
+const SettingsAccountPage = React.lazy(() => import("./pages/master/SettingsAccountPage"));
+const SettingsIntegrationsPage = React.lazy(() => import("./pages/master/SettingsIntegrationsPage"));
+
 const queryClient = new QueryClient();
+
+const LazyWrap = ({ children }: { children: React.ReactNode }) => (
+  <React.Suspense fallback={
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+    </div>
+  }>{children}</React.Suspense>
+);
 
 // Auth-protected route component - simplified, no onboarding requirement
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -261,7 +279,29 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
-      
+
+      {/* ===== MASTER_OS ROUTES ===== */}
+      <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/projects" element={<ProtectedRoute><LazyWrap><ProjectsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/projects/:projectId/*" element={<ProtectedRoute><LazyWrap><ProjectsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/automations" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/automations/:automationId" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/automations/new" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/experiences" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/experiences/new" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/experiences/:experienceId/*" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/brain" element={<ProtectedRoute><LazyWrap><BrainPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/brain/reports" element={<ProtectedRoute><LazyWrap><BrainPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/settings/account" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/settings/billing" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/settings/integrations" element={<ProtectedRoute><LazyWrap><SettingsIntegrationsPage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/crm/*" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/admin/organizations" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/admin/logs" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+      <Route path="/products/:productId" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
