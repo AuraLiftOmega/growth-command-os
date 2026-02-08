@@ -20,6 +20,7 @@ const sections = [
   {
     label: 'Core',
     items: [
+      { title: 'System Console', icon: LayoutDashboard, path: '/console' },
       { title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
       { title: 'Settings', icon: Settings, path: '/settings/account' },
       { title: 'Billing', icon: CreditCard, path: '/settings/billing' },
