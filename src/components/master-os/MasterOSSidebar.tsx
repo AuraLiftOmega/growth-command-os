@@ -13,7 +13,7 @@ import { OrgSwitcher } from './OrgSwitcher';
 import {
   LayoutDashboard, Users, Briefcase, FolderKanban, Zap, Brain,
   CreditCard, Package, Settings, LogOut, Globe, Megaphone, BarChart3,
-  Shield, FileText, Rocket, Layers, Target, Mail, ShoppingBag, DollarSign,
+  Shield, FileText, Rocket, Layers, Target, Mail, ShoppingBag, DollarSign, Radio,
 } from 'lucide-react';
 
 const sections = [
@@ -53,6 +53,12 @@ const sections = [
     items: [
       { title: 'All Automations', icon: Zap, path: '/automations' },
       { title: 'New Automation', icon: Zap, path: '/automations/new' },
+    ],
+  },
+  {
+    label: 'Comms',
+    items: [
+      { title: 'OMEGA Comms', icon: Radio, path: '/comms' },
     ],
   },
   {
