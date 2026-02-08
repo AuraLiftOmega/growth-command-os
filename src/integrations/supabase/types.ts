@@ -3831,6 +3831,199 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_delivery_log: {
+        Row: {
+          channel: string
+          created_at: string
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          notification_id: string | null
+          provider: string | null
+          provider_response: Json | null
+          status: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          notification_id?: string | null
+          provider?: string | null
+          provider_response?: Json | null
+          status?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          notification_id?: string | null
+          provider?: string | null
+          provider_response?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_delivery_log_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          batch_low_priority: boolean
+          category_overrides: Json | null
+          created_at: string
+          critical_always_push: boolean
+          digest_enabled: boolean
+          digest_frequency: string | null
+          digest_time: string | null
+          discord_enabled: boolean
+          email_enabled: boolean
+          id: string
+          in_app_enabled: boolean
+          push_enabled: boolean
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          batch_low_priority?: boolean
+          category_overrides?: Json | null
+          created_at?: string
+          critical_always_push?: boolean
+          digest_enabled?: boolean
+          digest_frequency?: string | null
+          digest_time?: string | null
+          discord_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          push_enabled?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          batch_low_priority?: boolean
+          category_overrides?: Json | null
+          created_at?: string
+          critical_always_push?: boolean
+          digest_enabled?: boolean
+          digest_frequency?: string | null
+          digest_time?: string | null
+          discord_enabled?: boolean
+          email_enabled?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          push_enabled?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_label: string | null
+          action_url: string | null
+          body: string
+          category: string
+          channel: string
+          created_at: string
+          dedup_key: string | null
+          delivered_at: string | null
+          delivery_status: Json | null
+          dismissed_at: string | null
+          expires_at: string | null
+          group_key: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          organization_id: string | null
+          priority: string
+          read_at: string | null
+          source_id: string | null
+          source_type: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_url?: string | null
+          body: string
+          category?: string
+          channel?: string
+          created_at?: string
+          dedup_key?: string | null
+          delivered_at?: string | null
+          delivery_status?: Json | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          group_key?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          organization_id?: string | null
+          priority?: string
+          read_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_label?: string | null
+          action_url?: string | null
+          body?: string
+          category?: string
+          channel?: string
+          created_at?: string
+          dedup_key?: string | null
+          delivered_at?: string | null
+          delivery_status?: Json | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          group_key?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          organization_id?: string | null
+          priority?: string
+          read_at?: string | null
+          source_id?: string | null
+          source_type?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       oauth_states: {
         Row: {
           created_at: string | null
@@ -4843,6 +5036,48 @@ export type Database = {
           status?: string
           updated_at?: string
           upload_pack_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          device_name: string | null
+          endpoint: string
+          failed_count: number | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          device_name?: string | null
+          endpoint: string
+          failed_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          device_name?: string | null
+          endpoint?: string
+          failed_count?: number | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          p256dh?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
