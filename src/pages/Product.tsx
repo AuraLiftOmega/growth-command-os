@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ShoppingCart, Plus, Minus, Check, ChevronLeft, Truck, Shield, RefreshCw } from "lucide-react";
@@ -310,7 +311,10 @@ export default function Product() {
           <TabsContent value="description" className="mt-6">
             <div 
               className="prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml || product.description }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.descriptionHtml || product.description, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'a', 'span', 'div', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'blockquote'],
+                ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'class', 'style', 'width', 'height']
+              }) }}
             />
           </TabsContent>
           <TabsContent value="shipping" className="mt-6">
