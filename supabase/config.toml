@@ -182,3 +182,6 @@ verify_jwt = false
 
 [functions.supplier-manager]
 verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
