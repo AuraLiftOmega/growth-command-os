@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
-
-const ADMIN_EMAIL = "ryanauralift@gmail.com";
+import { isSuperAdmin } from "@/config/admin";
 
 export interface Subscription {
   id: string;
@@ -75,7 +74,7 @@ export function useSubscription() {
     }
 
     // Check if user is admin
-    const userIsAdmin = user.email === ADMIN_EMAIL;
+    const userIsAdmin = isSuperAdmin(user.email);
     setIsAdmin(userIsAdmin);
 
     try {

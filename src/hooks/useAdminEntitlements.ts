@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { isSuperAdmin, SUPER_ADMIN_EMAILS } from '@/config/admin';
 
 export interface AdminEntitlements {
   id: string;
@@ -13,8 +14,6 @@ export interface AdminEntitlements {
   bypass_all_feature_gates: boolean;
   features: Record<string, boolean>;
 }
-
-const ADMIN_EMAIL = 'ryanauralift@gmail.com';
 
 export function useAdminEntitlements() {
   const { user } = useAuth();
@@ -32,7 +31,7 @@ export function useAdminEntitlements() {
 
     try {
       // First check by email for immediate admin detection
-      const userIsAdmin = user.email === ADMIN_EMAIL;
+      const userIsAdmin = isSuperAdmin(user.email);
       setIsAdmin(userIsAdmin);
 
       // Then try to fetch from database
@@ -77,21 +76,21 @@ export function useAdminEntitlements() {
   // Quick check function for credit bypass
   const shouldBypassCredits = useCallback(() => {
     if (!user) return false;
-    if (user.email === ADMIN_EMAIL) return true;
+    if (isSuperAdmin(user.email)) return true;
     return entitlements?.bypass_all_credit_checks === true;
   }, [user, entitlements]);
 
   // Quick check for paywall bypass
   const shouldBypassPaywall = useCallback(() => {
     if (!user) return false;
-    if (user.email === ADMIN_EMAIL) return true;
+    if (isSuperAdmin(user.email)) return true;
     return entitlements?.bypass_all_paywalls === true;
   }, [user, entitlements]);
 
   // Check if specific feature is enabled
   const hasFeature = useCallback((feature: string) => {
     if (!user) return false;
-    if (user.email === ADMIN_EMAIL) return true;
+    if (isSuperAdmin(user.email)) return true;
     if (entitlements?.features?.all) return true;
     return entitlements?.features?.[feature] === true;
   }, [user, entitlements]);
@@ -104,6 +103,7 @@ export function useAdminEntitlements() {
     shouldBypassPaywall,
     hasFeature,
     refetch: fetchEntitlements,
-    ADMIN_EMAIL
+    SUPER_ADMIN_EMAILS,
+    isSuperAdmin,
   };
 }
