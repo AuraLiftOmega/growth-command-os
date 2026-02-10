@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const CJ_BASE = "https://developers.cjdropshipping.com/api2.0/v1";
-const XAI_BASE = "https://api.x.ai/v1";
+const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 // ─── CJ Helpers ───
 async function getCJToken(apiKey: string, supabase: any): Promise<string> {
@@ -356,8 +356,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const xaiKey = Deno.env.get("XAI_API_KEY") || Deno.env.get("XAI_GROK_API_KEY");
-    if (!xaiKey) throw new Error("XAI_API_KEY not configured");
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableKey) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -412,25 +412,26 @@ ${context ? `ADDITIONAL CONTEXT: ${context}` : ""}`;
     const MAX_ITERATIONS = 8;
 
     for (let i = 0; i < MAX_ITERATIONS; i++) {
-      const grokResp = await fetch(`${XAI_BASE}/chat/completions`, {
+      const aiResp = await fetch(AI_GATEWAY, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${xaiKey}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableKey}` },
         body: JSON.stringify({
-          model: "grok-3",
+          model: "google/gemini-2.5-flash",
           messages,
           tools: TOOLS,
           tool_choice: "auto",
-          temperature: 0.3,
         }),
       });
 
-      if (!grokResp.ok) {
-        const errText = await grokResp.text();
-        console.error("Grok API error:", grokResp.status, errText);
-        throw new Error(`Grok API error ${grokResp.status}: ${errText}`);
+      if (!aiResp.ok) {
+        const errText = await aiResp.text();
+        console.error("AI Gateway error:", aiResp.status, errText);
+        if (aiResp.status === 429) throw new Error("Rate limited — try again in a moment.");
+        if (aiResp.status === 402) throw new Error("AI credits depleted — add credits in workspace settings.");
+        throw new Error(`AI Gateway error ${aiResp.status}: ${errText}`);
       }
 
-      const grokData = await grokResp.json();
+      const grokData = await aiResp.json();
       const choice = grokData.choices?.[0];
       if (!choice) throw new Error("No response from Grok");
 
