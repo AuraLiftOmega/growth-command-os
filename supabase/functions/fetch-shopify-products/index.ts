@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,40 +10,56 @@ const corsHeaders = {
 const SHOPIFY_STORE_DOMAIN = "lovable-project-7fb70.myshopify.com";
 const SHOPIFY_API_VERSION = "2025-07";
 
-// Profit engine configuration - 60% margin from CJ costs
-const PROFIT_CONFIG = {
-  targetMargin: 0.60,
-  defaultShipping: 5.99,
-};
-
-function calculateSellingPrice(cjCost: number, shippingCost: number = PROFIT_CONFIG.defaultShipping): number {
-  const totalCost = cjCost + shippingCost;
-  return Math.ceil((totalCost / (1 - PROFIT_CONFIG.targetMargin)) * 100) / 100;
-}
-
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { limit = 20, query } = await req.json().catch(() => ({}));
-    
+    const { limit = 50, query } = await req.json().catch(() => ({}));
+
     const adminToken = Deno.env.get("SHOPIFY_ACCESS_TOKEN");
-    
     if (!adminToken) {
-      console.error("SHOPIFY_ACCESS_TOKEN not configured");
       return new Response(
         JSON.stringify({ error: "Store not configured", products: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
-    // Build GraphQL query for Admin API
+    // 1. Get all CJ-sourced product names from cj_logs
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: cjProducts, error: cjError } = await supabase
+      .from('cj_logs')
+      .select('cj_product_id, cj_product_name, shopify_product_id')
+      .order('cj_product_id');
+
+    if (cjError) {
+      console.error("Error fetching CJ logs:", cjError);
+    }
+
+    // Build a set of CJ-sourced product names (normalized) for matching
+    const cjProductNames = new Set<string>();
+    const cjShopifyIds = new Set<string>();
+    if (cjProducts) {
+      for (const p of cjProducts) {
+        if (p.cj_product_name) {
+          cjProductNames.add(p.cj_product_name.toLowerCase().trim());
+        }
+        if (p.shopify_product_id) {
+          cjShopifyIds.add(p.shopify_product_id);
+        }
+      }
+    }
+
+    console.log(`Found ${cjProductNames.size} unique CJ product names, ${cjShopifyIds.size} with Shopify IDs`);
+
+    // 2. Fetch all products from Shopify
     const graphqlQuery = `
       query GetProducts($first: Int!, $query: String) {
-        products(first: $first, query: $query) {
+        products(first: $first, query: $query, sortKey: TITLE) {
           edges {
             node {
               id
@@ -52,6 +69,7 @@ serve(async (req) => {
               vendor
               productType
               tags
+              status
               priceRangeV2 {
                 minVariantPrice {
                   amount
@@ -100,7 +118,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           query: graphqlQuery,
-          variables: { first: limit, query: query || null },
+          variables: { first: limit, query: query || "status:active" },
         }),
       }
     );
@@ -115,7 +133,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
+
     if (data.errors) {
       console.error("GraphQL errors:", data.errors);
       return new Response(
@@ -124,8 +142,26 @@ serve(async (req) => {
       );
     }
 
-    // Transform Admin API response to match Storefront API format
-    const products = data.data?.products?.edges?.map((edge: any) => ({
+    // 3. Filter to only CJ-sourced products
+    const allEdges = data.data?.products?.edges || [];
+    const sourcedEdges = allEdges.filter((edge: any) => {
+      const shopifyGid = edge.node.id;
+      const title = (edge.node.title || '').toLowerCase().trim();
+
+      // Match by Shopify GID if linked in cj_logs
+      if (cjShopifyIds.has(shopifyGid)) return true;
+
+      // Match by product name (fuzzy: CJ name contained in Shopify title or vice versa)
+      for (const cjName of cjProductNames) {
+        if (title === cjName) return true;
+        if (title.includes(cjName) || cjName.includes(title)) return true;
+      }
+
+      return false;
+    });
+
+    // 4. Transform to storefront format
+    const products = sourcedEdges.map((edge: any) => ({
       node: {
         id: edge.node.id,
         title: edge.node.title,
@@ -157,12 +193,12 @@ serve(async (req) => {
         },
         options: edge.node.options || [],
       },
-    })) || [];
+    }));
 
-    console.log(`Fetched ${products.length} products from Shopify Admin API`);
+    console.log(`Returning ${products.length} CJ-sourced products out of ${allEdges.length} total`);
 
     return new Response(
-      JSON.stringify({ products }),
+      JSON.stringify({ products, totalInStore: allEdges.length, totalSourced: products.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
