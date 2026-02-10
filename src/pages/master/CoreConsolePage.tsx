@@ -93,6 +93,7 @@ export default function CoreConsolePage() {
     { id: 'brain', title: 'OMEGA Brain', description: 'AI suggestions & learning engine', icon: Brain, path: '/brain', category: 'intelligence', status: 'operational' },
     { id: 'crm', title: 'CRM', description: 'Contacts, deals & pipeline', icon: Target, path: '/crm/contacts', category: 'intelligence', status: 'operational', metric: String(liveStats.totalContacts), metricLabel: 'Contacts' },
     { id: 'ceo-brain', title: 'CEO Brain', description: 'Strategic AI orchestrator', icon: Rocket, path: '/ceo-brain', category: 'intelligence', status: 'operational' },
+    { id: 'grok-brain', title: 'Grok Brain', description: 'xAI store & fulfillment control', icon: Brain, path: '/admin/grok-brain', category: 'intelligence', status: 'operational' },
     { id: 'war-room', title: 'War Room', description: 'Real-time competitive intel', icon: Activity, path: '/war-room', category: 'intelligence', status: 'operational' },
 
     // Admin

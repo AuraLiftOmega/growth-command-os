@@ -32,6 +32,7 @@ import BillingCancel from "./pages/BillingCancel";
 import CheckoutSuccess from "./pages/checkout/Success";
 import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
+const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
 // MASTER_OS Pages
@@ -283,6 +284,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+
+      {/* Grok Brain */}
+      <Route path="/admin/grok-brain" element={<ProtectedRoute><LazyWrap><GrokBrain /></LazyWrap></ProtectedRoute>} />
 
       {/* ===== MASTER_OS ROUTES ===== */}
       <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
