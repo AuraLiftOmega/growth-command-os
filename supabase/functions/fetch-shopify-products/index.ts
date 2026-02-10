@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { limit = 50, query } = await req.json().catch(() => ({}));
+    const { limit = 50, query, skipSourceFilter = false } = await req.json().catch(() => ({}));
 
     const adminToken = Deno.env.get("SHOPIFY_ACCESS_TOKEN");
     if (!adminToken) {
@@ -142,23 +142,24 @@ serve(async (req) => {
       );
     }
 
-    // 3. Filter to only CJ-sourced products
+    // 3. Filter to only CJ-sourced products (unless skipSourceFilter)
     const allEdges = data.data?.products?.edges || [];
-    const sourcedEdges = allEdges.filter((edge: any) => {
-      const shopifyGid = edge.node.id;
-      const title = (edge.node.title || '').toLowerCase().trim();
-
-      // Match by Shopify GID if linked in cj_logs
-      if (cjShopifyIds.has(shopifyGid)) return true;
-
-      // Match by product name (fuzzy: CJ name contained in Shopify title or vice versa)
-      for (const cjName of cjProductNames) {
-        if (title === cjName) return true;
-        if (title.includes(cjName) || cjName.includes(title)) return true;
-      }
-
-      return false;
-    });
+    
+    let sourcedEdges;
+    if (skipSourceFilter) {
+      sourcedEdges = allEdges;
+    } else {
+      sourcedEdges = allEdges.filter((edge: any) => {
+        const shopifyGid = edge.node.id;
+        const title = (edge.node.title || '').toLowerCase().trim();
+        if (cjShopifyIds.has(shopifyGid)) return true;
+        for (const cjName of cjProductNames) {
+          if (title === cjName) return true;
+          if (title.includes(cjName) || cjName.includes(title)) return true;
+        }
+        return false;
+      });
+    }
 
     // 4. Transform to storefront format
     const products = sourcedEdges.map((edge: any) => ({
