@@ -22,6 +22,7 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
   const node = product.node;
   const firstVariant = node.variants.edges[0]?.node;
   const productImageUrl = node.images.edges[0]?.node?.url || '';
+  const hasImage = !!productImageUrl;
   const price = node.priceRange.minVariantPrice;
 
   const handleAddToCart = async () => {
@@ -75,11 +76,20 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
       <div className="glass-card overflow-hidden transition-all duration-300 hover:border-primary/30">
         {/* Image Container */}
         <Link to={`/product/${node.handle}`} className="block relative aspect-square overflow-hidden">
-          <img
-            src={productImageUrl}
-            alt={node.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {hasImage ? (
+            <img
+              src={productImageUrl}
+              alt={node.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <div className="text-center p-4">
+                <ShoppingCart className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
+                <span className="text-xs text-muted-foreground">{node.productType || 'Product'}</span>
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons Overlay */}
           <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
