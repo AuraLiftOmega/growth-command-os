@@ -361,14 +361,29 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    // Get CJ token (best-effort)
+    // Get CJ token (best-effort, with logging)
     let cjToken: string | null = null;
+    let cjStatus = "❌ No CJ_API_KEY secret found";
     const cjKey = Deno.env.get("CJ_API_KEY");
     if (cjKey) {
-      try { cjToken = await getCJToken(cjKey, supabase); } catch { /* CJ unavailable */ }
+      try { 
+        cjToken = await getCJToken(cjKey, supabase); 
+        cjStatus = "✅ Connected & authenticated";
+      } catch (e: any) { 
+        cjStatus = `⚠️ Key present but auth failed: ${e.message}`;
+        console.error("CJ auth error:", e.message);
+      }
     }
 
     const adminToken = Deno.env.get("SHOPIFY_ACCESS_TOKEN") || null;
+    const storefrontToken = Deno.env.get("SHOPIFY_STOREFRONT_ACCESS_TOKEN") || null;
+    const elevenlabsKey = Deno.env.get("ELEVENLABS_API_KEY") || null;
+    const resendKey = Deno.env.get("RESEND_API_KEY") || null;
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") || null;
+    const perplexityKey = Deno.env.get("PERPLEXITY_API_KEY") || null;
+    const replicateKey = Deno.env.get("REPLICATE_API_TOKEN") || null;
+    const xaiKey = Deno.env.get("XAI_API_KEY") || null;
+
     const { message, context, stream } = await req.json();
 
     // Build system prompt with live store data
@@ -389,8 +404,17 @@ YOUR CAPABILITIES:
 CONNECTED STORES:
 ${storeList || "No stores connected yet."}
 
-CJ STATUS: ${cjToken ? "✅ Connected" : "❌ Not connected"}
-SHOPIFY ADMIN: ${adminToken ? "✅ Available" : "⚠️ Storefront-only mode"}
+INTEGRATION STATUS (LIVE):
+- CJ Dropshipping: ${cjStatus}
+- Shopify Admin API: ${adminToken ? "✅ Connected" : "❌ No SHOPIFY_ACCESS_TOKEN"}
+- Shopify Storefront API: ${storefrontToken ? "✅ Connected" : "❌ No token"}
+- ElevenLabs (Voice/TTS): ${elevenlabsKey ? "✅ Available" : "❌ Not configured"}
+- Resend (Email): ${resendKey ? "✅ Available" : "❌ Not configured"}
+- Stripe (Billing): ${stripeKey ? "✅ Available" : "❌ Not configured"}
+- Perplexity (AI Search): ${perplexityKey ? "✅ Available" : "❌ Not configured"}
+- Replicate (AI Models): ${replicateKey ? "✅ Available" : "❌ Not configured"}
+- xAI Grok: ${xaiKey ? "✅ Available" : "❌ Not configured"}
+- Lovable AI Gateway: ✅ Active (powering this brain)
 
 RULES:
 1. Always use tools to fetch real data — NEVER make up numbers or statuses.
@@ -400,6 +424,7 @@ RULES:
 5. Be direct, decisive, and action-oriented. You are the CEO brain.
 6. When creating CJ orders, ensure shipping addresses are complete.
 7. Present data in clear, structured format with actionable insights.
+8. Report integration statuses accurately based on what's shown above — do NOT guess.
 
 ${context ? `ADDITIONAL CONTEXT: ${context}` : ""}`;
 
