@@ -11,32 +11,54 @@ const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 // ─── CJ Helpers ───
 async function getCJToken(apiKey: string, supabase: any): Promise<string> {
+  // Check for any cached token first
   const { data: cached } = await supabase
     .from("cj_settings")
-    .select("updated_at, last_sync_at")
+    .select("id, updated_at, last_sync_at")
     .limit(1)
     .single();
 
+  // If we have a cached token less than 14 days old, use it
   if (cached?.last_sync_at) {
     const age = (Date.now() - new Date(cached.updated_at).getTime()) / 864e5;
     if (age < 14) return cached.last_sync_at;
   }
 
-  const resp = await fetch(`${CJ_BASE}/authentication/getAccessToken`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apiKey }),
-  });
+  // Try to get a fresh token
+  let resp: Response;
+  try {
+    resp = await fetch(`${CJ_BASE}/authentication/getAccessToken`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ apiKey }),
+    });
+  } catch (e) {
+    // Network error — fall back to cached token if available
+    if (cached?.last_sync_at) return cached.last_sync_at;
+    throw new Error(`CJ network error: ${e}`);
+  }
 
-  if (resp.status === 429 && cached?.last_sync_at) return cached.last_sync_at;
-  if (!resp.ok) throw new Error(`CJ auth HTTP ${resp.status}`);
+  // Rate limited — use any cached token regardless of age
+  if (resp.status === 429) {
+    if (cached?.last_sync_at) return cached.last_sync_at;
+    throw new Error("CJ rate limited and no cached token available. Wait a few minutes and try again.");
+  }
+
+  if (!resp.ok) {
+    if (cached?.last_sync_at) return cached.last_sync_at;
+    throw new Error(`CJ auth HTTP ${resp.status}`);
+  }
 
   const data = await resp.json();
-  if (!data?.data?.accessToken) throw new Error("CJ auth failed");
+  if (!data?.data?.accessToken) {
+    if (cached?.last_sync_at) return cached.last_sync_at;
+    throw new Error("CJ auth response missing token");
+  }
   
   const token = data.data.accessToken;
-  if (cached) {
-    await supabase.from("cj_settings").update({ last_sync_at: token, updated_at: new Date().toISOString() }).not("id", "is", null);
+  // Cache the token
+  if (cached?.id) {
+    await supabase.from("cj_settings").update({ last_sync_at: token, updated_at: new Date().toISOString() }).eq("id", cached.id);
   }
   return token;
 }
