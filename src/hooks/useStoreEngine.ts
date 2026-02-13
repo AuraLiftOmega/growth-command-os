@@ -42,7 +42,7 @@ export function useStoreEngine() {
 
   // Fetch products from primary store
   const fetchProducts = useCallback(async (limit: number = 50, category?: string) => {
-    return fetchStoreProducts(limit, category);
+    return fetchStoreProducts(undefined, limit, category);
   }, []);
 
   // Calculate pricing for a product
