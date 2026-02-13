@@ -37,6 +37,7 @@ import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
+const CampaignLauncher = React.lazy(() => import("./pages/CampaignLauncher"));
 
 // MASTER_OS Pages
 const MasterDashboard = React.lazy(() => import("./pages/master/MasterDashboard"));
@@ -191,6 +192,7 @@ const AppRoutes = () => {
       <Route path="/about" element={<About />} />
       <Route path="/collections" element={<Collections />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/campaign" element={<LazyWrap><CampaignLauncher /></LazyWrap>} />
       
       {/* Product detail page - public */}
       <Route 

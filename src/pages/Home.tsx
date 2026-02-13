@@ -12,6 +12,7 @@ import { LifestyleBanner } from "@/components/storefront/LifestyleBanner";
 import { SocialProof } from "@/components/storefront/SocialProof";
 import { UpsellStrip } from "@/components/storefront/UpsellStrip";
 import { SocialFollow } from "@/components/storefront/SocialFollow";
+import { EmailCaptureBanner } from "@/components/storefront/EmailCaptureBanner";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
@@ -178,6 +179,9 @@ export default function Home() {
 
       {/* Lifestyle Banner */}
       <LifestyleBanner />
+
+      {/* Email Capture */}
+      <EmailCaptureBanner />
 
       {/* Bundles & Upsells */}
       <FeaturedBundles />
