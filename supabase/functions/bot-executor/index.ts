@@ -136,31 +136,57 @@ serve(async (req) => {
         try {
           if (command.startsWith("n8n:") && N8N_BASE_URL) {
             const webhookId = command.replace("n8n:", "");
+            const n8nApiKey = Deno.env.get("N8N_API_KEY");
+            const headers: Record<string, string> = { "Content-Type": "application/json" };
+            if (n8nApiKey) headers["Authorization"] = `Bearer ${n8nApiKey}`;
             const resp = await fetch(`${N8N_BASE_URL}/webhook/${webhookId}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ bot_id, command, ...payload }),
+              method: "POST", headers,
+              body: JSON.stringify({ bot_id, bot_name, command, user_id: userId, ...payload }),
             });
-            result = await resp.json().catch(() => ({ status: resp.status }));
+            result = await resp.json().catch(() => ({ status: resp.status, ok: resp.ok }));
           } else if (command.startsWith("python:") && PYTHON_WORKER_URL) {
             const endpoint = command.replace("python:", "");
             const resp = await fetch(`${PYTHON_WORKER_URL}/${endpoint}`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ bot_id, command, ...payload }),
+              body: JSON.stringify({ bot_id, command, user_id: userId, ...payload }),
             });
-            result = await resp.json().catch(() => ({ status: resp.status }));
+            result = await resp.json().catch(() => ({ status: resp.status, ok: resp.ok }));
           } else {
-            result = { executed: true, command, note: "Internal command processed" };
+            // Route through REAL internal command execution
+            result = await executeInternalCommand(supabase, {
+              ...job,
+              user_id: userId,
+              bot_id: bot_id || "manual",
+              bot_name: bot_name || "Direct Execution",
+              command,
+              command_payload: payload || {},
+            });
           }
 
           await supabase.from("bot_execution_queue").update({
             status: "completed", result, completed_at: new Date().toISOString(),
           }).eq("id", job?.id);
+
+          // Log execution result
+          await supabase.from("bot_logs").insert({
+            user_id: userId, bot_id: bot_id || "manual", bot_name: bot_name || "Direct Execution",
+            action: `execute_now: ${command}`, action_type: "execute",
+            team: "execution", status: "success",
+            revenue_impact: result?.revenue_impact || 0,
+            metadata: { result, mode: "live", timestamp: new Date().toISOString() },
+          });
         } catch (err: any) {
           await supabase.from("bot_execution_queue").update({
             status: "failed", error_message: err.message,
           }).eq("id", job?.id);
+
+          await supabase.from("bot_logs").insert({
+            user_id: userId, bot_id: bot_id || "manual", bot_name: bot_name || "Direct Execution",
+            action: `execute_now FAILED: ${command}`, action_type: "execute",
+            team: "execution", status: "failed",
+            metadata: { error: err.message, mode: "live" },
+          });
           result = { error: err.message };
         }
 
