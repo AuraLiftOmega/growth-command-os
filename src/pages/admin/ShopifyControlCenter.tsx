@@ -126,7 +126,7 @@ function ProductManager() {
     queryFn: async () => {
       // Use a direct Admin API call via a special flag
       const { data, error } = await supabase.functions.invoke('fetch-shopify-products', {
-        body: { limit: 50, query: 'status:active', skipSourceFilter: true },
+        body: { limit: 50, query: 'status:active' },
       });
       if (error) throw error;
       return data as { products: Array<{ node: ProductNode }>; totalInStore: number; totalSourced: number };
