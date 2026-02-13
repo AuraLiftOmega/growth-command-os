@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom';
 import { MasterOSLayout } from '@/components/master-os/MasterOSLayout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Activity, BarChart3, Brain, CreditCard, DollarSign, Globe,
   Layers, Lock, Megaphone, Package, Radio, Rocket, Shield, ShoppingBag,
   Target, Users, Zap, ArrowUpRight, CheckCircle2, AlertTriangle, XCircle,
-  Server, Wifi, Database, Clock,
+  Server, Wifi, Database, Clock, Terminal, Play, Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 type SystemStatus = 'operational' | 'degraded' | 'down';
 
@@ -44,6 +47,9 @@ const categoryColors: Record<string, string> = {
 export default function CoreConsolePage() {
   const { user } = useAuth();
   const { currentOrg } = useOrganization();
+  const [commandInput, setCommandInput] = useState('');
+  const [commandResult, setCommandResult] = useState<any>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [liveStats, setLiveStats] = useState({
     totalContacts: 0,
     activeAutomations: 0,
@@ -69,6 +75,41 @@ export default function CoreConsolePage() {
     };
     loadStats();
   }, [user]);
+
+  const executeCommand = async () => {
+    if (!commandInput.trim()) return;
+    setIsExecuting(true);
+    setCommandResult(null);
+    try {
+      let payload: any;
+      try {
+        payload = JSON.parse(commandInput);
+      } catch {
+        // If not JSON, treat as a Grok Brain query
+        payload = { command: "execute_single", module: "grok", action: "grok_query", parameters: { query: commandInput } };
+      }
+      const { data, error } = await supabase.functions.invoke('master-command', { body: payload });
+      if (error) throw error;
+      setCommandResult(data);
+      toast.success(`Command executed in ${data?.duration_ms || 0}ms`);
+    } catch (err: any) {
+      setCommandResult({ error: err.message });
+      toast.error(err.message);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  const quickCommands = [
+    { label: '🔍 Platform Audit', cmd: { command: "execute_single", action: "check_health" } },
+    { label: '🛒 Recover Carts', cmd: { command: "execute_single", action: "recover_carts" } },
+    { label: '📈 Scale Winners', cmd: { command: "execute_single", action: "scale_winners" } },
+    { label: '💀 Kill Losers', cmd: { command: "execute_single", action: "kill_losers" } },
+    { label: '🎯 Hunt Products', cmd: { command: "execute_single", action: "hunt_products" } },
+    { label: '📊 Stripe Report', cmd: { command: "execute_single", action: "stripe_report" } },
+    { label: '🤖 Bot Swarm', cmd: { command: "bot_swarm", parameters: { commands: ["recover_carts", "scale_winners", "hunt_products"] } } },
+    { label: '🚀 Full Launch', cmd: { command: "execute_master_workflow", module: "autonomous_commerce", action: "launch_global_campaign", parameters: { generate_video: true, content_strategy: "viral_ai_optimized", email_blast_count: 50, analytics_tracking: true }, trigger_options: { priority: "high" } } },
+  ];
 
   const subsystems: SubsystemCard[] = [
     // Finance
@@ -139,6 +180,60 @@ export default function CoreConsolePage() {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* ═══ MASTER COMMAND TERMINAL ═══ */}
+        <div className="rounded-xl border border-primary/30 bg-card overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border-b border-primary/20">
+            <Terminal className="w-4 h-4 text-primary" />
+            <span className="text-sm font-bold tracking-wide">MASTER COMMAND TERMINAL</span>
+            <Badge variant="outline" className="ml-auto text-[10px]">LIVE</Badge>
+          </div>
+          
+          {/* Quick Command Buttons */}
+          <div className="px-4 py-3 border-b border-border flex flex-wrap gap-2">
+            {quickCommands.map((qc) => (
+              <Button
+                key={qc.label}
+                size="sm"
+                variant="outline"
+                className="text-xs h-7"
+                disabled={isExecuting}
+                onClick={() => {
+                  setCommandInput(JSON.stringify(qc.cmd, null, 2));
+                  setCommandResult(null);
+                }}
+              >
+                {qc.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="p-4 space-y-3">
+            <Textarea
+              value={commandInput}
+              onChange={(e) => setCommandInput(e.target.value)}
+              placeholder='Paste JSON command or type a natural language query for Grok Brain...'
+              className="font-mono text-xs min-h-[100px] bg-background/50"
+            />
+            <div className="flex items-center gap-2">
+              <Button onClick={executeCommand} disabled={isExecuting || !commandInput.trim()} className="gap-2">
+                {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                {isExecuting ? 'Executing...' : 'Execute Command'}
+              </Button>
+              {commandResult && (
+                <Button variant="ghost" size="sm" onClick={() => setCommandResult(null)}>Clear</Button>
+              )}
+            </div>
+          </div>
+
+          {commandResult && (
+            <div className="px-4 pb-4">
+              <pre className="p-3 rounded-lg bg-muted/50 text-xs font-mono overflow-auto max-h-[400px] whitespace-pre-wrap">
+                {JSON.stringify(commandResult, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
 
         {/* Quick Stats Bar */}
