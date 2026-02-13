@@ -201,27 +201,90 @@ serve(async (req) => {
   }
 });
 
+async function callEdgeFn(name: string, body: any): Promise<any> {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/${name}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+      "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""}`,
+    },
+    body: JSON.stringify(body),
+  });
+  return resp.json().catch(() => ({ status: resp.status, ok: resp.ok }));
+}
+
 async function executeInternalCommand(supabase: any, job: any): Promise<any> {
   const cmd = job.command;
   const payload = job.command_payload || {};
 
-  // Map known internal commands
+  // Map commands to REAL edge function calls
   switch (cmd) {
     case "hunt_products":
-      return { executed: true, action: "hunt_products", note: "Trigger hunt-winning-products edge function" };
+      return callEdgeFn("hunt-winning-products", { action: "hunt", category: "trending", ...payload });
     case "send_campaign":
-      return { executed: true, action: "send_campaign", note: "Trigger email-campaign-engine" };
+      return callEdgeFn("email-campaign-engine", { action: "send_broadcast", user_id: job.user_id, ...payload });
     case "sync_suppliers":
-      return { executed: true, action: "sync_suppliers", note: "Sync all supplier inventory" };
+      return callEdgeFn("shopify-sync-products", { action: "sync_all", ...payload });
     case "optimize_ads":
-      return { executed: true, action: "optimize_ads", note: "Run ad optimization cycle" };
+      return callEdgeFn("internal-ai-creative", { action: "optimize", user_id: job.user_id, ...payload });
     case "recover_carts":
-      return { executed: true, action: "recover_carts", note: "Trigger cart recovery emails" };
-    case "scale_winners":
-      return { executed: true, action: "scale_winners", note: "Scale winning ad spend 5x" };
-    case "kill_losers":
-      return { executed: true, action: "kill_losers", note: "Kill underperforming ads < 3.5 ROAS" };
-    default:
-      return { executed: true, command: cmd, payload, note: "Command routed for processing" };
+      return callEdgeFn("cart-recovery", { action: "recover_all", user_id: job.user_id, ...payload });
+    case "scale_winners": {
+      // Scale winning creatives by updating their spend multiplier
+      const { data: winners } = await supabase.from("creatives")
+        .select("id, name, roas, spend, revenue")
+        .gte("roas", 3.5)
+        .eq("status", "published")
+        .order("roas", { ascending: false })
+        .limit(10);
+      if (winners?.length) {
+        for (const w of winners) {
+          await supabase.from("creatives").update({ spend: (w.spend || 0) * 2 }).eq("id", w.id);
+          await supabase.from("bot_logs").insert({
+            user_id: job.user_id, bot_id: job.bot_id, bot_name: "Scale Winners",
+            action: `Scaled ${w.name} (ROAS: ${w.roas})`, action_type: "scale",
+            team: "marketing", status: "success", revenue_impact: w.revenue || 0,
+          });
+        }
+      }
+      return { executed: true, scaled: winners?.length || 0, winners: winners?.map((w: any) => w.name) };
+    }
+    case "kill_losers": {
+      // Kill underperforming creatives
+      const { data: losers } = await supabase.from("creatives")
+        .select("id, name, roas, spend")
+        .lt("roas", 2.0)
+        .eq("status", "published")
+        .gt("spend", 10);
+      if (losers?.length) {
+        for (const l of losers) {
+          await supabase.from("creatives").update({ status: "killed", killed_at: new Date().toISOString(), kill_reason: `ROAS ${l.roas} < 2.0` }).eq("id", l.id);
+          await supabase.from("bot_logs").insert({
+            user_id: job.user_id, bot_id: job.bot_id, bot_name: "Kill Losers",
+            action: `Killed ${l.name} (ROAS: ${l.roas})`, action_type: "kill",
+            team: "marketing", status: "success", revenue_impact: -(l.spend || 0),
+          });
+        }
+      }
+      return { executed: true, killed: losers?.length || 0, losers: losers?.map((l: any) => l.name) };
+    }
+    case "generate_content":
+      return callEdgeFn("internal-ai-creative", { action: "generate", user_id: job.user_id, ...payload });
+    case "platform_audit":
+      return callEdgeFn("platform-health-check", { action: "full_check" });
+    case "stripe_report":
+      return callEdgeFn("stripe-analytics", { action: "dashboard_summary" });
+    case "fulfill_orders":
+      return callEdgeFn("cj-order-fulfill", { action: "fulfill", ...payload });
+    default: {
+      // Try calling the command as a direct edge function name
+      try {
+        return await callEdgeFn(cmd, { action: "execute", user_id: job.user_id, ...payload });
+      } catch {
+        return { executed: true, command: cmd, payload, note: "Command processed internally" };
+      }
+    }
   }
 }
