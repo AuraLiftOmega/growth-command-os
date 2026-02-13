@@ -7737,6 +7737,63 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_products: {
+        Row: {
+          cj_product_id: string | null
+          created_at: string
+          currency: string | null
+          handle: string | null
+          id: string
+          image_url: string | null
+          last_synced_at: string | null
+          live: boolean
+          name: string
+          price: number
+          product_type: string | null
+          shopify_product_id: string
+          status: string
+          updated_at: string
+          user_id: string
+          vendor: string | null
+        }
+        Insert: {
+          cj_product_id?: string | null
+          created_at?: string
+          currency?: string | null
+          handle?: string | null
+          id?: string
+          image_url?: string | null
+          last_synced_at?: string | null
+          live?: boolean
+          name: string
+          price?: number
+          product_type?: string | null
+          shopify_product_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vendor?: string | null
+        }
+        Update: {
+          cj_product_id?: string | null
+          created_at?: string
+          currency?: string | null
+          handle?: string | null
+          id?: string
+          image_url?: string | null
+          last_synced_at?: string | null
+          live?: boolean
+          name?: string
+          price?: number
+          product_type?: string | null
+          shopify_product_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vendor?: string | null
+        }
+        Relationships: []
+      }
       user_products: {
         Row: {
           compare_at_price: number | null
