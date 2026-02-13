@@ -12,6 +12,9 @@ import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import Store from "./pages/Store";
 import Home from "./pages/Home";
+import About from "./pages/About";
+import Collections from "./pages/Collections";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import OmegaCommand from "./pages/OmegaCommand";
 import CEOBrain from "./pages/CEOBrain";
@@ -185,6 +188,9 @@ const AppRoutes = () => {
       {/* Public routes for store and pricing */}
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/collections" element={<Collections />} />
+      <Route path="/contact" element={<Contact />} />
       
       {/* Product detail page - public */}
       <Route 

@@ -17,9 +17,9 @@ export function StoreHeader() {
 
   const navLinks = [
     { href: "/store", label: "Shop All" },
-    { href: "/store?category=Skincare", label: "Skincare" },
-    { href: "/store?category=Beauty Tools", label: "Beauty Tools" },
-    { href: "/store?category=Beauty Tech", label: "Beauty Tech" },
+    { href: "/collections", label: "Collections" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Help" },
   ];
 
   return (
