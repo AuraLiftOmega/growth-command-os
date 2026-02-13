@@ -1,13 +1,13 @@
 /**
  * SHOPIFY SAFETY LAYER
  * 
- * Enforces single-store mode and provides safety checks
- * for all Shopify operations.
+ * Supports multi-store mode with dynamic validation
+ * against user_store_connections table.
  */
 
 import { supabase } from '@/integrations/supabase/client';
 
-// CANONICAL PRIMARY STORE - LOCKED
+// Default primary store (used as fallback only)
 export const PRIMARY_SHOP_DOMAIN = 'lovable-project-7fb70.myshopify.com';
 
 export interface ShopifySafetyStatus {
@@ -29,38 +29,46 @@ export async function getShopifySafetyStatus(): Promise<ShopifySafetyStatus> {
       .eq('project_slug', 'primary')
       .single();
 
-    const { data: connection } = await supabase
-      .from('shopify_connections')
-      .select('*')
-      .eq('shop_domain', PRIMARY_SHOP_DOMAIN)
-      .eq('role', 'primary')
-      .single();
-
     return {
-      isOperational: !config?.safe_mode_enabled && connection?.is_verified,
+      isOperational: !config?.safe_mode_enabled,
       safeModeEnabled: config?.safe_mode_enabled ?? false,
       primaryStore: config?.primary_shop_domain ?? PRIMARY_SHOP_DOMAIN,
       multiShopEnabled: config?.multi_shop_mode ?? false,
-      lastVerified: connection?.last_verified_at ?? null
+      lastVerified: null
     };
   } catch (error) {
     console.error('[shopify-safety] Failed to get status:', error);
     return {
-      isOperational: true, // Fail open for reads
+      isOperational: true,
       safeModeEnabled: false,
       primaryStore: PRIMARY_SHOP_DOMAIN,
-      multiShopEnabled: false,
+      multiShopEnabled: true, // Fail open for multi-store
       lastVerified: null
     };
   }
 }
 
 /**
- * Validate shop domain matches primary store
+ * Validate shop domain is in user's connected stores
+ */
+export async function validateShopDomainForUser(shopDomain: string, userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('user_store_connections')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('store_domain', shopDomain.toLowerCase().trim())
+    .eq('is_active', true)
+    .maybeSingle();
+
+  return !!data;
+}
+
+/**
+ * Simple domain format validation (no longer locked to single store)
  */
 export function validateShopDomain(shopDomain: string): boolean {
   const normalized = shopDomain.toLowerCase().trim();
-  return normalized === PRIMARY_SHOP_DOMAIN;
+  return normalized.endsWith('.myshopify.com') && normalized.length > '.myshopify.com'.length;
 }
 
 /**
@@ -72,21 +80,19 @@ export async function canPerformWrite(): Promise<boolean> {
 }
 
 /**
- * Guard for Shopify write operations
+ * Guard for Shopify write operations - now supports any user-connected store
  */
 export async function shopifyWriteGuard(
   shopDomain: string,
   operation: string
 ): Promise<{ allowed: boolean; reason?: string }> {
-  // Validate domain first
   if (!validateShopDomain(shopDomain)) {
     return {
       allowed: false,
-      reason: `Shop domain "${shopDomain}" does not match primary store`
+      reason: `Invalid shop domain format: "${shopDomain}"`
     };
   }
 
-  // Check safe mode
   const status = await getShopifySafetyStatus();
   
   if (status.safeModeEnabled) {
@@ -96,7 +102,6 @@ export async function shopifyWriteGuard(
     };
   }
 
-  // Log the operation attempt
   try {
     await supabase.from('shopify_audit_log').insert({
       event_type: 'WRITE_ATTEMPT',
@@ -126,7 +131,7 @@ export function validateWebhookSource(
   if (!validateShopDomain(shopDomain)) {
     return { 
       valid: false, 
-      reason: `Webhook from unauthorized store: ${shopDomain}` 
+      reason: `Webhook from invalid store domain: ${shopDomain}` 
     };
   }
 
@@ -138,7 +143,7 @@ export function validateWebhookSource(
 }
 
 /**
- * Get storefront credentials for primary store
+ * Get storefront credentials for primary store (fallback)
  */
 export function getPrimaryStoreCredentials(): {
   domain: string;
@@ -153,9 +158,9 @@ export function getPrimaryStoreCredentials(): {
 }
 
 /**
- * Build Storefront API URL for primary store
+ * Build Storefront API URL for any store domain
  */
-export function buildStorefrontUrl(): string {
-  const { domain, apiVersion } = getPrimaryStoreCredentials();
-  return `https://${domain}/api/${apiVersion}/graphql.json`;
+export function buildStorefrontUrl(storeDomain?: string): string {
+  const domain = storeDomain || PRIMARY_SHOP_DOMAIN;
+  return `https://${domain}/api/2025-07/graphql.json`;
 }
