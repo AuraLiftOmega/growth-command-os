@@ -3646,6 +3646,45 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_configs: {
+        Row: {
+          base_url: string | null
+          created_at: string
+          id: string
+          last_tested_at: string | null
+          metadata: Json | null
+          service_key: string
+          service_name: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          last_tested_at?: string | null
+          metadata?: Json | null
+          service_key: string
+          service_name: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          last_tested_at?: string | null
+          metadata?: Json | null
+          service_key?: string
+          service_name?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       integration_tokens: {
         Row: {
           access_token_encrypted: string | null
