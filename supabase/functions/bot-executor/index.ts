@@ -11,7 +11,6 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const N8N_BASE_URL = Deno.env.get("N8N_BASE_URL");
 
     const body = await req.json();
     const { action } = body;
@@ -22,6 +21,18 @@ serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
       userId = user?.id || null;
     }
+
+    // Resolve integration URLs from DB config, then env fallback
+    const resolveUrl = async (serviceKey: string, envKey: string) => {
+      if (userId) {
+        const { data: cfg } = await supabase.from("integration_configs").select("base_url")
+          .eq("user_id", userId).eq("service_key", serviceKey).maybeSingle();
+        if (cfg?.base_url) return cfg.base_url;
+      }
+      return Deno.env.get(envKey) || null;
+    };
+    const N8N_BASE_URL = await resolveUrl("n8n", "N8N_BASE_URL");
+    const PYTHON_WORKER_URL = await resolveUrl("python_worker", "PYTHON_WORKER_URL");
 
     // Helper: call another edge function
     const callFn = async (name: string, payload: any) => {
@@ -46,6 +57,15 @@ serve(async (req) => {
         if (key) hdrs["Authorization"] = `Bearer ${key}`;
         const r = await fetch(`${N8N_BASE_URL}/webhook/${wh}`, {
           method: "POST", headers: hdrs,
+          body: JSON.stringify({ bot_id: botId, command: cmd, user_id: uid, ...payload }),
+        });
+        return r.json().catch(() => ({ status: r.status }));
+      }
+      // Python worker
+      if (cmd.startsWith("python:") && PYTHON_WORKER_URL) {
+        const endpoint = cmd.replace("python:", "");
+        const r = await fetch(`${PYTHON_WORKER_URL}/${endpoint}`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ bot_id: botId, command: cmd, user_id: uid, ...payload }),
         });
         return r.json().catch(() => ({ status: r.status }));
