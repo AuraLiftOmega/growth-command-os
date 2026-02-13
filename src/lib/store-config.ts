@@ -9,17 +9,17 @@
 
 // Platform Branding (store connected: Aura Luxe)
 export const PLATFORM_CONFIG = {
-  name: "Aura Luxe",
-  shortName: "Aura",
+  name: "Aura Lift Essentials",
+  shortName: "Aura Lift",
   domain: "growth-command-os.lovable.app",
   fullUrl: "https://growth-command-os.lovable.app",
   tagline: "Premium Beauty & Skincare",
-  email: "hello@auraluxe.com",
+  email: "hello@auraliftessentials.com",
   phone: "",
   description: "Discover our curated collection of premium skincare and beauty essentials.",
-  instagram: "@auraluxebeauty",
-  tiktok: "@auraluxebeauty",
-  pinterest: "auraluxebeauty",
+  instagram: "@auraliftessentials",
+  tiktok: "@auraliftessentials",
+  pinterest: "auraliftessentials",
   
   // Helper functions for platform (not user store)
   getShareUrl: (path: string = "") => `https://growth-command-os.lovable.app${path}`,
