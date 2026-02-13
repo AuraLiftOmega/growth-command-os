@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShoppingCart, Eye, Check, Share2 } from "lucide-react";
+import { ShoppingCart, Eye, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { ShopifyProduct } from "@/lib/storefront-api";
-import { STORE_CONFIG } from "@/lib/store-config";
 import { toast } from "sonner";
 
 interface StoreProductCardProps {
@@ -25,7 +24,10 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
   const hasImage = !!productImageUrl;
   const price = node.priceRange.minVariantPrice;
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!firstVariant) {
       toast.error("Product unavailable");
       return;
@@ -47,122 +49,93 @@ export function StoreProductCard({ product, index = 0, onQuickView }: StoreProdu
       position: "top-center",
     });
 
-    setTimeout(() => setIsAdding(false), 500);
-  };
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const shareUrl = STORE_CONFIG.getProductUrl(node.handle);
-    
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copied!", {
-        description: `${STORE_CONFIG.domain}/product/${node.handle}`,
-        position: "top-center",
-      });
-    } catch {
-      toast.error("Failed to copy link");
-    }
+    setTimeout(() => setIsAdding(false), 600);
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className="group relative"
+      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.4) }}
+      className="group"
     >
-      <div className="glass-card overflow-hidden transition-all duration-300 hover:border-primary/30">
-        {/* Image Container */}
-        <Link to={`/product/${node.handle}`} className="block relative aspect-square overflow-hidden">
-          {hasImage ? (
-            <img
-              src={productImageUrl}
-              alt={node.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <div className="text-center p-4">
-                <ShoppingCart className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
-                <span className="text-xs text-muted-foreground">{node.productType || 'Product'}</span>
+      <Link to={`/product/${node.handle}`} className="block">
+        <div className="rounded-xl overflow-hidden border border-border/40 bg-card/40 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+          {/* Image */}
+          <div className="relative aspect-square overflow-hidden bg-muted/30">
+            {hasImage ? (
+              <img
+                src={productImageUrl}
+                alt={node.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <ShoppingCart className="w-10 h-10 text-muted-foreground/30" />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Action Buttons Overlay */}
-          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleShare}
-            >
-              <Share2 className="w-4 h-4" />
-            </Button>
+            {/* Quick View */}
+            {onQuickView && (
+              <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="shadow-lg"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onQuickView(product);
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Quick View
+                </Button>
+              </div>
+            )}
+
+            {/* Variant Badge */}
+            {node.variants.edges.length > 1 && (
+              <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground text-[10px]">
+                {node.variants.edges.length} Options
+              </Badge>
+            )}
           </div>
 
-          {/* Quick View Button */}
-          {onQuickView && (
-            <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onQuickView(product);
-                }}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Quick View
-              </Button>
-            </div>
-          )}
-
-          {/* Sale Badge */}
-          {node.variants.edges.length > 1 && (
-            <Badge className="absolute top-3 left-3 bg-accent">
-              {node.variants.edges.length} Options
-            </Badge>
-          )}
-        </Link>
-
-        {/* Product Info */}
-        <div className="p-4 space-y-3">
-          <Link to={`/product/${node.handle}`}>
-            <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+          {/* Info */}
+          <div className="p-4 space-y-2">
+            <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">
+              {node.productType || "Beauty"}
+            </p>
+            <h3 className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">
               {node.title}
             </h3>
-          </Link>
-          
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {node.description || "Premium quality product for your needs"}
-          </p>
 
-          <div className="flex items-center justify-between pt-2">
-            <div className="text-xl font-bold text-primary">
-              {price.currencyCode} {parseFloat(price.amount).toFixed(2)}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-lg font-bold text-primary font-mono">
+                ${parseFloat(price.amount).toFixed(2)}
+              </span>
+
+              <Button
+                size="sm"
+                onClick={handleAddToCart}
+                disabled={isAdding || !firstVariant?.availableForSale}
+                className={`h-9 px-4 text-xs ${isAdding ? "bg-success hover:bg-success" : "btn-power"}`}
+              >
+                {isAdding ? (
+                  <Check className="w-4 h-4" />
+                ) : (
+                  <>
+                    <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+                    Add
+                  </>
+                )}
+              </Button>
             </div>
-
-            <Button
-              size="sm"
-              onClick={handleAddToCart}
-              disabled={isAdding || !firstVariant?.availableForSale}
-              className={isAdding ? "bg-success hover:bg-success" : "btn-power"}
-            >
-              {isAdding ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Add
-                </>
-              )}
-            </Button>
           </div>
         </div>
-      </div>
+      </Link>
     </motion.div>
   );
 }
