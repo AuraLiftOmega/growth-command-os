@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MasterOSLayout } from '@/components/master-os/MasterOSLayout';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import StoreCredentialsManager from '@/components/store/StoreCredentialsManager';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -218,6 +220,11 @@ export default function SettingsIntegrationsPage() {
             ))}
           </div>
         )}
+
+        <Separator className="my-8" />
+        
+        {/* Multi-Tenant Store Credentials */}
+        <StoreCredentialsManager />
       </div>
     </MasterOSLayout>
   );
