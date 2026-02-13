@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { limit = 50, query, skipSourceFilter = false } = await req.json().catch(() => ({}));
+    const { limit = 50, query, skipSourceFilter = true, onlyCjSourced = false } = await req.json().catch(() => ({}));
 
     const adminToken = Deno.env.get("SHOPIFY_ACCESS_TOKEN");
     if (!adminToken) {
@@ -146,9 +146,7 @@ serve(async (req) => {
     const allEdges = data.data?.products?.edges || [];
     
     let sourcedEdges;
-    if (skipSourceFilter) {
-      sourcedEdges = allEdges;
-    } else {
+    if (onlyCjSourced) {
       sourcedEdges = allEdges.filter((edge: any) => {
         const shopifyGid = edge.node.id;
         const title = (edge.node.title || '').toLowerCase().trim();
@@ -159,6 +157,8 @@ serve(async (req) => {
         }
         return false;
       });
+    } else {
+      sourcedEdges = allEdges;
     }
 
     // 4. Transform to storefront format
