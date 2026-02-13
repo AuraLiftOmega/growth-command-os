@@ -43,10 +43,16 @@ export function StoreFooter() {
             </nav>
           </div>
 
-          {/* Support Links */}
+          {/* Company & Support */}
           <div className="space-y-4">
-            <h4 className="font-semibold">Support</h4>
+            <h4 className="font-semibold">Company</h4>
             <nav className="flex flex-col space-y-2">
+              <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                About Us
+              </Link>
+              <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Help & FAQ
+              </Link>
               <Link to="/shipping" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Shipping Policy
               </Link>
