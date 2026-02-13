@@ -7,7 +7,7 @@
 export const PLATFORM_STORE = {
   domain: 'lovable-project-7fb70.myshopify.com',
   storefrontToken: 'd9830af538b34d418e1167726cf1f67a',
-  name: 'Aura Luxe',
+  name: 'Aura Lift Essentials',
   apiVersion: '2025-07',
 } as const;
 
