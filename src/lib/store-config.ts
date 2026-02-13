@@ -14,7 +14,7 @@ export const PLATFORM_CONFIG = {
   domain: "growth-command-os.lovable.app",
   fullUrl: "https://growth-command-os.lovable.app",
   tagline: "Premium Beauty & Skincare",
-  email: "hello@auraliftessentials.com",
+  email: "ryan@auraliftessentials.com",
   phone: "",
   description: "Discover our curated collection of premium skincare and beauty essentials.",
   instagram: "@auraliftessentials",
