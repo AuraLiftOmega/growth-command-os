@@ -8754,6 +8754,45 @@ export type Database = {
         }
         Relationships: []
       }
+      zoho_tokens: {
+        Row: {
+          access_token: string
+          api_domain: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string
+          scopes: string[] | null
+          token_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          api_domain?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          refresh_token: string
+          scopes?: string[] | null
+          token_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          api_domain?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+          scopes?: string[] | null
+          token_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
