@@ -76,10 +76,10 @@ export async function registerPushSubscription(): Promise<boolean> {
     if (!granted) return false;
 
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.subscribe({
-      userActiveSessions: true,
+    const subscription = await (registration as any).pushManager?.subscribe({
+      userVisibleOnly: true,
       applicationServerKey: undefined, // VAPID key would go here
-    } as PushSubscriptionOptionsInit);
+    });
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
