@@ -5600,6 +5600,7 @@ export type Database = {
           shopify_product_id: string | null
           sourcing_status: string | null
           stock_status: string | null
+          store_connection_id: string | null
           supplier_id: string | null
           supplier_name: string
           supplier_product_id: string | null
@@ -5622,6 +5623,7 @@ export type Database = {
           shopify_product_id?: string | null
           sourcing_status?: string | null
           stock_status?: string | null
+          store_connection_id?: string | null
           supplier_id?: string | null
           supplier_name: string
           supplier_product_id?: string | null
@@ -5644,6 +5646,7 @@ export type Database = {
           shopify_product_id?: string | null
           sourcing_status?: string | null
           stock_status?: string | null
+          store_connection_id?: string | null
           supplier_id?: string | null
           supplier_name?: string
           supplier_product_id?: string | null
@@ -5653,6 +5656,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_sourcing_store_connection_id_fkey"
+            columns: ["store_connection_id"]
+            isOneToOne: false
+            referencedRelation: "user_store_connections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_sourcing_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -8001,8 +8011,14 @@ export type Database = {
           is_active: boolean
           is_primary: boolean
           last_synced_at: string | null
+          min_margin: number | null
           orders_count: number | null
+          platform_fee: number | null
           products_count: number | null
+          profit_margin_target: number | null
+          shopify_client_id: string | null
+          shopify_client_secret: string | null
+          shopify_client_secret_encrypted: string | null
           store_domain: string
           store_name: string
           storefront_access_token: string
@@ -8020,8 +8036,14 @@ export type Database = {
           is_active?: boolean
           is_primary?: boolean
           last_synced_at?: string | null
+          min_margin?: number | null
           orders_count?: number | null
+          platform_fee?: number | null
           products_count?: number | null
+          profit_margin_target?: number | null
+          shopify_client_id?: string | null
+          shopify_client_secret?: string | null
+          shopify_client_secret_encrypted?: string | null
           store_domain: string
           store_name: string
           storefront_access_token: string
@@ -8039,8 +8061,14 @@ export type Database = {
           is_active?: boolean
           is_primary?: boolean
           last_synced_at?: string | null
+          min_margin?: number | null
           orders_count?: number | null
+          platform_fee?: number | null
           products_count?: number | null
+          profit_margin_target?: number | null
+          shopify_client_id?: string | null
+          shopify_client_secret?: string | null
+          shopify_client_secret_encrypted?: string | null
           store_domain?: string
           store_name?: string
           storefront_access_token?: string
