@@ -11,6 +11,7 @@ import { FeaturedBundles } from "@/components/storefront/FeaturedBundles";
 import { LifestyleBanner } from "@/components/storefront/LifestyleBanner";
 import { SocialProof } from "@/components/storefront/SocialProof";
 import { UpsellStrip } from "@/components/storefront/UpsellStrip";
+import { SocialFollow } from "@/components/storefront/SocialFollow";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
@@ -183,6 +184,9 @@ export default function Home() {
 
       {/* Social Proof */}
       <SocialProof />
+
+      {/* Social Follow */}
+      <SocialFollow />
 
       {/* Quick View Modal */}
       {quickViewProduct && (
