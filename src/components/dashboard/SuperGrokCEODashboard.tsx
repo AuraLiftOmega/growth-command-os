@@ -228,7 +228,7 @@ export function SuperGrokCEODashboard() {
   const [activeTab, setActiveTab] = useState('command');
   const [nextLoopTime, setNextLoopTime] = useState<Date | null>(null);
   const [loopCount, setLoopCount] = useState(0);
-  const autonomousIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autonomousIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load decision logs
   useEffect(() => {

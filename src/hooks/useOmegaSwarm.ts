@@ -129,7 +129,7 @@ export function useOmegaSwarm() {
   const [hotActions, setHotActions] = useState<HotAction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExecuting, setIsExecuting] = useState<AgentType | 'all' | 'hourly' | null>(null);
-  const hourlyIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hourlyIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Initialize agents
   useEffect(() => {

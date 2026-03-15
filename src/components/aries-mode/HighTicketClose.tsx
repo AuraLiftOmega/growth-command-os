@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 export const OpportunityCostEscalator = () => {
   const { isHighTicketActive, highTicketActivatedAt, opportunityCostAccumulated, incrementOpportunityCost } = useAriesStore();
   const [displayCost, setDisplayCost] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isHighTicketActive && highTicketActivatedAt) {

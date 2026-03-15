@@ -84,7 +84,7 @@ export const OmegaCEOControl = () => {
 
   // Infinite loop effect
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isInfiniteLoop && user) {
       interval = setInterval(async () => {
         setLoopIteration(prev => prev + 1);

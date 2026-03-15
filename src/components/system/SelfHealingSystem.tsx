@@ -34,7 +34,7 @@ class SelfHealingMonitor {
   private events: HealthEvent[] = [];
   private listeners: Set<(events: HealthEvent[]) => void> = new Set();
   private isRunning = false;
-  private checkInterval: NodeJS.Timeout | null = null;
+  private checkInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.initializeDefaults();

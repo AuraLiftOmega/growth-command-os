@@ -62,7 +62,7 @@ export const OnboardingForm = () => {
   const [selectedMode, setSelectedMode] = useState<OnboardingMode | null>(null);
   const [showModeSelector, setShowModeSelector] = useState(true);
   const CurrentStepComponent = steps[currentStep].component;
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Handle mode selection
   const handleModeSelect = async (mode: OnboardingMode) => {

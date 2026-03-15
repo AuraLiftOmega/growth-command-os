@@ -123,7 +123,7 @@ export function RevenueEngineDashboard() {
     postsPublished: 189,
   });
   
-  const autonomousIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autonomousIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track generated videos
   const [generatedVideos, setGeneratedVideos] = useState<Array<{
