@@ -17,7 +17,7 @@ export const ScaleModePanel = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const [settings, setSettings] = useState<ScaleSetting[]>([
     {

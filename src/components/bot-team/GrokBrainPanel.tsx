@@ -58,7 +58,7 @@ export function GrokBrainPanel({ onThink, lastThinking, isThinking }: GrokBrainP
   const [nextLoopTime, setNextLoopTime] = useState<Date | null>(null);
   const [customQuery, setCustomQuery] = useState("");
   const [showQueryInput, setShowQueryInput] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Clear interval on unmount
   useEffect(() => {

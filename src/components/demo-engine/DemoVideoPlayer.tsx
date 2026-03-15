@@ -63,7 +63,7 @@ export const DemoVideoPlayer = ({
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   // Generate scenes from narrative or use production defaults
   const scenes = narrative?.scenes || [

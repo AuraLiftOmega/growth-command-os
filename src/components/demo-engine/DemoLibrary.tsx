@@ -81,7 +81,7 @@ export const DemoLibrary = () => {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [useAdvancedPlayer, setUseAdvancedPlayer] = useState(true);
-  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Poll for render progress
   useEffect(() => {

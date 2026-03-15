@@ -76,8 +76,8 @@ export default function DemoEmbed() {
   const [viewRecorded, setViewRecorded] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const playbackRef = useRef<NodeJS.Timeout | null>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const playbackRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Fetch demo data
   useEffect(() => {

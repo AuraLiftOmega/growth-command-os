@@ -81,7 +81,7 @@ export const AutoDemoPlayer = ({
   const [sceneProgress, setSceneProgress] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
+  const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentScene = DEMO_SCENES[currentSceneIndex];
   const totalProgress = ((currentSceneIndex * 100) + sceneProgress) / DEMO_SCENES.length;
