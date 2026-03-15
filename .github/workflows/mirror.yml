@@ -1,4 +1,4 @@
-name: Mirror to masterecosystem
+name: Mirror to ecosystem repos
 
 on:
   push:
@@ -14,7 +14,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Push to mirror
+      - name: Push to masterecosystem
         run: |
-          git remote add mirror https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/rfloweroflife-ui/masterecosystem.git
-          git push mirror main --force
+          git remote add mirror-eco https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/rfloweroflife-ui/masterecosystem.git
+          git push mirror-eco main --force
+
+      - name: Push to growth-command-os
+        run: |
+          git remote add mirror-gco https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/rfloweroflife-ui/growth-command-os.git
+          git push mirror-gco main --force
