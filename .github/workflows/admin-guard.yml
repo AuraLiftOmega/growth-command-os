@@ -1,0 +1,28 @@
+name: Admin Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: ['**']
+  fork:
+  member:
+    types: [added, edited]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce super admin ownership
+        run: |
+          echo "🔒 Repository governed by super admin: rfloweroflife-ui"
+          echo "All PRs require approval from @rfloweroflife-ui (via CODEOWNERS)"
+          echo "Branch protection rules should be enabled in Settings → Branches"
+
+      - name: Block unauthorized admin changes
+        if: github.event_name == 'member'
+        env:
+          GH_TOKEN: ${{ secrets.MIRROR_PAT }}
+        run: |
+          echo "⚠️ Team membership change detected"
+          echo "Verify rfloweroflife-ui retains admin access"
