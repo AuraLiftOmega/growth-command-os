@@ -266,13 +266,13 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Billing Admin Dashboard (protected) */}
+      {/* Billing Admin Dashboard (admin-only) */}
       <Route 
         path="/admin/billing" 
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <BillingAdmin />
-          </ProtectedRoute>
+          </AdminRoute>
         } 
       />
       
@@ -284,18 +284,18 @@ const AppRoutes = () => {
       <Route path="/checkout/success" element={<CheckoutSuccess />} />
       <Route path="/checkout/cancel" element={<CheckoutCancel />} />
       
-      {/* Shopify Control Center (Admin) */}
+      {/* Shopify Control Center (Admin-only) */}
       <Route 
         path="/admin/shopify-control-center" 
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <ShopifyControlCenter />
-          </ProtectedRoute>
+          </AdminRoute>
         } 
       />
 
-      {/* Grok Brain */}
-      <Route path="/admin/grok-brain" element={<ProtectedRoute><LazyWrap><GrokBrain /></LazyWrap></ProtectedRoute>} />
+      {/* Grok Brain (Admin-only) */}
+      <Route path="/admin/grok-brain" element={<AdminRoute><LazyWrap><GrokBrain /></LazyWrap></AdminRoute>} />
 
       {/* ===== MASTER_OS ROUTES ===== */}
       <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
