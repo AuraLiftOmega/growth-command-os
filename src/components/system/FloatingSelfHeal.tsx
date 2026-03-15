@@ -25,7 +25,7 @@ interface HealSummary {
   results: HealResult[];
 }
 
-export const FloatingSelfHeal = () => {
+export const FloatingSelfHeal = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
   const [lastHeal, setLastHeal] = useState<HealSummary | null>(null);
