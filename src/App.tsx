@@ -313,14 +313,10 @@ const AppRoutes = () => {
       <Route path="/settings/billing" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
       <Route path="/settings/integrations" element={<ProtectedRoute><LazyWrap><SettingsIntegrationsPage /></LazyWrap></ProtectedRoute>} />
       <Route path="/crm/*" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/users" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/organizations" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/logs" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/products" element={<ProtectedRoute><LazyWrap><InternalProductsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/products/:productId" element={<ProtectedRoute><LazyWrap><InternalProductsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/revenue-command" element={<ProtectedRoute><LazyWrap><RevenueCommandPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/comms" element={<ProtectedRoute><LazyWrap><CommsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/console" element={<ProtectedRoute><LazyWrap><CoreConsolePage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/organizations" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/logs" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/console" element={<AdminRoute><LazyWrap><CoreConsolePage /></LazyWrap></AdminRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
