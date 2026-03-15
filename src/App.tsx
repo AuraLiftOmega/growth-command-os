@@ -37,6 +37,7 @@ import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 const CampaignLauncher = React.lazy(() => import("./pages/CampaignLauncher"));
 
 // MASTER_OS Pages
@@ -265,13 +266,13 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Billing Admin Dashboard (protected) */}
+      {/* Billing Admin Dashboard (admin-only) */}
       <Route 
         path="/admin/billing" 
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <BillingAdmin />
-          </ProtectedRoute>
+          </AdminRoute>
         } 
       />
       
@@ -283,18 +284,18 @@ const AppRoutes = () => {
       <Route path="/checkout/success" element={<CheckoutSuccess />} />
       <Route path="/checkout/cancel" element={<CheckoutCancel />} />
       
-      {/* Shopify Control Center (Admin) */}
+      {/* Shopify Control Center (Admin-only) */}
       <Route 
         path="/admin/shopify-control-center" 
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <ShopifyControlCenter />
-          </ProtectedRoute>
+          </AdminRoute>
         } 
       />
 
-      {/* Grok Brain */}
-      <Route path="/admin/grok-brain" element={<ProtectedRoute><LazyWrap><GrokBrain /></LazyWrap></ProtectedRoute>} />
+      {/* Grok Brain (Admin-only) */}
+      <Route path="/admin/grok-brain" element={<AdminRoute><LazyWrap><GrokBrain /></LazyWrap></AdminRoute>} />
 
       {/* ===== MASTER_OS ROUTES ===== */}
       <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
@@ -312,14 +313,10 @@ const AppRoutes = () => {
       <Route path="/settings/billing" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
       <Route path="/settings/integrations" element={<ProtectedRoute><LazyWrap><SettingsIntegrationsPage /></LazyWrap></ProtectedRoute>} />
       <Route path="/crm/*" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/users" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/organizations" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/logs" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/products" element={<ProtectedRoute><LazyWrap><InternalProductsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/products/:productId" element={<ProtectedRoute><LazyWrap><InternalProductsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/revenue-command" element={<ProtectedRoute><LazyWrap><RevenueCommandPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/comms" element={<ProtectedRoute><LazyWrap><CommsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/console" element={<ProtectedRoute><LazyWrap><CoreConsolePage /></LazyWrap></ProtectedRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/organizations" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/logs" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
+      <Route path="/console" element={<AdminRoute><LazyWrap><CoreConsolePage /></LazyWrap></AdminRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

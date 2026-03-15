@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wrench, CheckCircle, AlertTriangle, Loader2, X, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ interface HealSummary {
   results: HealResult[];
 }
 
-export const FloatingSelfHeal = () => {
+export const FloatingSelfHeal = React.forwardRef<HTMLDivElement>((_, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
   const [lastHeal, setLastHeal] = useState<HealSummary | null>(null);
@@ -208,4 +208,6 @@ export const FloatingSelfHeal = () => {
       </AnimatePresence>
     </>
   );
-};
+});
+
+FloatingSelfHeal.displayName = 'FloatingSelfHeal';
