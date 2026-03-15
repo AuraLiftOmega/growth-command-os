@@ -208,4 +208,6 @@ export const FloatingSelfHeal = React.forwardRef<HTMLDivElement>((_, ref) => {
       </AnimatePresence>
     </>
   );
-};
+});
+
+FloatingSelfHeal.displayName = 'FloatingSelfHeal';
