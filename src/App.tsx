@@ -37,6 +37,7 @@ import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 const CampaignLauncher = React.lazy(() => import("./pages/CampaignLauncher"));
 
 // MASTER_OS Pages
