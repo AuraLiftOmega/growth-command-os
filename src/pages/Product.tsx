@@ -75,7 +75,9 @@ export default function Product() {
       setIsLoading(true);
       try {
         const data = await fetchProductByHandle(handle);
-        setProduct(data);
+        if (data) {
+          setProduct(data.node as ProductNode);
+        }
       } catch (error) {
         console.error('Error loading product:', error);
       } finally {
