@@ -10,6 +10,7 @@ const CATEGORIES = [
   { id: "Gift Set", label: "Gift Sets" },
   { id: "Hair Care", label: "Hair Care" },
   { id: "Makeup", label: "Makeup" },
+  { id: "Apps", label: "Apps & Software" },
 ];
 
 interface CategoryFilterProps {
