@@ -7,6 +7,7 @@ import { UpsellStrip } from "@/components/storefront/UpsellStrip";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { CategoryFilter } from "@/components/storefront/CategoryFilter";
+import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 
 export default function Store() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -60,6 +61,7 @@ export default function Store() {
 
       <TrustBadges />
       <StoreFooter />
+      <AuraSalesChat />
     </div>
   );
 }
