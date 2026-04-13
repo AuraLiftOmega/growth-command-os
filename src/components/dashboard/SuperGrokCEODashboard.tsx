@@ -539,9 +539,9 @@ export function SuperGrokCEODashboard() {
           </motion.div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-              Super Grok 4-1 Fast CEO
+              Super Grok CEO
             </h1>
-            <p className="text-muted-foreground">xAI Grok 4-1 Fast Reasoning • 50K Monte Carlo + VaR • Autonomous Profit Maximizer</p>
+            <p className="text-muted-foreground">Autonomous Profit Maximizer • 50K Monte Carlo + VaR • Powered by Lovable AI</p>
           </div>
         </div>
       </div>
