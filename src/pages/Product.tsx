@@ -10,6 +10,7 @@ import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { useCartStore } from "@/stores/cart-store";
 import { fetchProductByHandle } from "@/lib/storefront-api";
 import { toast } from "sonner";
+import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 
 interface ProductNode {
   id: string;
@@ -347,6 +348,7 @@ export default function Product() {
       </main>
 
       <StoreFooter />
+      <AuraSalesChat />
     </div>
   );
 }

@@ -16,6 +16,7 @@ import { StoreProductCard } from "@/components/storefront/StoreProductCard";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { ShopifyProduct, fetchProducts } from "@/lib/storefront-api";
+import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 import heroImg from "@/assets/hero-luxury.jpg";
 
 export default function Home() {
@@ -196,6 +197,7 @@ export default function Home() {
       )}
 
       <StoreFooter />
+      <AuraSalesChat />
     </div>
   );
 }
