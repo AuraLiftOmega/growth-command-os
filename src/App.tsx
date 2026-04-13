@@ -36,6 +36,7 @@ import CheckoutSuccess from "./pages/checkout/Success";
 import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
 const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
+const SystemAuditReport = React.lazy(() => import("./pages/admin/SystemAuditReport"));
 import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 const CampaignLauncher = React.lazy(() => import("./pages/CampaignLauncher"));
@@ -296,6 +297,7 @@ const AppRoutes = () => {
 
       {/* Grok Brain (Admin-only) */}
       <Route path="/admin/grok-brain" element={<AdminRoute><LazyWrap><GrokBrain /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/system-audit" element={<AdminRoute><LazyWrap><SystemAuditReport /></LazyWrap></AdminRoute>} />
 
       {/* ===== MASTER_OS ROUTES ===== */}
       <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
