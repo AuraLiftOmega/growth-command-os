@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import merkabahImg from "@/assets/merkabah-v2.png";
 
-interface AuraOmegaLogoProps {
+interface DominionLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   showText?: boolean;
   linkTo?: string;
@@ -17,17 +17,13 @@ const sizeClasses = {
   xl: "h-16 w-16 md:h-24 md:w-24",
 };
 
-export function DominionLogo(props: AuraOmegaLogoProps) {
-  return <AuraOmegaLogo {...props} />;
-}
-
-export function AuraOmegaLogo({
+export function DominionLogo({
   size = "md",
   showText = false,
   linkTo,
   className,
   animated = false,
-}: AuraOmegaLogoProps) {
+}: DominionLogoProps) {
   const logoContent = (
     <div
       className={cn(
@@ -38,7 +34,7 @@ export function AuraOmegaLogo({
     >
       <img
         src={merkabahImg}
-        alt="AURAOMEGA - Autonomous Revenue Operating System"
+        alt="Dominion Revenue OS"
         className={cn(
           sizeClasses[size],
           "object-contain animate-[spin_12s_linear_infinite] drop-shadow-[0_0_12px_rgba(37,99,235,0.5)]",
@@ -49,7 +45,7 @@ export function AuraOmegaLogo({
       {showText && (
         <div className="flex flex-col">
           <span className="font-bold text-lg tracking-tight text-foreground">
-            AURAOMEGA
+            DOMINION
           </span>
           <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
             Revenue OS
@@ -70,18 +66,21 @@ export function AuraOmegaLogo({
   return logoContent;
 }
 
-export function AuraOmegaLoading() {
+// Backward-compat aliases
+export const AuraOmegaLogo = DominionLogo;
+
+export function DominionLoading() {
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-6 z-50">
       <img
         src={merkabahImg}
-        alt="AURAOMEGA - Autonomous Revenue Operating System"
+        alt="Dominion Revenue OS"
         className="h-20 md:h-28 w-auto object-contain animate-[spin_8s_linear_infinite] drop-shadow-[0_0_24px_rgba(37,99,235,0.7)]"
         loading="eager"
       />
       <div className="flex flex-col items-center gap-2">
-        <span className="text-xl font-bold tracking-tight">AURAOMEGA</span>
-        <span className="text-sm text-muted-foreground">Loading...</span>
+        <span className="text-xl font-bold tracking-tight">DOMINION</span>
+        <span className="text-sm text-muted-foreground">Loading Revenue OS...</span>
       </div>
       <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
         <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 animate-[shimmer_1.5s_infinite]" 
@@ -91,26 +90,22 @@ export function AuraOmegaLoading() {
   );
 }
 
-export function DominionLoading() {
-  return <AuraOmegaLoading />;
-}
+export const AuraOmegaLoading = DominionLoading;
 
-export function AuraOmegaFooterLogo() {
+export function DominionFooterLogo() {
   return (
     <div className="flex items-center gap-2">
       <img
         src={merkabahImg}
-        alt="AURAOMEGA"
+        alt="Dominion Revenue OS"
         className="h-6 w-6 object-contain animate-[spin_14s_linear_infinite] opacity-80"
         loading="lazy"
       />
       <span className="text-xs text-muted-foreground">
-        Powered by <span className="font-semibold text-foreground">AURAOMEGA</span>
+        Powered by <span className="font-semibold text-foreground">DOMINION</span>
       </span>
     </div>
   );
 }
 
-export function DominionFooterLogo() {
-  return <AuraOmegaFooterLogo />;
-}
+export const AuraOmegaFooterLogo = DominionFooterLogo;

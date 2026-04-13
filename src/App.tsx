@@ -8,7 +8,6 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useCartSync } from "@/hooks/useCartSync";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
-import Settings from "./pages/Settings";
 import Pricing from "./pages/Pricing";
 import Store from "./pages/Store";
 import Home from "./pages/Home";
@@ -16,44 +15,19 @@ import About from "./pages/About";
 import Collections from "./pages/Collections";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
-import OmegaCommand from "./pages/OmegaCommand";
-import CEOBrain from "./pages/CEOBrain";
-import CEOControl from "./pages/CEOControl";
-import WarRoom from "./pages/WarRoom";
 import OAuthCallback from "./pages/OAuthCallback";
-import Revenue from "./pages/Revenue";
 import AcceptInvite from "./pages/AcceptInvite";
-import UsersManagement from "./pages/UsersManagement";
 import ShopifyCallback from "./pages/ShopifyCallback";
-import SocialChannelsDashboard from "./pages/SocialChannelsDashboard";
-import LiveChat from "./pages/LiveChat";
-import SecurityAudit from "./pages/SecurityAudit";
-import PaymentsSpine from "./pages/PaymentsSpine";
-import BillingAdmin from "./pages/BillingAdmin";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
 import CheckoutSuccess from "./pages/checkout/Success";
 import CheckoutCancel from "./pages/checkout/Cancel";
 import ShopifyControlCenter from "./pages/admin/ShopifyControlCenter";
-const GrokBrain = React.lazy(() => import("./pages/admin/GrokBrain"));
-const SystemAuditReport = React.lazy(() => import("./pages/admin/SystemAuditReport"));
-const GrokCEO = React.lazy(() => import("./pages/admin/GrokCEO"));
-import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 import { AdminRoute } from "@/components/auth/AdminRoute";
-const CampaignLauncher = React.lazy(() => import("./pages/CampaignLauncher"));
+import { FloatingSelfHeal } from "@/components/system/FloatingSelfHeal";
 
-// MASTER_OS Pages
-const MasterDashboard = React.lazy(() => import("./pages/master/MasterDashboard"));
-const ProjectsPage = React.lazy(() => import("./pages/master/ProjectsPage"));
-const AutomationsPage = React.lazy(() => import("./pages/master/AutomationsPage"));
-const ExperiencesPage = React.lazy(() => import("./pages/master/ExperiencesPage"));
-const BrainPage = React.lazy(() => import("./pages/master/BrainPage"));
-const SettingsAccountPage = React.lazy(() => import("./pages/master/SettingsAccountPage"));
-const SettingsIntegrationsPage = React.lazy(() => import("./pages/master/SettingsIntegrationsPage"));
-const RevenueCommandPage = React.lazy(() => import("./pages/master/RevenueCommandPage"));
-const CommsPage = React.lazy(() => import("./pages/master/CommsPage"));
-const CoreConsolePage = React.lazy(() => import("./pages/master/CoreConsolePage"));
-const InternalProductsPage = React.lazy(() => import("./pages/master/InternalProductsPage"));
+const GrokCEO = React.lazy(() => import("./pages/admin/GrokCEO"));
+const BillingAdmin = React.lazy(() => import("./pages/BillingAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -65,10 +39,8 @@ const LazyWrap = ({ children }: { children: React.ReactNode }) => (
   }>{children}</React.Suspense>
 );
 
-// Auth-protected route component - simplified, no onboarding requirement
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -76,18 +48,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
+  if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };
 
-// Auth route - redirects if already authenticated
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -95,232 +61,45 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
+  if (user) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
+
+const Product = React.lazy(() => import("./pages/Product"));
 
 const AppRoutes = () => {
   useCartSync();
-  
-  // Lazy load Product page
-  const Product = React.lazy(() => import("./pages/Product"));
 
   return (
     <Routes>
-      {/* Public homepage with products */}
+      {/* Public storefront */}
       <Route path="/" element={<Home />} />
-      
-      <Route 
-        path="/auth" 
-        element={
-          <AuthRoute>
-            <Auth />
-          </AuthRoute>
-        } 
-      />
-      
-      {/* Dashboard routes with nested paths */}
-      <Route 
-        path="/dashboard/*" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/settings" 
-        element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/omega-command" 
-        element={
-          <ProtectedRoute>
-            <OmegaCommand />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/ceo-brain" 
-        element={
-          <ProtectedRoute>
-            <CEOBrain />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/war-room" 
-        element={
-          <ProtectedRoute>
-            <WarRoom />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* CEO Control Dashboard */}
-      <Route 
-        path="/ceo-control" 
-        element={
-          <ProtectedRoute>
-            <CEOControl />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Revenue Dashboard */}
-      <Route 
-        path="/dashboard/revenue" 
-        element={
-          <ProtectedRoute>
-            <Revenue />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Public routes for store and pricing */}
+      <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/store" element={<Store />} />
       <Route path="/about" element={<About />} />
       <Route path="/collections" element={<Collections />} />
       <Route path="/contact" element={<Contact />} />
-      <Route path="/campaign" element={<LazyWrap><CampaignLauncher /></LazyWrap>} />
-      
-      {/* Product detail page - public */}
-      <Route 
-        path="/product/:handle" 
-        element={
-          <React.Suspense fallback={
-            <div className="min-h-screen bg-background flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-            </div>
-          }>
-            <Product />
-          </React.Suspense>
-        } 
-      />
-      
-      {/* OAuth callback routes */}
+      <Route path="/product/:handle" element={<LazyWrap><Product /></LazyWrap>} />
+
+      {/* Core dashboard — all tabs live here */}
+      <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+      {/* OAuth & callbacks */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route path="/oauth/shopify-callback" element={<ShopifyCallback />} />
-      
-      {/* Invite acceptance route (public) */}
       <Route path="/invite/:token" element={<AcceptInvite />} />
-      
-      {/* Users Management (protected) */}
-      <Route 
-        path="/dashboard/users" 
-        element={
-          <ProtectedRoute>
-            <UsersManagement />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Social Channels Dashboard (protected) */}
-      <Route 
-        path="/dashboard/social-channels" 
-        element={
-          <ProtectedRoute>
-            <SocialChannelsDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Live Chat Dashboard (protected) */}
-      <Route 
-        path="/dashboard/live-chat" 
-        element={
-          <ProtectedRoute>
-            <LiveChat />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Security Audit Dashboard (protected) */}
-      <Route 
-        path="/dashboard/security-audit" 
-        element={
-          <ProtectedRoute>
-            <SecurityAudit />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Payments Spine Dashboard (protected) */}
-      <Route 
-        path="/dashboard/payments-spine" 
-        element={
-          <ProtectedRoute>
-            <PaymentsSpine />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Billing Admin Dashboard (admin-only) */}
-      <Route 
-        path="/admin/billing" 
-        element={
-          <AdminRoute>
-            <BillingAdmin />
-          </AdminRoute>
-        } 
-      />
-      
-      {/* Billing Success/Cancel pages */}
+
+      {/* Billing */}
       <Route path="/billing/success" element={<BillingSuccess />} />
       <Route path="/billing/cancel" element={<BillingCancel />} />
-      
-      {/* Checkout Success/Cancel pages (Stripe product checkout) */}
       <Route path="/checkout/success" element={<CheckoutSuccess />} />
       <Route path="/checkout/cancel" element={<CheckoutCancel />} />
-      
-      {/* Shopify Control Center (Admin-only) */}
-      <Route 
-        path="/admin/shopify-control-center" 
-        element={
-          <AdminRoute>
-            <ShopifyControlCenter />
-          </AdminRoute>
-        } 
-      />
 
-      {/* Grok Brain (Admin-only) */}
-      <Route path="/admin/grok-brain" element={<AdminRoute><LazyWrap><GrokBrain /></LazyWrap></AdminRoute>} />
+      {/* Admin-only */}
+      <Route path="/admin/billing" element={<AdminRoute><LazyWrap><BillingAdmin /></LazyWrap></AdminRoute>} />
+      <Route path="/admin/shopify-control-center" element={<AdminRoute><ShopifyControlCenter /></AdminRoute>} />
       <Route path="/admin/grok-ceo" element={<AdminRoute><LazyWrap><GrokCEO /></LazyWrap></AdminRoute>} />
-      <Route path="/admin/system-audit" element={<AdminRoute><LazyWrap><SystemAuditReport /></LazyWrap></AdminRoute>} />
-
-      {/* ===== MASTER_OS ROUTES ===== */}
-      <Route path="/master" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/projects" element={<ProtectedRoute><LazyWrap><ProjectsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/projects/:projectId/*" element={<ProtectedRoute><LazyWrap><ProjectsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/automations" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/automations/:automationId" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/automations/new" element={<ProtectedRoute><LazyWrap><AutomationsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/experiences" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/experiences/new" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/experiences/:experienceId/*" element={<ProtectedRoute><LazyWrap><ExperiencesPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/brain" element={<ProtectedRoute><LazyWrap><BrainPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/brain/reports" element={<ProtectedRoute><LazyWrap><BrainPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/settings/account" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/settings/billing" element={<ProtectedRoute><LazyWrap><SettingsAccountPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/settings/integrations" element={<ProtectedRoute><LazyWrap><SettingsIntegrationsPage /></LazyWrap></ProtectedRoute>} />
-      <Route path="/crm/*" element={<ProtectedRoute><LazyWrap><MasterDashboard /></LazyWrap></ProtectedRoute>} />
-      <Route path="/admin/users" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
-      <Route path="/admin/organizations" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
-      <Route path="/admin/logs" element={<AdminRoute><LazyWrap><MasterDashboard /></LazyWrap></AdminRoute>} />
-      <Route path="/console" element={<AdminRoute><LazyWrap><CoreConsolePage /></LazyWrap></AdminRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>
