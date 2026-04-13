@@ -130,19 +130,14 @@ interface GrokLog {
   created_at: string;
 }
 
-// Multi-model configuration via Vercel AI Gateway
+// AI Model configuration — powered by Lovable AI Gateway
 const AI_MODELS = [
-  { id: "grok-4", name: "Grok 4 Fast", provider: "xAI", speed: "⚡ Fast", reasoning: "Excellent", badge: "Primary" },
-  { id: "grok-4-deep", name: "Grok 4 Deep", provider: "xAI", speed: "🧠 Deep", reasoning: "Superior", badge: null },
-  { id: "gpt-5", name: "GPT-5", provider: "OpenAI", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
-  { id: "gpt-5-mini", name: "GPT-5 Mini", provider: "OpenAI", speed: "⚡⚡ Ultra", reasoning: "Good", badge: null },
-  { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", speed: "⚡ Fast", reasoning: "Good", badge: null },
-  { id: "claude-4-opus", name: "Claude 4 Opus", provider: "Anthropic", speed: "🧠 Deep", reasoning: "Superior", badge: "Best Reasoning" },
-  { id: "claude-4-sonnet", name: "Claude 4 Sonnet", provider: "Anthropic", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
-  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "Google", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
-  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google", speed: "⚡⚡ Ultra", reasoning: "Good", badge: "Fastest" },
-  { id: "llama-3.3-70b", name: "Llama 3.3 70B", provider: "Groq", speed: "⚡⚡⚡ Blazing", reasoning: "Good", badge: "Ultra Fast" },
-  { id: "mixtral-8x7b", name: "Mixtral 8x7B", provider: "Groq", speed: "⚡⚡⚡ Blazing", reasoning: "Good", badge: null },
+  { id: "grok-4", name: "Grok CEO (Gemini 3 Flash)", provider: "Lovable AI", speed: "⚡ Fast", reasoning: "Excellent", badge: "Primary" },
+  { id: "grok-4-deep", name: "Grok Deep (Gemini 2.5 Pro)", provider: "Lovable AI", speed: "🧠 Deep", reasoning: "Superior", badge: "Best Reasoning" },
+  { id: "gpt-5", name: "GPT-5", provider: "Lovable AI", speed: "⚡ Fast", reasoning: "Excellent", badge: null },
+  { id: "gpt-5-mini", name: "GPT-5 Mini", provider: "Lovable AI", speed: "⚡⚡ Ultra", reasoning: "Good", badge: "Fastest" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "Lovable AI", speed: "🧠 Deep", reasoning: "Excellent", badge: null },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Lovable AI", speed: "⚡⚡ Fast", reasoning: "Good", badge: null },
 ];
 
 const QUICK_CEO_COMMANDS = [
@@ -544,9 +539,9 @@ export function SuperGrokCEODashboard() {
           </motion.div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-orange-500 bg-clip-text text-transparent">
-              Super Grok 4-1 Fast CEO
+              Super Grok CEO
             </h1>
-            <p className="text-muted-foreground">xAI Grok 4-1 Fast Reasoning • 50K Monte Carlo + VaR • Autonomous Profit Maximizer</p>
+            <p className="text-muted-foreground">Autonomous Profit Maximizer • 50K Monte Carlo + VaR • Powered by Lovable AI</p>
           </div>
         </div>
       </div>
