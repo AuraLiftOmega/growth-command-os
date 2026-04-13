@@ -1,10 +1,8 @@
 /**
- * DYNAMIC STORE CONFIGURATION - AURAOMEGA / Dominion SaaS Platform
+ * DYNAMIC STORE CONFIGURATION - Dominion Revenue OS
  * 
  * Per-user dynamic configuration - NO hardcoded stores.
  * Each user connects their own Shopify store via OAuth.
- * 
- * Provides default branding for unconnected users (the SaaS platform itself)
  */
 
 // Platform Branding (store connected: Aura Luxe)
@@ -30,9 +28,9 @@ export const PLATFORM_CONFIG = {
 // Export for backward compatibility - components should migrate to useActiveStore
 export const STORE_CONFIG = PLATFORM_CONFIG;
 
-// AURAOMEGA Platform Logo
+// Dominion Revenue OS Platform Logo
 export const DOMINION_LOGO_URL = "https://files.catbox.moe/0k2q8l.png";
-export const AURAOMEGA_LOGO_URL = DOMINION_LOGO_URL;
+export const AURAOMEGA_LOGO_URL = DOMINION_LOGO_URL; // backward compat
 
 /**
  * Helper to generate dynamic store config from user's connected store
