@@ -166,7 +166,7 @@ export default function Home() {
             <div className="text-center mt-14">
               <Button asChild size="lg" variant="outline" className="px-8 h-12">
                 <Link to="/store">
-                  View All 47 Products
+                  View All 50 Products
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>

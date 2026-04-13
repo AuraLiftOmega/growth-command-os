@@ -43,7 +43,7 @@ export default function Store() {
             <p className="text-muted-foreground max-w-xl mx-auto">
               {category 
                 ? `Explore our premium ${category.toLowerCase()} collection`
-                : "47 premium beauty & skincare products — curated for real results"
+                : "50 premium beauty & skincare products — curated for real results"
               }
             </p>
           </div>
