@@ -6,19 +6,12 @@ import {
   Share2,
   BarChart3,
   Settings,
-  ChevronDown,
   LogOut,
-  Zap,
   Brain,
-  Target,
-  Github,
   Sparkles,
   Plug,
   DollarSign,
-  Globe,
-  Package,
   Truck,
-  Users,
   Rocket,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -35,16 +28,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,96 +38,16 @@ import { GitHubExportButton } from "./GitHubExportButton";
 import { DominionLogo } from "@/components/DominionLogo";
 
 const mainNavItems = [
-  {
-    title: "Home",
-    icon: Home,
-    path: "/dashboard",
-    badge: null,
-  },
-  {
-    title: "Revenue Engine",
-    icon: Rocket,
-    path: "/dashboard/revenue-engine",
-    badge: "💰",
-  },
-  {
-    title: "Products",
-    icon: ShoppingBag,
-    path: "/dashboard/products",
-    badge: "Sync",
-  },
-  {
-    title: "CJ Dropshipping",
-    icon: Truck,
-    path: "/dashboard/cj-dropshipping",
-    badge: "Source",
-  },
-  {
-    title: "Video Ad Studio",
-    icon: Video,
-    path: "/dashboard/video-ad-studio",
-    badge: "New",
-  },
-  {
-    title: "Social Channels",
-    icon: Share2,
-    path: "/dashboard/social-channels",
-    badge: "Live",
-  },
-  {
-    title: "Integrations",
-    icon: Plug,
-    path: "/dashboard/integrations",
-    badge: "40+",
-  },
-  {
-    title: "Revenue",
-    icon: BarChart3,
-    path: "/dashboard/revenue",
-    badge: "Live",
-  },
-  {
-    title: "Profit Engine",
-    icon: DollarSign,
-    path: "/dashboard/profit-engine",
-    badge: "95%",
-  },
-  {
-    title: "Super Grok CEO",
-    icon: Brain,
-    path: "/dashboard/super-grok-ceo",
-    badge: "AI",
-  },
-  {
-    title: "Emerging Layer",
-    icon: Globe,
-    path: "/dashboard/emerging-layer",
-    badge: "Web3",
-  },
-  {
-    title: "Domain Sales",
-    icon: DollarSign,
-    path: "/dashboard/domain-sales",
-    badge: "💰",
-  },
-  {
-    title: "Sales Analytics",
-    icon: BarChart3,
-    path: "/dashboard/analytics",
-    badge: null,
-  },
-  {
-    title: "Users & Roles",
-    icon: Users,
-    path: "/dashboard/users",
-    badge: "RBAC",
-  },
-];
-
-const commandItems = [
-  { title: "OMEGA Command", icon: Zap, path: "/omega-command" },
-  { title: "CEO Mega Brain", icon: Brain, path: "/ceo-brain", badge: "AI" },
-  { title: "War Room", icon: Target, path: "/war-room" },
+  { title: "Home", icon: Home, path: "/dashboard", badge: null },
+  { title: "Revenue Engine", icon: Rocket, path: "/dashboard/revenue-engine", badge: "💰" },
+  { title: "Products", icon: ShoppingBag, path: "/dashboard/products", badge: "Sync" },
+  { title: "CJ Dropshipping", icon: Truck, path: "/dashboard/cj-dropshipping", badge: "Source" },
+  { title: "Video Ad Studio", icon: Video, path: "/dashboard/video-ad-studio", badge: null },
+  { title: "Social Channels", icon: Share2, path: "/dashboard/social-channels", badge: "Live" },
+  { title: "Integrations", icon: Plug, path: "/dashboard/integrations", badge: null },
+  { title: "Profit Engine", icon: DollarSign, path: "/dashboard/profit-engine", badge: null },
+  { title: "Analytics", icon: BarChart3, path: "/dashboard/analytics", badge: null },
+  { title: "Grok CEO", icon: Brain, path: "/dashboard/super-grok-ceo", badge: "AI" },
 ];
 
 export function DashboardSidebar() {
@@ -150,13 +55,9 @@ export function DashboardSidebar() {
   const { user, signOut } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const [socialOpen, setSocialOpen] = useState(
-    location.pathname.includes("/dashboard/social")
-  );
   const [omegaOpen, setOmegaOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-  const isActiveGroup = (path: string) => location.pathname.startsWith(path);
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "U";
 
@@ -171,7 +72,6 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="scrollbar-thin">
-        {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
             Main
@@ -191,41 +91,11 @@ export function DashboardSidebar() {
                               variant="outline"
                               className={cn(
                                 "text-[9px] px-1.5 py-0 h-4",
-                                item.badge === "New" || item.badge === "Live"
+                                item.badge === "Live"
                                   ? "border-accent text-accent"
                                   : "border-success text-success"
                               )}
                             >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Command Center */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Command Center
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {commandItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                    <NavLink to={item.path} className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4" />
-                      {!collapsed && (
-                        <>
-                          <span className="flex-1">{item.title}</span>
-                          {'badge' in item && item.badge && (
-                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-accent text-accent">
                               {item.badge}
                             </Badge>
                           )}

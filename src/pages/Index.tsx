@@ -14,7 +14,7 @@ const Index = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading AURAOMEGA Super App...</p>
+          <p className="text-muted-foreground">Loading Dominion Revenue OS...</p>
         </div>
       </div>
     );
