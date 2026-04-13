@@ -6,6 +6,7 @@ import { StoreFooter } from "@/components/storefront/StoreFooter";
 import { PLATFORM_CONFIG } from "@/lib/store-config";
 import collectionsHero from "@/assets/collections-hero.jpg";
 import { useEffect } from "react";
+import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 
 const collections = [
   {
@@ -129,6 +130,7 @@ export default function Collections() {
       </section>
 
       <StoreFooter />
+      <AuraSalesChat />
     </div>
   );
 }
