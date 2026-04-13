@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import merkabahImg from "@/assets/merkabah.png";
 
 interface AuraOmegaLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -18,7 +19,13 @@ const sizeClasses = {
   xl: "h-16 max-h-16 md:h-24 md:max-h-24",
 };
 
-// Keep old export for backward compatibility
+const merkabahSizeClasses = {
+  sm: "h-6 w-6 md:h-7 md:w-7",
+  md: "h-8 w-8 md:h-10 md:w-10",
+  lg: "h-10 w-10 md:h-14 md:w-14",
+  xl: "h-14 w-14 md:h-20 md:w-20",
+};
+
 export function DominionLogo(props: AuraOmegaLogoProps) {
   return <AuraOmegaLogo {...props} />;
 }
@@ -33,11 +40,22 @@ export function AuraOmegaLogo({
   const logoContent = (
     <div
       className={cn(
-        "flex items-center gap-3 transition-transform duration-200 hover:scale-105",
+        "flex items-center gap-2 transition-transform duration-200 hover:scale-105",
         linkTo && "cursor-pointer",
         className
       )}
     >
+      <div className="relative flex items-center">
+        <img
+          src={merkabahImg}
+          alt=""
+          className={cn(
+            merkabahSizeClasses[size],
+            "object-contain animate-[spin_8s_linear_infinite] drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]"
+          )}
+          loading="eager"
+        />
+      </div>
       <img
         src={LOGO_URL}
         alt="AURAOMEGA - Autonomous Revenue Operating System"
@@ -72,16 +90,23 @@ export function AuraOmegaLogo({
   return logoContent;
 }
 
-// Loading spinner with logo
 export function AuraOmegaLoading() {
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-6 z-50">
-      <img
-        src={LOGO_URL}
-        alt="AURAOMEGA - Autonomous Revenue Operating System"
-        className="h-16 md:h-24 w-auto object-contain animate-pulse"
-        loading="eager"
-      />
+      <div className="relative flex items-center justify-center">
+        <img
+          src={merkabahImg}
+          alt=""
+          className="h-20 md:h-28 w-auto object-contain animate-[spin_6s_linear_infinite] drop-shadow-[0_0_16px_rgba(56,189,248,0.7)] absolute"
+          loading="eager"
+        />
+        <img
+          src={LOGO_URL}
+          alt="AURAOMEGA - Autonomous Revenue Operating System"
+          className="h-16 md:h-24 w-auto object-contain animate-pulse relative z-10"
+          loading="eager"
+        />
+      </div>
       <div className="flex flex-col items-center gap-2">
         <span className="text-xl font-bold tracking-tight">AURAOMEGA</span>
         <span className="text-sm text-muted-foreground">Loading...</span>
@@ -94,15 +119,19 @@ export function AuraOmegaLoading() {
   );
 }
 
-// Keep old export for backward compatibility
 export function DominionLoading() {
   return <AuraOmegaLoading />;
 }
 
-// Footer logo variant
 export function AuraOmegaFooterLogo() {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
+      <img
+        src={merkabahImg}
+        alt=""
+        className="h-5 w-5 object-contain animate-[spin_10s_linear_infinite] opacity-70"
+        loading="lazy"
+      />
       <img
         src={LOGO_URL}
         alt="AURAOMEGA"
@@ -116,7 +145,6 @@ export function AuraOmegaFooterLogo() {
   );
 }
 
-// Keep old export for backward compatibility
 export function DominionFooterLogo() {
   return <AuraOmegaFooterLogo />;
 }
