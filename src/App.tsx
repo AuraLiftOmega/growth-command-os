@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useCartSync } from "@/hooks/useCartSync";
 import Dashboard from "./pages/Dashboard";
@@ -30,6 +31,14 @@ const GrokCEO = React.lazy(() => import("./pages/admin/GrokCEO"));
 const BillingAdmin = React.lazy(() => import("./pages/BillingAdmin"));
 
 const queryClient = new QueryClient();
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
 
 const LazyWrap = ({ children }: { children: React.ReactNode }) => (
   <React.Suspense fallback={
@@ -113,6 +122,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ScrollToTop />
           <AppRoutes />
           <FloatingSelfHeal />
         </AuthProvider>

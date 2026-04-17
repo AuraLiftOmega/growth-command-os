@@ -93,7 +93,9 @@ export function DashboardSidebar() {
                                 "text-[9px] px-1.5 py-0 h-4",
                                 item.badge === "Live"
                                   ? "border-accent text-accent"
-                                  : "border-success text-success"
+                                  : item.badge === "AI"
+                                  ? "border-accent/70 text-accent/80"
+                                  : "border-success/70 text-success"
                               )}
                             >
                               {item.badge}

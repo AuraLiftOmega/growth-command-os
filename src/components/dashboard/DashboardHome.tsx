@@ -302,7 +302,7 @@ export function DashboardHome() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.35 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
       >
         <LaunchControlPanel />
       </motion.div>
@@ -311,7 +311,7 @@ export function DashboardHome() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.4 }}
+        transition={{ duration: 0.4, delay: 0.45 }}
       >
         <RevenueChart />
       </motion.div>

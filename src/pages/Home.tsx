@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, ShoppingBag, Loader2, Store as StoreIcon } from "lucide-react";
+import { ArrowRight, Sparkles, ShoppingBag, Store as StoreIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StoreHeader } from "@/components/storefront/StoreHeader";
 import { StoreFooter } from "@/components/storefront/StoreFooter";
@@ -13,11 +13,12 @@ import { UpsellStrip } from "@/components/storefront/UpsellStrip";
 import { SocialFollow } from "@/components/storefront/SocialFollow";
 import { EmailCaptureBanner } from "@/components/storefront/EmailCaptureBanner";
 import { StoreProductCard } from "@/components/storefront/StoreProductCard";
+import { StoreProductCardSkeleton } from "@/components/storefront/StoreProductCardSkeleton";
 import { ProductQuickView } from "@/components/storefront/ProductQuickView";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { ShopifyProduct, fetchProducts } from "@/lib/storefront-api";
-import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 import heroImg from "@/assets/hero-luxury.jpg";
+import { AuraSalesChat } from "@/components/storefront/AuraSalesChat";
 
 export default function Home() {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
@@ -140,8 +141,10 @@ export default function Home() {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <StoreProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-20">

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { DominionLogo } from "@/components/DominionLogo";
+import { motion } from "framer-motion";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -91,8 +92,26 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Subtle background grid */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+      {/* Ambient glow spots */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 -z-10 rounded-full bg-primary/5 blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 -z-10 rounded-full bg-accent/5 blur-3xl" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md"
+      >
         {/* Header */}
         <div className="text-center mb-10">
           <div className="flex items-center justify-center mb-6">
@@ -105,7 +124,7 @@ const Auth = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-card border border-border rounded-xl p-8">
+        <div className="bg-card border border-border rounded-xl p-8 shadow-xl shadow-black/20">
           {isForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-5">
               <div className="space-y-2">
@@ -223,7 +242,7 @@ const Auth = () => {
             </form>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

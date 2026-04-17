@@ -55,9 +55,14 @@ export function StoreCartDrawer({ open, onOpenChange }: StoreCartDrawerProps) {
         <div className="flex flex-col flex-1 pt-6 min-h-0">
           {items.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Your cart is empty</p>
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
+                  <ShoppingCart className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Your cart is empty</p>
+                  <p className="text-sm text-muted-foreground mt-1">Add some products to get started</p>
+                </div>
               </div>
             </div>
           ) : (

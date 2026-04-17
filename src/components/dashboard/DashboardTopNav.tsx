@@ -84,14 +84,14 @@ export function DashboardTopNav({ onCreateAd }: DashboardTopNavProps) {
           {/* Create New Ad Button */}
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              onClick={onCreateAd || (() => navigate("/dashboard/video-studio"))}
+              onClick={onCreateAd || (() => navigate("/dashboard/video-ad-studio"))}
               className="btn-power gap-2 hidden sm:flex"
             >
               <Sparkles className="w-4 h-4" />
               Create New Ad
             </Button>
             <Button
-              onClick={onCreateAd || (() => navigate("/dashboard/video-studio"))}
+              onClick={onCreateAd || (() => navigate("/dashboard/video-ad-studio"))}
               size="icon"
               className="btn-power sm:hidden"
             >

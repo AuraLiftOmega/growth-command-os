@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Truck, Shield, RefreshCw, Leaf } from "lucide-react";
 
 const badges = [
@@ -12,8 +13,15 @@ export function TrustBadges() {
     <section className="py-8 md:py-10 border-y border-border/30">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {badges.map((badge) => (
-            <div key={badge.title} className="flex items-center gap-3 justify-center md:justify-start">
+          {badges.map((badge, i) => (
+            <motion.div
+              key={badge.title}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.07 }}
+              className="flex items-center gap-3 justify-center md:justify-start"
+            >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <badge.icon className="w-5 h-5 text-primary" />
               </div>
@@ -21,7 +29,7 @@ export function TrustBadges() {
                 <h4 className="font-semibold text-sm">{badge.title}</h4>
                 <p className="text-xs text-muted-foreground">{badge.description}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
