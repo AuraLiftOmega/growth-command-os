@@ -529,6 +529,95 @@
 .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
 
+/* ====================================
+   MERKABAH SACRED GEOMETRY ANIMATIONS
+   ==================================== */
+
+@keyframes merkabah-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes merkabah-spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes merkabah-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 24px rgba(37, 99, 235, 0.55))
+            drop-shadow(0 0 48px rgba(56, 189, 248, 0.35));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 40px rgba(37, 99, 235, 0.85))
+            drop-shadow(0 0 80px rgba(56, 189, 248, 0.55))
+            drop-shadow(0 0 120px rgba(99, 102, 241, 0.4));
+    transform: scale(1.03);
+  }
+}
+
+@keyframes merkabah-aura {
+  0%, 100% { opacity: 0.35; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.7; transform: scale(1.15) rotate(180deg); }
+}
+
+@keyframes merkabah-orbit {
+  from { transform: rotate(0deg) translateX(8px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(8px) rotate(-360deg); }
+}
+
+.merkabah-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.merkabah-spin-slow {
+  animation: merkabah-spin 18s linear infinite, merkabah-pulse 4s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, filter;
+}
+
+.merkabah-aura-ring {
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(37, 99, 235, 0.25) 0%,
+    rgba(56, 189, 248, 0.15) 35%,
+    transparent 70%
+  );
+  animation: merkabah-aura 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.merkabah-aura-ring-2 {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.18) 25%,
+    transparent 50%,
+    rgba(37, 99, 235, 0.18) 75%,
+    transparent 100%
+  );
+  animation: merkabah-spin-reverse 24s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(8px);
+}
+
+.merkabah-img {
+  position: relative;
+  z-index: 1;
+}
+
 /* Shopify Product Image Loading Fix */
 img.product-media,
 img[src*="cdn.shopify.com"] {

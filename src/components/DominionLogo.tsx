@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import merkabahImg from "@/assets/merkabah-v2.png";
+import merkabahImg from "@/assets/merkabah-premium.png";
 
 interface DominionLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -27,21 +27,25 @@ export function DominionLogo({
   const logoContent = (
     <div
       className={cn(
-        "flex items-center gap-3 transition-transform duration-200 hover:scale-105",
+        "flex items-center gap-3 transition-transform duration-300 hover:scale-110",
         linkTo && "cursor-pointer",
         className
       )}
     >
-      <img
-        src={merkabahImg}
-        alt="Dominion Revenue OS"
-        className={cn(
-          sizeClasses[size],
-          "object-contain animate-[spin_12s_linear_infinite] drop-shadow-[0_0_12px_rgba(37,99,235,0.5)]",
-          animated && "drop-shadow-[0_0_20px_rgba(37,99,235,0.8)]"
-        )}
-        loading="eager"
-      />
+      <div className={cn("merkabah-container", sizeClasses[size])}>
+        <div className="merkabah-aura-ring-2" />
+        <div className="merkabah-aura-ring" />
+        <img
+          src={merkabahImg}
+          alt="Dominion Revenue OS — Sacred Merkabah"
+          className={cn(
+            "merkabah-img merkabah-spin-slow object-contain w-full h-full"
+          )}
+          loading="eager"
+          width={1024}
+          height={1024}
+        />
+      </div>
       {showText && (
         <div className="flex flex-col">
           <span className="font-bold text-lg tracking-tight text-foreground">
@@ -71,20 +75,48 @@ export const AuraOmegaLogo = DominionLogo;
 
 export function DominionLoading() {
   return (
-    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-6 z-50">
-      <img
-        src={merkabahImg}
-        alt="Dominion Revenue OS"
-        className="h-20 md:h-28 w-auto object-contain animate-[spin_8s_linear_infinite] drop-shadow-[0_0_24px_rgba(37,99,235,0.7)]"
-        loading="eager"
-      />
-      <div className="flex flex-col items-center gap-2">
-        <span className="text-xl font-bold tracking-tight">DOMINION</span>
-        <span className="text-sm text-muted-foreground">Loading Revenue OS...</span>
+    <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-8 z-50 overflow-hidden">
+      {/* Ambient cosmic background */}
+      <div className="absolute inset-0 opacity-40 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(37,99,235,0.25) 0%, transparent 60%)",
+          }}
+        />
       </div>
-      <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-blue-600 to-cyan-400 animate-[shimmer_1.5s_infinite]" 
-             style={{ width: '30%', animation: 'loading 1.5s ease-in-out infinite' }} />
+
+      <div className="merkabah-container h-32 w-32 md:h-44 md:w-44">
+        <div className="merkabah-aura-ring-2" />
+        <div className="merkabah-aura-ring" />
+        <img
+          src={merkabahImg}
+          alt="Dominion Revenue OS"
+          className="merkabah-img merkabah-spin-slow object-contain w-full h-full"
+          loading="eager"
+          width={1024}
+          height={1024}
+        />
+      </div>
+
+      <div className="flex flex-col items-center gap-2 relative z-10">
+        <span className="text-2xl font-bold tracking-[0.3em] bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 bg-clip-text text-transparent">
+          DOMINION
+        </span>
+        <span className="text-xs text-muted-foreground uppercase tracking-[0.4em]">
+          Revenue OS Awakening...
+        </span>
+      </div>
+
+      <div className="w-56 h-1 bg-muted/30 rounded-full overflow-hidden relative z-10">
+        <div
+          className="h-full bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600 rounded-full"
+          style={{
+            width: "40%",
+            animation: "merkabah-spin 1.8s ease-in-out infinite",
+          }}
+        />
       </div>
     </div>
   );
@@ -95,14 +127,21 @@ export const AuraOmegaLoading = DominionLoading;
 export function DominionFooterLogo() {
   return (
     <div className="flex items-center gap-2">
-      <img
-        src={merkabahImg}
-        alt="Dominion Revenue OS"
-        className="h-6 w-6 object-contain animate-[spin_14s_linear_infinite] opacity-80"
-        loading="lazy"
-      />
+      <div className="merkabah-container h-7 w-7">
+        <img
+          src={merkabahImg}
+          alt="Dominion Revenue OS"
+          className="merkabah-img merkabah-spin-slow object-contain w-full h-full opacity-90"
+          loading="lazy"
+          width={1024}
+          height={1024}
+        />
+      </div>
       <span className="text-xs text-muted-foreground">
-        Powered by <span className="font-semibold text-foreground">DOMINION</span>
+        Powered by{" "}
+        <span className="font-semibold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+          DOMINION
+        </span>
       </span>
     </div>
   );
