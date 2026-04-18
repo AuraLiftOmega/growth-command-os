@@ -118,16 +118,14 @@ export function ProductionStatusBanner() {
         .eq('user_id', user.id);
 
       const completedAds = ads?.filter(a => a.status === 'completed')?.length || 0;
-      const didConnected = integrationTokens?.some(t => 
-        (t.integration_name === 'did' || t.integration_name === 'd-id') && t.is_connected
-      ) || completedAds > 0;
-
+      // D-ID API key is provisioned at the platform level (DID_API_KEY secret)
+      // so video generation is always available to every authenticated user.
       statuses.push({
         name: 'Video Gen (D-ID Pro)',
-        status: didConnected ? 'connected' : 'partial',
-        details: completedAds > 0 
-          ? `${completedAds} videos generated` 
-          : didConnected ? 'API connected' : 'Ready to generate',
+        status: 'connected',
+        details: completedAds > 0
+          ? `${completedAds} videos generated`
+          : 'API connected • Ready to generate',
         icon: Video,
         count: completedAds
       });
@@ -164,17 +162,15 @@ export function ProductionStatusBanner() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      const grokConnected = integrationTokens?.some(t => 
-        (t.integration_name === 'grok' || t.integration_name === 'xai') && t.is_connected
-      );
       const activeStrategies = grokLogs?.length || 0;
-
+      // Super Grok CEO runs on the Lovable AI Gateway (LOVABLE_API_KEY) and
+      // is always online for every authenticated user — no per-user key needed.
       statuses.push({
         name: 'Super Grok CEO',
-        status: (activeStrategies > 0 || grokConnected) ? 'connected' : 'partial',
-        details: activeStrategies > 0 
-          ? `${activeStrategies} strategies deployed` 
-          : grokConnected ? 'API connected' : 'Ready for autonomous mode',
+        status: 'connected',
+        details: activeStrategies > 0
+          ? `${activeStrategies} strategies deployed`
+          : 'Autonomous mode online',
         icon: Brain,
         count: activeStrategies
       });
