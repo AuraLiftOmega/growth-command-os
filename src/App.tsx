@@ -82,8 +82,8 @@ const AppRoutes = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/product/:handle" element={<LazyWrap><Product /></LazyWrap>} />
 
-      {/* Core dashboard — all tabs live here */}
-      <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      {/* Core dashboard — admin only. Customers can never reach this. */}
+      <Route path="/dashboard/*" element={<AdminRoute><Dashboard /></AdminRoute>} />
 
       {/* OAuth & callbacks */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />

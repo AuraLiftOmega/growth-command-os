@@ -286,6 +286,54 @@ serve(async (req: Request) => {
       }
     }
 
+    // ===== AUTO-FULFILL VIA CJ DROPSHIPPING =====
+    // Only fire when Shopify reports the order as paid.
+    let cjFulfillment: Record<string, unknown> | null = null;
+    if (order.financial_status === 'paid') {
+      try {
+        const shipping = (order as unknown as { shipping_address?: Record<string, string> }).shipping_address;
+        const cjPayload = {
+          action: 'create_order',
+          shopify_order_id: String(order.id),
+          customer_name: shipping?.name || order.customer?.email || order.email,
+          customer_email: order.email,
+          shipping_address: shipping
+            ? {
+                name: shipping.name,
+                address: [shipping.address1, shipping.address2].filter(Boolean).join(' '),
+                city: shipping.city,
+                province: shipping.province_code || shipping.province,
+                country_code: shipping.country_code,
+                zip: shipping.zip,
+                phone: shipping.phone,
+              }
+            : undefined,
+          items: order.line_items.map((li) => ({
+            variant_id: li.variant_id,
+            product_name: li.title,
+            quantity: li.quantity,
+          })),
+        };
+
+        const cjResp = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/cj-order-fulfill`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify(cjPayload),
+          }
+        );
+        cjFulfillment = await cjResp.json().catch(() => ({ ok: false }));
+        console.log('CJ auto-fulfill response:', cjFulfillment);
+      } catch (cjErr) {
+        console.error('CJ auto-fulfill failed (non-blocking):', cjErr);
+        cjFulfillment = { error: cjErr instanceof Error ? cjErr.message : String(cjErr) };
+      }
+    }
+
     console.log('Webhook processed successfully:', { eventsCreated: eventsCreated.length });
 
     return new Response(
@@ -295,6 +343,7 @@ serve(async (req: Request) => {
         order_id: order.id,
         total_revenue: parseFloat(order.total_price),
         attribution,
+        cj_fulfillment: cjFulfillment,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
