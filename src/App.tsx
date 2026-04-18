@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { isSuperAdmin } from "@/config/admin";
 import { useCartSync } from "@/hooks/useCartSync";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -39,18 +40,8 @@ const LazyWrap = ({ children }: { children: React.ReactNode }) => (
   }>{children}</React.Suspense>
 );
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/auth" replace />;
-  return <>{children}</>;
-};
+// ProtectedRoute removed — admin areas use AdminRoute, customer areas are public.
+
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -63,8 +54,7 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   }
   if (user) {
     // Super-admins go to the cockpit; everyone else goes to the storefront.
-    const isAdmin = require("@/config/admin").isSuperAdmin(user.email);
-    return <Navigate to={isAdmin ? "/dashboard" : "/store"} replace />;
+    return <Navigate to={isSuperAdmin(user.email) ? "/dashboard" : "/store"} replace />;
   }
   return <>{children}</>;
 };
