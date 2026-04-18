@@ -247,7 +247,8 @@ ${loop_type === "autonomous_hourly" ? "AUTONOMOUS HOURLY LOOP — Execute optimi
 ${autonomous_mode ? "AUTONOMOUS MODE ACTIVE — Execute immediately. Deploy agents, generate ads, post content, source affiliates." : ""}`;
     }
 
-    const XAI_API_KEY = Deno.env.get("XAI_API_KEY") || Deno.env.get("XAI_GROK_API_KEY");
+    // Prefer XAI_GROK_API_KEY (newer), fall back to XAI_API_KEY
+    const XAI_API_KEY = Deno.env.get("XAI_GROK_API_KEY") || Deno.env.get("XAI_API_KEY");
     const xaiModel = toXaiModel(selected_model || "grok-4");
     const useXai = Boolean(XAI_API_KEY && xaiModel);
     const lovableModel = toLovableModel(selected_model || "grok-4");
