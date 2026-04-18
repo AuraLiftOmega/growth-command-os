@@ -170,6 +170,17 @@ function toLovableModel(selected: string): string {
   return map[selected] || "google/gemini-3-flash-preview";
 }
 
+// Map a selected model to a real xAI Grok model when XAI_API_KEY is configured
+function toXaiModel(selected: string): string | null {
+  const xaiMap: Record<string, string> = {
+    "grok-4": "grok-4-latest",
+    "grok-4-deep": "grok-4-latest",
+    "grok-3": "grok-3",
+    "grok-3-mini": "grok-3-mini",
+  };
+  return xaiMap[selected] || null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -236,21 +247,29 @@ ${loop_type === "autonomous_hourly" ? "AUTONOMOUS HOURLY LOOP — Execute optimi
 ${autonomous_mode ? "AUTONOMOUS MODE ACTIVE — Execute immediately. Deploy agents, generate ads, post content, source affiliates." : ""}`;
     }
 
+    const XAI_API_KEY = Deno.env.get("XAI_API_KEY") || Deno.env.get("XAI_GROK_API_KEY");
+    const xaiModel = toXaiModel(selected_model || "grok-4");
+    const useXai = Boolean(XAI_API_KEY && xaiModel);
     const lovableModel = toLovableModel(selected_model || "grok-4");
-    console.log(`[Super Grok CEO] Using model: ${lovableModel} for query: ${query.substring(0, 80)}`);
+    const activeModel = useXai ? xaiModel! : lovableModel;
+    const endpoint = useXai
+      ? "https://api.x.ai/v1/chat/completions"
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const authKey = useXai ? XAI_API_KEY! : LOVABLE_API_KEY;
+    console.log(`[Super Grok CEO] Provider=${useXai ? "xAI" : "Lovable"} model=${activeModel} query=${query.substring(0, 80)}`);
 
     let grokDecision;
-    let modelUsed = lovableModel;
+    let modelUsed = activeModel;
 
     try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${authKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: lovableModel,
+          model: activeModel,
           messages: [
             { role: "system", content: SUPER_GROK_SYSTEM_PROMPT },
             { role: "user", content: contextPrompt },
