@@ -60,9 +60,28 @@ export interface ShopifyProduct {
   };
 }
 
-// ─── Storefront API helper ───
+// ─── Storefront API helper (via edge function proxy for fresh server-side token) ───
 
 async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
+  // Use edge function proxy — it reads SHOPIFY_STOREFRONT_ACCESS_TOKEN from secrets
+  // so we always have a fresh, server-managed token even if the hardcoded one rotates.
+  try {
+    const { data, error } = await supabase.functions.invoke('storefront-proxy', {
+      body: { query, variables },
+    });
+    if (!error && data) {
+      if (data.error) throw new Error(data.error);
+      if (data.errors) {
+        throw new Error(`Shopify error: ${data.errors.map((e: any) => e.message).join(', ')}`);
+      }
+      return data;
+    }
+    if (error) console.warn('Storefront proxy error, falling back to direct:', error);
+  } catch (e) {
+    console.warn('Storefront proxy unavailable, falling back to direct:', e);
+  }
+
+  // Fallback: direct browser call
   const response = await fetch(SHOPIFY_STOREFRONT_URL, {
     method: 'POST',
     headers: {
