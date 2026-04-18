@@ -66,6 +66,10 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Product = React.lazy(() => import("./pages/Product"));
+const Shipping = React.lazy(() => import("./pages/policies/Shipping"));
+const Refund = React.lazy(() => import("./pages/policies/Refund"));
+const Terms = React.lazy(() => import("./pages/policies/Terms"));
+const Privacy = React.lazy(() => import("./pages/policies/Privacy"));
 
 const AppRoutes = () => {
   useCartSync();
@@ -81,6 +85,10 @@ const AppRoutes = () => {
       <Route path="/collections" element={<Collections />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/product/:handle" element={<LazyWrap><Product /></LazyWrap>} />
+      <Route path="/shipping" element={<LazyWrap><Shipping /></LazyWrap>} />
+      <Route path="/refund" element={<LazyWrap><Refund /></LazyWrap>} />
+      <Route path="/terms" element={<LazyWrap><Terms /></LazyWrap>} />
+      <Route path="/privacy" element={<LazyWrap><Privacy /></LazyWrap>} />
 
       {/* Core dashboard — admin only. Customers can never reach this. */}
       <Route path="/dashboard/*" element={<AdminRoute><Dashboard /></AdminRoute>} />
