@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { isSuperAdmin } from "@/config/admin";
 import { useCartSync } from "@/hooks/useCartSync";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -39,18 +40,8 @@ const LazyWrap = ({ children }: { children: React.ReactNode }) => (
   }>{children}</React.Suspense>
 );
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/auth" replace />;
-  return <>{children}</>;
-};
+// ProtectedRoute removed — admin areas use AdminRoute, customer areas are public.
+
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -61,11 +52,18 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) {
+    // Super-admins go to the cockpit; everyone else goes to the storefront.
+    return <Navigate to={isSuperAdmin(user.email) ? "/dashboard" : "/store"} replace />;
+  }
   return <>{children}</>;
 };
 
 const Product = React.lazy(() => import("./pages/Product"));
+const Shipping = React.lazy(() => import("./pages/policies/Shipping"));
+const Refund = React.lazy(() => import("./pages/policies/Refund"));
+const Terms = React.lazy(() => import("./pages/policies/Terms"));
+const Privacy = React.lazy(() => import("./pages/policies/Privacy"));
 
 const AppRoutes = () => {
   useCartSync();
@@ -81,9 +79,13 @@ const AppRoutes = () => {
       <Route path="/collections" element={<Collections />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/product/:handle" element={<LazyWrap><Product /></LazyWrap>} />
+      <Route path="/shipping" element={<LazyWrap><Shipping /></LazyWrap>} />
+      <Route path="/refund" element={<LazyWrap><Refund /></LazyWrap>} />
+      <Route path="/terms" element={<LazyWrap><Terms /></LazyWrap>} />
+      <Route path="/privacy" element={<LazyWrap><Privacy /></LazyWrap>} />
 
-      {/* Core dashboard — all tabs live here */}
-      <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      {/* Core dashboard — admin only. Customers can never reach this. */}
+      <Route path="/dashboard/*" element={<AdminRoute><Dashboard /></AdminRoute>} />
 
       {/* OAuth & callbacks */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
