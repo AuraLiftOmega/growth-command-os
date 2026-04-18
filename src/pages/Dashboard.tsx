@@ -10,6 +10,7 @@ import { SettingsPage } from "@/components/dashboard/SettingsPage";
 import { LiveProfitEngine } from "@/components/autonomous";
 import { SuperGrokCEODashboard } from "@/components/dashboard/SuperGrokCEODashboard";
 import { CJDropshippingDashboard } from "@/components/dashboard/CJDropshippingDashboard";
+import { MissionControl } from "@/components/dashboard/MissionControl";
 import { Loader2 } from "lucide-react";
 
 const RevenueEngine = lazy(() => import("@/pages/RevenueEngine"));
@@ -25,7 +26,9 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <Routes>
-        <Route index element={<DashboardHome />} />
+        <Route index element={<MissionControl />} />
+        <Route path="home" element={<DashboardHome />} />
+        <Route path="mission-control" element={<MissionControl />} />
         <Route path="products" element={<ShopifySyncPanel />} />
         <Route path="video-ad-studio" element={<VideoAdStudioPage />} />
         <Route path="social-channels/*" element={<SocialChannelsDashboard />} />
