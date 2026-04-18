@@ -61,7 +61,11 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) {
+    // Super-admins go to the cockpit; everyone else goes to the storefront.
+    const isAdmin = require("@/config/admin").isSuperAdmin(user.email);
+    return <Navigate to={isAdmin ? "/dashboard" : "/store"} replace />;
+  }
   return <>{children}</>;
 };
 
