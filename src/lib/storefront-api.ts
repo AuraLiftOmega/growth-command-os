@@ -8,11 +8,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const SHOPIFY_API_VERSION = '2025-07';
-const SHOPIFY_STORE_PERMANENT_DOMAIN = 'lovable-project-7fb70.myshopify.com';
-const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const SHOPIFY_STOREFRONT_TOKEN = 'd9830af538b34d418e1167726cf1f67a';
-
 export interface ShopifyProduct {
   node: {
     id: string;
@@ -60,170 +55,47 @@ export interface ShopifyProduct {
   };
 }
 
-// ─── Storefront API helper (via edge function proxy for fresh server-side token) ───
+// ─── Product reads via admin-backed edge functions ───
 
-async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
-  // Use edge function proxy — it reads SHOPIFY_STOREFRONT_ACCESS_TOKEN from secrets
-  // so we always have a fresh, server-managed token even if the hardcoded one rotates.
-  try {
-    const { data, error } = await supabase.functions.invoke('storefront-proxy', {
-      body: { query, variables },
-    });
-    if (!error && data) {
-      if (data.error) throw new Error(data.error);
-      if (data.errors) {
-        throw new Error(`Shopify error: ${data.errors.map((e: any) => e.message).join(', ')}`);
-      }
-      return data;
-    }
-    if (error) console.warn('Storefront proxy error, falling back to direct:', error);
-  } catch (e) {
-    console.warn('Storefront proxy unavailable, falling back to direct:', e);
-  }
-
-  // Fallback: direct browser call
-  const response = await fetch(SHOPIFY_STOREFRONT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-    },
-    body: JSON.stringify({ query, variables }),
+async function invokeProductList(options: { first?: number; query?: string | null }) {
+  const { data, error } = await supabase.functions.invoke('fetch-shopify-products', {
+    body: { limit: options.first ?? 20, query: options.query ?? undefined },
   });
 
-  if (response.status === 402) {
-    toast.error("Shopify: Payment required", {
-      description: "Your Shopify store needs an active billing plan to serve API requests.",
-    });
-    return null;
+  if (error) {
+    throw new Error(error.message || 'Failed to load products');
   }
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  if (data.errors) {
-    throw new Error(`Shopify error: ${data.errors.map((e: any) => e.message).join(', ')}`);
+  if (data?.error) {
+    throw new Error(data.error);
   }
 
   return data;
 }
 
-// ─── Product Fetching (direct Storefront API) ───
+async function invokeSingleProduct(handle: string) {
+  const { data, error } = await supabase.functions.invoke('fetch-shopify-product', {
+    body: { handle },
+  });
 
-const PRODUCTS_QUERY = `
-  query GetProducts($first: Int!, $query: String) {
-    products(first: $first, query: $query) {
-      edges {
-        node {
-          id
-          title
-          description
-          handle
-          vendor
-          productType
-          tags
-          priceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
-          }
-          images(first: 5) {
-            edges {
-              node {
-                url
-                altText
-              }
-            }
-          }
-          variants(first: 10) {
-            edges {
-              node {
-                id
-                title
-                price {
-                  amount
-                  currencyCode
-                }
-                availableForSale
-                selectedOptions {
-                  name
-                  value
-                }
-              }
-            }
-          }
-          options {
-            name
-            values
-          }
-        }
-      }
-    }
+  if (error) {
+    throw new Error(error.message || 'Failed to load product');
   }
-`;
 
-const PRODUCT_BY_HANDLE_QUERY = `
-  query GetProductByHandle($handle: String!) {
-    product(handle: $handle) {
-      id
-      title
-      description
-      descriptionHtml
-      handle
-      vendor
-      productType
-      tags
-      priceRange {
-        minVariantPrice {
-          amount
-          currencyCode
-        }
-      }
-      images(first: 10) {
-        edges {
-          node {
-            url
-            altText
-          }
-        }
-      }
-      variants(first: 20) {
-        edges {
-          node {
-            id
-            title
-            price {
-              amount
-              currencyCode
-            }
-            availableForSale
-            selectedOptions {
-              name
-              value
-            }
-          }
-        }
-      }
-      options {
-        name
-        values
-      }
-    }
+  if (data?.error) {
+    throw new Error(data.error);
   }
-`;
+
+  return data;
+}
+
+// ─── Product Fetching ───
 
 export async function fetchProducts(options: { first?: number; query?: string } = {}): Promise<ShopifyProduct[]> {
   const { first = 20, query } = options;
   try {
-    const data = await storefrontApiRequest(PRODUCTS_QUERY, { first, query: query || null });
-    if (!data) return [];
-    
-    const edges = data.data?.products?.edges || [];
-    return edges as ShopifyProduct[];
+    const data = await invokeProductList({ first, query: query || null });
+    return (data?.products || []) as ShopifyProduct[];
   } catch (err) {
     console.error('Failed to fetch products:', err);
     return [];
@@ -232,10 +104,10 @@ export async function fetchProducts(options: { first?: number; query?: string } 
 
 export async function fetchProductByHandle(handle: string): Promise<ShopifyProduct | null> {
   try {
-    const data = await storefrontApiRequest(PRODUCT_BY_HANDLE_QUERY, { handle });
-    if (!data?.data?.product) return null;
-    
-    return { node: data.data.product } as ShopifyProduct;
+    const data = await invokeSingleProduct(handle);
+    if (!data?.product) return null;
+
+    return { node: data.product } as ShopifyProduct;
   } catch (err) {
     console.error('Failed to fetch product:', err);
     return null;
