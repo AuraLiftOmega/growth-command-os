@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://phpektarjfbgnuyqjnmj.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "dominion-revenue-os",
+      "version": "0.1.0",
+      "title": "Dominion Revenue OS"
+    },
+    "tools": [
+      {
+        "name": "list_products",
+        "title": "List products",
+        "description": "List synced Shopify products in the Dominion Revenue OS catalog, optionally filtered by a title/handle search term.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "description": "Optional text to match against product title or handle."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum products to return (default 20, max 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_orders",
+        "title": "List orders",
+        "description": "List recent Shopify orders with totals, financial status, and fulfillment status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "Maximum orders to return (default 20, max 100)."
+            },
+            "financial_status": {
+              "type": "string",
+              "description": "Optional filter, e.g. 'paid' or 'pending'."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "revenue_summary",
+        "title": "Revenue summary",
+        "description": "Summarize order revenue over a recent window: total revenue, order count, and average order value.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "description": "Look-back window in days (default 30, max 365)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_abandoned_carts",
+        "title": "List abandoned carts",
+        "description": "List abandoned carts awaiting recovery, with cart totals and contact details.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "include_recovered": {
+              "type": "boolean",
+              "description": "Include already-recovered carts (default false)."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum carts to return (default 20, max 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_creatives",
+        "title": "List ad creatives",
+        "description": "List ad creatives with performance metrics (ROAS, spend, revenue, status) to review what is winning or losing.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "description": "Optional status filter, e.g. 'published', 'live', or 'killed'."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Maximum creatives to return (default 20, max 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_decision",
+        "title": "Log an AI decision",
+        "description": "Record a decision or action in the Dominion Revenue OS AI decision log for the signed-in operator.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "decision_type": {
+              "type": "string",
+              "description": "Short category, e.g. 'pricing', 'ad_scaling', 'inventory'."
+            },
+            "action_taken": {
+              "type": "string",
+              "description": "What was decided or done."
+            },
+            "reasoning": {
+              "type": "string",
+              "description": "Why this decision was made."
+            },
+            "confidence": {
+              "type": "number",
+              "description": "Confidence between 0 and 1."
+            }
+          },
+          "required": [
+            "decision_type",
+            "action_taken"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
