@@ -69,13 +69,13 @@ const Auth = () => {
         });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate(afterAuth);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}${afterAuth}`,
           },
         });
         if (error) {
@@ -86,7 +86,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Account created! Welcome to AURAOMEGA.");
-          navigate("/dashboard");
+          navigate(afterAuth);
         }
       }
     } catch (error: any) {
