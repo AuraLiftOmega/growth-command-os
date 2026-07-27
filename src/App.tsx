@@ -60,10 +60,12 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const Product = React.lazy(() => import("./pages/Product"));
+const OAuthConsent = React.lazy(() => import("./pages/OAuthConsent"));
 const Shipping = React.lazy(() => import("./pages/policies/Shipping"));
 const Refund = React.lazy(() => import("./pages/policies/Refund"));
 const Terms = React.lazy(() => import("./pages/policies/Terms"));
 const Privacy = React.lazy(() => import("./pages/policies/Privacy"));
+
 
 const AppRoutes = () => {
   useCartSync();
@@ -90,7 +92,9 @@ const AppRoutes = () => {
       {/* OAuth & callbacks */}
       <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route path="/oauth/shopify-callback" element={<ShopifyCallback />} />
+      <Route path="/.lovable/oauth/consent" element={<LazyWrap><OAuthConsent /></LazyWrap>} />
       <Route path="/invite/:token" element={<AcceptInvite />} />
+
 
       {/* Billing */}
       <Route path="/billing/success" element={<BillingSuccess />} />
