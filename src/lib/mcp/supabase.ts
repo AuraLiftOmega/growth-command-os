@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import type { ToolContext } from "@lovable.dev/mcp-js";
 
+// Runs inside the generated Deno edge function, where `process.env` is provided.
+declare const process: { env: Record<string, string | undefined> };
+
+
 /** Supabase client scoped to the signed-in MCP caller, so RLS runs as that user. */
 export function supabaseForUser(ctx: ToolContext) {
   return createClient(
