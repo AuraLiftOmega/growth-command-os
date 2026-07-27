@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { DominionLogo } from "@/components/DominionLogo";
@@ -13,6 +13,12 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  // Same-origin relative path only, so a crafted ?next= can't redirect off-site.
+  const rawNext = params.get("next") ?? "";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
+  const afterAuth = next || "/dashboard";
+
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,13 +69,13 @@ const Auth = () => {
         });
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate(afterAuth);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            emailRedirectTo: `${window.location.origin}${afterAuth}`,
           },
         });
         if (error) {
@@ -80,7 +86,7 @@ const Auth = () => {
           }
         } else {
           toast.success("Account created! Welcome to AURAOMEGA.");
-          navigate("/dashboard");
+          navigate(afterAuth);
         }
       }
     } catch (error: any) {
